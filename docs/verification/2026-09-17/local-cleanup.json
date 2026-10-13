@@ -1,0 +1,35 @@
+{
+  "manifest": {
+    "format": 1,
+    "root": "/Users/mima0000/Documents/ChatGPT/AI自动获客系统",
+    "createdAt": 1789641988.056113,
+    "files": [
+      {
+        "path": "outputs/zhixu-workbuddy-connector.zip",
+        "bytes": 5139,
+        "sha256": "b5024a4a7f4e6a6e1dc4b437ffe44e73fa7db0e8e6c7a4abc72711c1cc4d569d"
+      }
+    ],
+    "bytes": 5139
+  },
+  "result": {
+    "removed": [
+      {
+        "path": "outputs/zhixu-workbuddy-connector.zip",
+        "bytes": 5139,
+        "sha256": "b5024a4a7f4e6a6e1dc4b437ffe44e73fa7db0e8e6c7a4abc72711c1cc4d569d"
+      }
+    ],
+    "skipped": [],
+    "reclaimedBytes": 5139
+  },
+  "protected": [
+    "dist (current local build)",
+    "source",
+    "customer data",
+    "browser profiles",
+    "unregistered rollback dependencies"
+  ],
+  "cloud": "pending: SSH public-key authentication rejected",
+  "otherComputers": "pending until connected"
+}

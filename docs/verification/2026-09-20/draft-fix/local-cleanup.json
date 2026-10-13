@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "path": "outputs/connectors-final-20260920/matrix-cloud-windows-connector.zip",
+      "bytes": 38301903,
+      "sha256": "3d340a8dcc0a209e1a15a1adcf2006c129f3da9c1ac63a048cc216de6a19c9e6"
+    },
+    {
+      "path": "outputs/connectors-final-20260920/matrix-cloud-mac-intel-connector.zip",
+      "bytes": 43973014,
+      "sha256": "c9880acb60d094fc3b6b077dc2b6565e3790522d54ad655be895701b8d1a4bf0"
+    },
+    {
+      "path": "outputs/connectors-final-20260920/matrix-cloud-mac-apple-silicon-connector.zip",
+      "bytes": 42640047,
+      "sha256": "d83b13d52d2936f42e93ce4b4b57a3d41bb0753ef01d930cdc213d53f6c341c0"
+    },
+    {
+      "path": "/tmp/matrix-draft-fix-fc81bb5.tar.gz",
+      "bytes": 1007632,
+      "sha256": "b31177efdc0bd3ae718a98183268d423a3c30c924063e2bff76779d50af1bf9a"
+    },
+    {
+      "path": "/tmp/matrix-draft-fix-fc81bb5.bundle",
+      "bytes": 5756,
+      "sha256": "e6c936ca38aab83901092024900d993be1f8c979c5905e9b9e0448e980c2d198"
+    }
+  ],
+  "removedFileBytes": 125928352
+}

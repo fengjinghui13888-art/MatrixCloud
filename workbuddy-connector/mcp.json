@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "zhixu-xhs-operations": {
+      "command": "pnpm",
+      "args": ["mcp:workbuddy"],
+      "env": { "ZHIXU_SERVICE_TOKEN": "${ZHIXU_SERVICE_TOKEN}" },
+      "runtime": { "type": "node", "version": "22.14.0" },
+      "timeout": 30000
+    }
+  }
+}

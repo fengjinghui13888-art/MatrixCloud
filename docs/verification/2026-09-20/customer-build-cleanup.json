@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "path": "/Users/mima0000/Documents/ChatGPT/AI自动获客系统/.worktrees/reliability/outputs/connectors-20260920/matrix-cloud-mac-apple-silicon-connector.zip",
+      "bytes": 37300742,
+      "sha256": "2ea0b608ad1ce29fa03e934343cae8c847b01832c95f15a138f44eb1f5e550c8"
+    },
+    {
+      "path": "/Users/mima0000/Documents/ChatGPT/AI自动获客系统/.worktrees/reliability/outputs/connectors-20260920/matrix-cloud-mac-intel-connector.zip",
+      "bytes": 38826642,
+      "sha256": "251a482a5b1470854424cc78c5350c6b65c6211dbfb050bfcc51e787b21132e6"
+    },
+    {
+      "path": "/Users/mima0000/Documents/ChatGPT/AI自动获客系统/.worktrees/reliability/outputs/connectors-20260920/matrix-cloud-windows-connector.zip",
+      "bytes": 35271624,
+      "sha256": "646c91687f0f472981c61ed5322bbc043af9b99fe709f64a068c1efc5ee44da7"
+    },
+    {
+      "path": "/tmp/matrix-node-v24.21.0-win-x64.zip",
+      "bytes": 37618919,
+      "sha256": "158f7685b44de51f6c0df1d153526cbcd3e1bc739a8dfc607721cef75de9e541"
+    },
+    {
+      "path": "/tmp/matrix-node-v24.21.0-darwin-x64.tar.gz",
+      "bytes": 54203979,
+      "sha256": "1462cb3b3046b815cf8ea436d3da450ec1a9f11dac7e5a46b0ada5305d7e8097"
+    },
+    {
+      "path": "/tmp/matrix-node-v24.21.0-darwin-arm64.tar.gz",
+      "bytes": 52909993,
+      "sha256": "bed7eea5325e1108f32ce5228ddd6a5f0f08a499ee42aa7442aea583702f6057"
+    }
+  ],
+  "directories": [
+    {
+      "path": "/tmp/matrix-connector-build-20260920",
+      "fileBytes": 519563165,
+      "reason": "task-created staging copy; original runtime inputs retained"
+    }
+  ],
+  "reclaimedFileBytes": 775695064
+}

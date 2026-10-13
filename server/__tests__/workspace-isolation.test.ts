@@ -1,0 +1,33 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import request from 'supertest';
+import { createGreyApp } from '../grey-app';
+import { createStore } from '../store';
+
+test('new accounts keep operations, creation tasks and profiles separate across restart and switching',async()=>{
+  const dir=mkdtempSync(join(tmpdir(),'isolation-'));const token='fixture-token-with-more-than-32-characters';
+  const boot=()=>createGreyApp(createStore(join(dir,'ops.sqlite')),token,{authDataDir:dir,modelDataDir:dir,platformAdminUsername:'owner'});
+  let app=boot();const post=(path:string,cookie?:string)=>request(app).post('/api/'+path).set('Host','127.0.0.1').set('Origin','http://127.0.0.1').set('Cookie',cookie??'');
+  const owner=(await post('auth/setup').send({username:'owner',password:'fixture-password-123'})).headers['set-cookie'][0].split(';')[0];
+  const registered=await post('auth/register').send({username:'customer',password:'fixture-password-456'});
+  expect(registered.status).toBe(201);const customer=registered.headers['set-cookie'][0].split(';')[0];
+  const payload={topic:'Private owner task',sellingPoints:'',audience:'',style:'',imageCount:1,requestId:'fixture-creation-1'};
+  const task=await post('creation-tasks',owner).send(payload);expect(task.status).toBe(201);
+  expect((await request(app).get('/api/creation-tasks').set('Cookie',customer)).body).toEqual([]);
+  expect((await post('publish-tasks/'+task.body.id+'/cancel',customer).send({})).status).toBe(409);
+  const snapshot={account:{id:'owned',name:'Owner data',handle:'123',profile:'test',avatar:'',state:'connected',followers:0,lastSyncedAt:'2026-09-08T00:00:00Z'},notes:[],comments:[]};
+  expect((await post('import',owner).send(snapshot)).status).toBe(200);
+  expect((await request(app).get('/api/operations').set('Cookie',customer)).body.accounts).toEqual([]);
+  expect((await post('admin/templates',customer).send({})).status).toBe(403);
+  expect((await post('auth/profile',customer).send({displayName:'My profile'})).status).toBe(200);
+  expect((await request(app).post('/api/auth/profile').set('Cookie',customer).set('Origin','https://evil.test').send({displayName:'Changed'})).status).toBe(403);
+  app=boot();expect((await request(app).get('/api/auth/profile').set('Cookie',customer)).body.displayName).toBe('My profile');
+  expect((await request(app).get('/api/auth/profile').set('Cookie',owner)).body.displayName).toBe('owner');
+  expect((await request(app).get('/api/creation-tasks').set('Cookie',customer)).body).toEqual([]);
+  const switched=await post('auth/login',customer).send({username:'owner',password:'fixture-password-123'});
+  expect(switched.status).toBe(200);
+  expect((await request(app).get('/api/auth/session').set('Cookie',customer)).status).toBe(401);
+  const next=switched.headers['set-cookie'][0].split(';')[0];
+  expect((await request(app).get('/api/operations').set('Cookie',next)).body.accounts[0].name).toBe('Owner data');
+});

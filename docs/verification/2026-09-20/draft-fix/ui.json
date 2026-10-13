@@ -1,0 +1,23 @@
+{
+  "url": "http://127.0.0.1:4189/",
+  "title": "华科未来·矩阵云 · 账号矩阵运营台",
+  "viewports": [
+    "1440x1000",
+    "390x844"
+  ],
+  "errors": [],
+  "passed": [
+    "legacy recovery button",
+    "retry dispatched",
+    "updated task reflected",
+    "offline computer shown",
+    "account navigation",
+    "unsaved copy retained",
+    "no horizontal overflow"
+  ],
+  "screenshots": [
+    "/tmp/matrix-draft-desktop.png",
+    "/tmp/matrix-draft-mobile.png"
+  ],
+  "scope": "mock API; no platform actions"
+}

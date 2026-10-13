@@ -1,0 +1,33 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import request from 'supertest';
+import { createStore } from '../store';
+import { createGreyApp } from '../grey-app';
+
+test('publish queue persists, requires confirmation, and prevents duplicate execution',async()=>{
+  const dir=mkdtempSync(join(tmpdir(),'publish-queue-'));
+  const store=createStore(join(dir,'ops.sqlite'));
+  store.importSnapshot({account:{id:'a',name:'Fixture',handle:'a',avatar:'',profile:'test',state:'connected',followers:0,lastSyncedAt:new Date().toISOString()},notes:[],comments:[]});
+  const token='test-publish-token-with-more-than-32-chars';
+  const app=createGreyApp(store,token,{modelDataDir:dir});
+  const api=()=>request(app);
+  const payload={accountId:'a',title:'测试标题',body:'测试正文',media:['https://example.com/image.jpg'],delivery:'publish',requestId:'unique-request-1'};
+  expect((await api().post('/api/publish-tasks').set('Authorization','Bearer '+token).send(payload)).status).toBe(400);
+  const created=await api().post('/api/publish-tasks').set('Authorization','Bearer '+token).send({...payload,confirmPublish:true});
+  expect(created.status).toBe(201);
+  expect(created.body.status).toBe('queued');
+  const duplicate=await api().post('/api/publish-tasks').set('Authorization','Bearer '+token).send({...payload,confirmPublish:true});
+  expect(duplicate.body.id).toBe(created.body.id);
+  const call=async(name:string,args:object)=>api().post('/mcp').set('Authorization','Bearer '+token).set('Accept','application/json, text/event-stream').send({jsonrpc:'2.0',id:1,method:'tools/call',params:{name,arguments:args}});
+  const claim=await call('claim_xhs_publish_task',{taskId:created.body.id});
+  expect(claim.text).toContain('running');
+  expect((await call('claim_xhs_publish_task',{taskId:created.body.id})).text).toContain('isError');
+  expect((await call('complete_xhs_publish_task',{taskId:created.body.id,status:'published',message:'done'})).text).toContain('isError');
+  const failed=await call('complete_xhs_publish_task',{taskId:created.body.id,status:'failed',message:'测试浏览器不可用'});
+  expect(failed.text).toContain('failed');
+  const reopened=createGreyApp(store,token,{modelDataDir:dir});
+  const list=await request(reopened).get('/api/publish-tasks').set('Authorization','Bearer '+token);
+  expect(list.body).toHaveLength(1);
+  expect(list.body[0].status).toBe('failed');
+});

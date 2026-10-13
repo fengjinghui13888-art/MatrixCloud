@@ -1,0 +1,119 @@
+{
+  "generatedAt": "2026-09-20T05:21:50Z",
+  "policy": "Keep current service, one verified rollback, checks image, database images/data, maintenance keys/state, customer media, current and security rollback connector packages. Remove only stopped historical containers, unused matrix build images/cache, and two verified duplicate package artifacts.",
+  "protected": {
+    "currentImage": "sha256:9d0bb954237c258c54af7def9b2bc85e9430fc6fb52fb4dfaa03e09c59416e28",
+    "rollbackContainer": "matrix-cloud-before-20260920T044556824084Z",
+    "rollbackImage": "sha256:3e9e6f95989a8941bc0325f89ba005b76e64a75bddcdf788ccc388b9b37acd33",
+    "checksImage": "sha256:b6eb35fc66adc6db3560367e9f823d81456f03a066fcc90ea68634e09e80a400",
+    "customerData": "/home/ubuntu/matrix-cloud-data",
+    "maintenanceState": "/var/lib/matrix-maintenance"
+  },
+  "before": {
+    "disk": "Filesystem       1B-blocks        Used  Available Use% Mounted on\n/dev/vda2      42156257280 34886074368 5428322304  87% /",
+    "dockerSystemDf": "TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          17        12        1.795GB   1.493GB (83%)\nContainers      13        3         34.92MB   34.46MB (98%)\nLocal Volumes   3         1         96.74MB   29.92MB (30%)\nBuild Cache     174       0         3.374GB   3.374GB\n",
+    "duplicateDirs": {
+      "/home/ubuntu/matrix-cloud-releases/20260916-cross-device-v1": 639125666,
+      "/home/ubuntu/matrix-cloud-releases/delivery-3d2e5c2/previous-connector-packages": 222972061
+    }
+  },
+  "removed": {
+    "stoppedContainers": [
+      "matrix-cloud-before-20260917T030634089698Z",
+      "matrix-cloud-before-20260916T142452756934Z",
+      "matrix-cloud-before-20260916T130624942703Z",
+      "matrix-cloud-before-20260916T130049729417Z",
+      "matrix-cloud-before-20260916T111704605669Z",
+      "matrix-cloud-before-20260916T030622921186Z",
+      "matrix-cloud-before-20260915T152716366090Z",
+      "matrix-cloud-before-20260915T144846983884Z",
+      "matrix-cloud-before-20260915T115627219987Z"
+    ],
+    "images": [
+      {
+        "tag": "matrix-cloud:delivery-94151fc",
+        "id": "sha256:ffb92ebdd3a375ce8bb1d5c4164b2cc0fff5f9349e0a64c054ff6dbd49bfc6a6",
+        "size": "509MB"
+      },
+      {
+        "tag": "matrix-cloud:verified-maintenance-base",
+        "id": "sha256:ffb92ebdd3a375ce8bb1d5c4164b2cc0fff5f9349e0a64c054ff6dbd49bfc6a6",
+        "size": "509MB"
+      },
+      {
+        "tag": "matrix-cloud:20260916-device-routing-v1",
+        "id": "sha256:01700a80bc9188c43a6cf6d1a6e14e93285f9596574392fc1551469c9831b6cf",
+        "size": "508MB"
+      },
+      {
+        "tag": "matrix-cloud:20260916-websocket-fix-v2",
+        "id": "sha256:2551a6828986a328a93bbe2f5474d2d2634f3852a4d2b4deecc9e0b645ab4ed1",
+        "size": "508MB"
+      },
+      {
+        "tag": "matrix-cloud:20260916-websocket-fix-v1",
+        "id": "sha256:e37942561602d81f6ad2ede9b826b82b8f7dd7f73f5687f0e81ae882b9e24b28",
+        "size": "508MB"
+      },
+      {
+        "tag": "matrix-cloud:20260916-cross-device-v1",
+        "id": "sha256:7dc34d825e6f96a1224d77de199d3aa8e0bff52b531972181020b5457ce45482",
+        "size": "508MB"
+      },
+      {
+        "tag": "matrix-cloud:20260916-native-topics-v1",
+        "id": "sha256:353b3a2f7ebe0584c0aade5a6dba79607e40b9924b668da594cdfc8936e6f302",
+        "size": "682MB"
+      },
+      {
+        "tag": "matrix-cloud:20260915-topic-tags-v1",
+        "id": "sha256:00f08019ac27cff6746a4f82588bcb111b013615de7da948062401384728667e",
+        "size": "682MB"
+      },
+      {
+        "tag": "matrix-cloud:20260915-prompt-presets-v1",
+        "id": "sha256:ad95bfbbd05d78690083f5e9eb1f6bb493ceb0d2e5e13c7105099caa95cc6502",
+        "size": "682MB"
+      },
+      {
+        "tag": "matrix-cloud:20260915-template-thumbnails-v1",
+        "id": "sha256:12f0010a631d832e3ffc284592f66de02cedb0e9a35f6aa63003c65a2e880b98",
+        "size": "681MB"
+      },
+      {
+        "tag": "matrix-template-build:20260915",
+        "id": "sha256:357a5450cae27b8516f020a44aca98f8e833bb5014d171a0916b5a280d7a262c",
+        "size": "522MB"
+      },
+      {
+        "tag": "matrix-cloud:20260915-upload-compress-v1",
+        "id": "sha256:c582e6fb6b09c81fc286e81dba5bcfb4b60732871176c4f26a7229ed2ddf7a8b",
+        "size": "457MB"
+      },
+      {
+        "tag": "matrix-cloud:20260915-reference-recovery-v1",
+        "id": "sha256:889965cf771510bafe65aae87d105d726fbff57d1945beda530ab89d5f0a9652",
+        "size": "457MB"
+      }
+    ],
+    "duplicateDirs": [
+      {
+        "path": "/home/ubuntu/matrix-cloud-releases/20260916-cross-device-v1",
+        "bytes": 639125666
+      },
+      {
+        "path": "/home/ubuntu/matrix-cloud-releases/delivery-3d2e5c2/previous-connector-packages",
+        "bytes": 222972061
+      }
+    ],
+    "builderPruneOutput": "c6leb74yks5z19pzmy               \ttrue \t0B        \t44 minutes ago\nn748l7io7np7szu0frcofbxqy               \ttrue \t0B        \t44 minutes ago\njpilnqm2riv3ruv3de75t9wfg               \ttrue \t0B        \t4 days ago\n6til2kmplrdgbrkolqq6doi3j               \ttrue \t0B        \t2 days ago\nqgfansm1ux7ip6nb9zoy931zq               \ttrue \t0B        \t44 minutes ago\nwcg7i0amief27s9tdeyr8eza1               \ttrue \t0B        \t4 days ago\nnjgugfbpsvrj90h1pciphvnas               \ttrue \t0B        \t4 days ago\nz15vdufi8neo2h39pjoswface               \ttrue \t0B        \t44 minutes ago\n42nx0rgqvumercileny7jx66c               \ttrue \t0B        \t44 minutes ago\nh1sf5ipcb7o68yqgeajf2g02i               \ttrue \t0B        \t4 days ago\nv9dlnp4nx726mn9utuv86vm6f               \ttrue \t0B        \t44 minutes ago\ni37u48obt4u3mqu0lzxrboe0f               \ttrue \t0B        \t4 days ago\nm8lhm6b42krayga7gfh4n7pay               \ttrue \t0B        \t44 minutes ago\nsmurvhro9ibjz859td8gamytz               \ttrue \t0B        \t4 days ago\nvqo624ymp4sdgigh8q0ao239w               \ttrue \t0B        \t44 minutes ago\n6b1jumsr11qqbtux3av9rq1ph               \ttrue \t0B        \t4 days ago\nwd3x2vg4pwyfs2pqsr5osuw8n               \ttrue \t0B        \t44 minutes ago\nsk3pcinqjwix9hbjf7y9nqzxv               \ttrue \t0B        \t4 days ago\nopww07q0rtgyveewkxzwww5cp               \ttrue \t0B        \t44 minutes ago\nf6secrkl2wfmo0ukeoporfx0l               \ttrue \t0B        \t4 days ago\nkcvnlaj67aofq6qtpb09vdz6k               \ttrue \t0B        \t44 minutes ago\nk82tbaueqwzoypp26fbc3vto5               \ttrue \t0B        \t4 days ago\n3srja9e1s8luuhtj2kmvpqbt0               \ttrue \t0B        \t4 days ago\n11y2odfp0h2pa4gi7tcomldny               \ttrue \t0B        \t4 days ago\nvuwyoukhak364x4iskt28064i               \ttrue \t0B        \t44 minutes ago\nkgq5st5btpeoouta3m4hnxu8o               \ttrue \t0B        \t44 minutes ago\nn65x3ss5tixhxkm2gw48h0zuh               \ttrue \t0B        \t44 minutes ago\nsoev9t0pwz0xrnek7ey1fodpx               \ttrue \t0B        \t44 minutes ago\nTotal:\t4.408GB\n"
+  },
+  "after": {
+    "disk": "Filesystem       1B-blocks        Used   Available Use% Mounted on\n/dev/vda2      42156257280 29224759296 11089637376  73% /",
+    "dockerSystemDf": "TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          5         3         856.3MB   559.8MB (65%)\nContainers      4         3         915.3kB   456.8kB (49%)\nLocal Volumes   3         1         96.74MB   29.92MB (30%)\nBuild Cache     0         0         0B        0B\n",
+    "duplicateDirs": {
+      "/home/ubuntu/matrix-cloud-releases/20260916-cross-device-v1": 0,
+      "/home/ubuntu/matrix-cloud-releases/delivery-3d2e5c2/previous-connector-packages": 0
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "zhixu-xhs-operations": {
+      "type": "streamableHttp",
+      "url": "${ZHIXU_MCP_URL}",
+      "headers": { "Authorization": "Bearer ${ZHIXU_SERVICE_TOKEN}" },
+      "timeout": 30000
+    }
+  }
+}

@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: matrix
+      POSTGRES_PASSWORD: matrix-dev-only
+      POSTGRES_DB: matrix
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - matrix-postgres-dev:/var/lib/postgresql/data
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 4174
+      DATA_DIR: /app/work/grey
+      DATABASE_URL: postgresql://matrix:matrix-dev-only@postgres:5432/matrix
+      PUBLIC_ORIGIN: http://127.0.0.1:4174
+      MCP_REQUIRE_AUTH: "false"
+      MCP_SERVICE_TOKEN: local-development-only
+    ports:
+      - "127.0.0.1:4174:4174"
+    volumes:
+      - matrix-app-dev:/app/work
+volumes:
+  matrix-postgres-dev:
+  matrix-app-dev:

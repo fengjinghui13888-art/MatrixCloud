@@ -1,0 +1,14 @@
+{
+  "resource": "https://maintenance.example.com/maintenance/mcp",
+  "repoRoot": "/srv/matrix-source",
+  "stateRoot": "/var/lib/matrix-maintenance",
+  "adminHash": "REPLACE_WITH_SCRYPT_HASH",
+  "clients": [{"client_id":"matrix-codex","redirect_uris":["http://127.0.0.1/callback"],"token_endpoint_auth_method":"none","grant_types":["authorization_code","refresh_token"],"response_types":["code"]}],
+  "checksImage": "sha256:REPLACE_WITH_VERIFIED_DEPENDENCY_IMAGE_ID",
+  "lockHash": "REPLACE_WITH_PNPM_LOCK_SHA256",
+  "deployHelper": "/opt/matrix-maintenance/trusted/deploy-existing.py",
+  "backupRoot": "/srv/matrix-backups",
+  "postgres": true,
+  "container": "matrix-cloud",
+  "port": 4176
+}

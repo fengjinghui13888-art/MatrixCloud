@@ -1,0 +1,32 @@
+{
+  "at": "2026-09-20T05:37:20Z",
+  "files": [
+    {
+      "path": "/home/ubuntu/matrix-cloud-releases/delivery-94151fc/matrix-cloud-windows-connector.zip",
+      "bytes": 35271799,
+      "sha256": "fa0cb5815cf69701d3eb8a12e86e789c18c5dfabf5963c252881d15080575211",
+      "reason": "duplicate of retained rollback package"
+    },
+    {
+      "path": "/home/ubuntu/matrix-cloud-releases/delivery-94151fc/matrix-cloud-mac-intel-connector.zip",
+      "bytes": 38825956,
+      "sha256": "be825522f015511bbe6d4b896a5d7fadc63f46bc4e74f7a4190a89ae12b660ba",
+      "reason": "duplicate of retained rollback package"
+    },
+    {
+      "path": "/home/ubuntu/matrix-cloud-releases/delivery-94151fc/matrix-cloud-mac-apple-silicon-connector.zip",
+      "bytes": 37300054,
+      "sha256": "97e9e80a15733a80deaa2aa8d692f509efc23aab616d21ac9709804e338290fa",
+      "reason": "duplicate of retained rollback package"
+    }
+  ],
+  "containers": [],
+  "images": [],
+  "skipped": [],
+  "dockerDfBefore": "TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          5         3         856.3MB   559.8MB (65%)\nContainers      4         3         915.3kB   456.8kB (49%)\nLocal Volumes   3         1         96.74MB   29.92MB (30%)\nBuild Cache     0         0         0B        0B",
+  "builderPrune": {
+    "returncode": 0,
+    "output": "Total:\t0B\n"
+  },
+  "dockerDfAfter": "TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          5         3         856.3MB   559.8MB (65%)\nContainers      4         3         915.3kB   456.8kB (49%)\nLocal Volumes   3         1         96.74MB   29.92MB (30%)\nBuild Cache     0         0         0B        0B"
+}

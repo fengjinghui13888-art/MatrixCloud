@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: zhixu-xhs-ops
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: MCP_SERVICE_TOKEN
+        generateValue: true
+      - key: MCP_REQUIRE_AUTH
+        value: "true"
+      - key: DATA_DIR
+        value: /app/work

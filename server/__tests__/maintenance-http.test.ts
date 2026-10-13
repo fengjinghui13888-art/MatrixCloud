@@ -1,0 +1,22 @@
+// @vitest-environment node
+import {mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';import {execFileSync} from 'node:child_process';import {join} from 'node:path';import {tmpdir} from 'node:os';import {createHash} from 'node:crypto';import request from 'supertest';import {it,expect} from 'vitest';
+import {MaintenanceAuth,passwordHash} from '../maintenance-auth';import {MaintenanceService} from '../maintenance-service';import {createMaintenanceApp} from '../maintenance-app';
+it('MCP read credentials cannot invoke writes; approval diff is private',async()=>{const root=mkdtempSync(join(tmpdir(),'mcp-http-'));try{const repo=join(root,'repo');mkdirSync(repo);execFileSync('git',['init',repo],{stdio:'ignore'});writeFileSync(join(repo,'AGENTS.md'),'private-source-text');execFileSync('git',['-C',repo,'add','.']);execFileSync('git',['-C',repo,'-c','user.name=test','-c','user.email=test@localhost','commit','-m','base'],{stdio:'ignore'});const client={client_id:'codex',redirect_uris:['http://127.0.0.1:1234/callback'],token_endpoint_auth_method:'none' as const,grant_types:['authorization_code','refresh_token'],response_types:['code']};const resource='https://maint.example/maintenance/mcp';const auth=new MaintenanceAuth({root:join(root,'state'),resource,adminHash:passwordHash('owner-password-long-123'),clients:[client]});const service=new MaintenanceService({repoRoot:repo,stateRoot:join(root,'state'),runner:async()=>({ok:true,summary:'ok'})});const app=createMaintenanceApp(auth,service);
+ const metadata=await request(app).get('/.well-known/oauth-authorization-server');
+ expect(metadata.status).toBe(200);expect(metadata.body.authorization_response_iss_parameter_supported).toBe(true);
+ const verifier='v'.repeat(43),pending=auth.begin(client,{redirectUri:client.redirect_uris[0],codeChallenge:createHash('sha256').update(verifier).digest('base64url'),scopes:['maintenance:read'],resource:new URL(resource),state:'client-state'});const callback=new URL(auth.consent(pending.id,'owner-password-long-123'));
+ expect(callback.searchParams.get('iss')).toBe(metadata.body.issuer);expect(callback.searchParams.get('state')).toBe('client-state');
+ const code=callback.searchParams.get('code')!;
+ const exchange=(codeVerifier:string)=>request(app).post('/token').type('form').send({grant_type:'authorization_code',client_id:'codex',code,code_verifier:codeVerifier,redirect_uri:client.redirect_uris[0],resource});
+ expect((await exchange('wrong-verifier')).status).toBe(400);
+ const exchanged=await exchange(verifier);expect(exchanged.status).toBe(200);const token=exchanged.body;
+ expect((await exchange(verifier)).status).toBe(400);
+ const rpc=(method:string,params:object={})=>request(app).post('/maintenance/mcp').set('Authorization','Bearer '+token.access_token).set('Accept','application/json, text/event-stream').send({jsonrpc:'2.0',id:1,method,params});
+ expect((await request(app).post('/maintenance/mcp').send({})).status).toBe(401);
+ const listed=await rpc('tools/list');expect(listed.status).toBe(200);const names=listed.body.result.tools.map((t:any)=>t.name);expect(names).toContain('source_read');expect(names).not.toContain('change_apply');expect(names).not.toContain('release_deploy');
+ expect((await rpc('tools/call',{name:'change_create',arguments:{base_commit:'a'.repeat(40)}})).body.result?.isError??true).toBe(true);
+ const approval=await request(app).get('/maintenance/releases/11111111-1111-4111-8111-111111111111/approve');expect(approval.status).toBe(404);expect(approval.text).not.toContain('private-source-text');expect(auth.state.list('approval-form')).toHaveLength(0);
+ expect((await request(app).post('/maintenance/releases/x/approve').send({password:'owner-password-long-123'})).status).toBe(403);
+ await auth.revokeToken(client,{token:token.refresh_token});
+ const revoked=await rpc('tools/list');expect(revoked.status).toBe(401);expect(revoked.headers['www-authenticate']).toContain('invalid_token');
+}finally{rmSync(root,{recursive:true,force:true});}});

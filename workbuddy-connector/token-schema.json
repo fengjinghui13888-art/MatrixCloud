@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "properties": {
+    "ZHIXU_SERVICE_TOKEN": { "type": "string", "title": "知序服务令牌", "format": "password", "description": "生产环境由知序网站生成；演示版不需要填写真实令牌。" }
+  },
+  "required": ["ZHIXU_SERVICE_TOKEN"]
+}

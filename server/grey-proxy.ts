@@ -1,0 +1,16 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { join,dirname } from 'node:path';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { ListToolsRequestSchema,CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+const root=join(dirname(fileURLToPath(import.meta.url)),'..');
+const token=readFileSync(join(root,'work','grey','access-token'),'utf8').trim();
+const client=new Client({name:'zhixu-grey-proxy',version:'1.0.0'});
+await client.connect(new StreamableHTTPClientTransport(new URL(process.env.ZHIXU_MCP_URL??'http://127.0.0.1:4174/mcp'),{requestInit:{headers:{Authorization:'Bearer '+token}}}));
+const server=new Server({name:'zhixu-grey',version:'1.0.0'},{capabilities:{tools:{}}});
+server.setRequestHandler(ListToolsRequestSchema,()=>client.listTools());
+server.setRequestHandler(CallToolRequestSchema,req=>client.callTool(req.params));
+await server.connect(new StdioServerTransport());

@@ -1,0 +1,14 @@
+{
+  "name": "知序小红书运营台",
+  "name_zh": "知序小红书运营台",
+  "name_en": "Zhixu XHS Operations",
+  "description": "Connect WorkBuddy to a Xiaohongshu account matrix for operations overview, lead prioritization, and controlled draft or publish task creation.",
+  "description_zh": "将 WorkBuddy 连接到小红书账号矩阵，查询运营概览、识别高意向互动，并创建受控的草稿或发布任务。",
+  "source": "zhixu-xhs-operations",
+  "type": "mcp",
+  "version": "0.1.0",
+  "minWorkbuddyVersion": "5.4.0",
+  "auth_mode": "token",
+  "examples_zh": ["查看小红书账号矩阵中需要优先处理的评论", "为山野研究所创建一条徒步路线草稿任务", "查看等待浏览器执行的小红书发布任务"],
+  "examples_en": ["Show comments that need priority handling in my Xiaohongshu matrix", "Create a hiking-route draft task for Mountain Lab", "List Xiaohongshu tasks waiting for the browser bridge"]
+}

@@ -1,0 +1,32 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import request from 'supertest';
+import { createGreyApp } from '../grey-app';
+import { createStore } from '../store';
+
+test('only platform administrator may manage templates; drafts stay private and published revisions are stable',async()=>{
+  const dir=mkdtempSync(join(tmpdir(),'templates-'));
+  const token='test-template-token-longer-than-32-characters';
+  const app=createGreyApp(createStore(join(dir,'ops.sqlite')),token,{authDataDir:dir,platformAdminUsername:'owner'});
+  const local=(r:any)=>r.set('Host','127.0.0.1').set('Origin','http://127.0.0.1');
+  const setup=await local(request(app).post('/api/auth/setup')).send({username:'owner',password:'fixture-password-123'});
+  const cookie=setup.headers['set-cookie'][0].split(';')[0];
+  const template={name:'通勤分享',category:'生活方式',title:'我的通勤日常',body:'分享适合自己的通勤方式。',images:['https://example.com/owned.jpg'],sourceUrl:'https://example.com/source',usage:'licensed',rightsNote:'测试用授权记录'};
+  expect((await request(app).post('/api/admin/templates').set('Authorization','Bearer '+token).send(template)).status).toBe(403);
+  const draft=await local(request(app).post('/api/admin/templates')).set('Cookie',cookie).send(template);
+  expect(draft.status).toBe(201);
+  const duplicate=await local(request(app).post('/api/admin/templates')).set('Cookie',cookie).send(template);
+  expect(duplicate.body.id).toBe(draft.body.id);
+  const publicList=()=>request(app).get('/api/templates').set('Authorization','Bearer '+token);
+  expect((await publicList()).body.items).toEqual([]);
+  expect((await local(request(app).post('/api/admin/templates/'+draft.body.id+'/publish')).set('Cookie',cookie).send({expectedRevision:1})).status).toBe(200);
+  expect((await publicList()).body.items[0].title).toBe(template.title);
+  await local(request(app).post('/api/admin/templates/'+draft.body.id)).set('Cookie',cookie).send({...template,title:'更新后的标题',expectedRevision:1});
+  expect((await publicList()).body.items[0].title).toBe(template.title);
+  expect((await local(request(app).post('/api/admin/templates/'+draft.body.id+'/publish')).set('Cookie',cookie).send({expectedRevision:1})).status).toBe(409);
+  expect((await local(request(app).post('/api/admin/templates/'+draft.body.id+'/publish')).set('Cookie',cookie).send({expectedRevision:2})).status).toBe(200);
+  expect((await publicList()).body.items[0].title).toBe('更新后的标题');
+  await local(request(app).post('/api/admin/templates/'+draft.body.id+'/unpublish')).set('Cookie',cookie).send({expectedRevision:2});
+  expect((await publicList()).body.items).toEqual([]);
+});

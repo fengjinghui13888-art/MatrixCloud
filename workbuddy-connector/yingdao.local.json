@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "yingdao-platform-collector": {
+      "command": "/Users/mima0000/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback/pnpm",
+      "args": ["dlx", "yingdao-mcp-server@0.0.2"],
+      "env": {
+        "RPA_MODEL": "local",
+        "SHADOWBOT_PATH": "/Applications/影刀.app",
+        "USER_FOLDER": "/Users/mima0000/Library/Application Support/Shadowbot/users/992791942208397312"
+      }
+    }
+  }
+}

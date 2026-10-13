@@ -1,0 +1,6 @@
+[Unit]
+Description=Renew Matrix HTTPS certificate through restricted nginx ACME ingress
+After=network-online.target nginx.service
+[Service]
+Type=oneshot
+ExecStart=/bin/sh /opt/matrix-maintenance/trusted/renew-tls.sh
