@@ -12,6 +12,7 @@ const proxy = {
 export default defineConfig({
   root: frontendRoot,
   plugins: [react()],
+  build: { target: ['chrome109', 'edge109', 'firefox121', 'safari16'] },
   server: { fs: { allow: [frontendRoot] }, proxy },
   preview: { proxy }
 });

@@ -38,9 +38,18 @@ const syncStatus=(job:any)=>{
 };
 export function GreyApp(){return <AccountLogin>{(username,logout,switchAccount)=><Workspace username={username} logout={logout} switchAccount={switchAccount}/>}</AccountLogin>;}
 function Workspace({username,logout,switchAccount}:{username:string;logout:()=>Promise<void>;switchAccount:()=>Promise<void>}){
-  const [setupNonce]=useState(()=>/^#connectorSetup=([a-f0-9]{64})$/.exec(window.location.hash)?.[1]??'');
-  const [setupComplete]=useState(()=>window.location.hash==='#connectorComplete');
-  useEffect(()=>{if(setupNonce||setupComplete){history.replaceState(null,'',location.pathname+location.search);setPage('账号矩阵');}else if(readSessionValue('matrix.pendingPairing'))setPage('账号矩阵');},[]);
+  const [setupNonce,setSetupNonce]=useState(()=>/^#connectorSetup=([a-f0-9]{64})$/.exec(window.location.hash)?.[1]??'');
+  const [setupComplete,setSetupComplete]=useState(()=>window.location.hash==='#connectorComplete');
+  useEffect(()=>{
+    const readSetupLink=()=>{
+      const nonce=/^#connectorSetup=([a-f0-9]{64})$/.exec(window.location.hash)?.[1];
+      const complete=window.location.hash==='#connectorComplete';
+      if(nonce||complete){setSetupNonce(nonce??'');setSetupComplete(complete);history.replaceState(null,'',location.pathname+location.search);setPage('账号矩阵');}
+    };
+    window.addEventListener('hashchange',readSetupLink);
+    return()=>window.removeEventListener('hashchange',readSetupLink);
+  },[]);
+  useEffect(()=>{if(setupNonce||setupComplete){history.replaceState(null,'',location.pathname+location.search);setPage('账号矩阵');}else if(readSessionValue('matrix.pendingPairing'))setPage('账号矩阵');},[setupNonce,setupComplete]);
   const [data,setData]=useState<Data|null>(null);const [page,setPage]=useState('经营概览');const [scope,setScope]=useState('all');const [query,setQuery]=useState('');const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [detail,setDetail]=useState<Note|null>(null);const [follow,setFollow]=useState<Record<string,string>>({});const [profileOpen,setProfileOpen]=useState(false);const [syncJobs,setSyncJobs]=useState<Record<string,any>>({});const [connectedProfiles,setConnectedProfiles]=useState<string[]>([]);const [contentPage,setContentPage]=useState(1);const [selectedAccounts,setSelectedAccounts]=useState<string[]>([]);const [selectedNotes,setSelectedNotes]=useState<string[]>([]);const [selectedLeads,setSelectedLeads]=useState<string[]>([]);
   async function request(path:string,body?:unknown,signal?:AbortSignal){
     const controller=new AbortController(),timer=window.setTimeout(()=>controller.abort(),65000);
