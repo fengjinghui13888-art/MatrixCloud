@@ -60,6 +60,7 @@ class ApiRuntime:
         self.started_at = stamp()
         self.model_transport = None
         self.generation_workers = set()
+        self.generation_tasks = {}
         self.channel.event_handlers.append(self.receive_event)
         self.channel.connected_handlers.append(self.connected)
 
@@ -214,12 +215,20 @@ class ApiRuntime:
             return scope.studio.update(task['id'], task['revision'], {'status': 'review', 'message': '生成完成，请人工检查内容和图片；尚未操作小红书'})
         except Exception as error:
             current = scope.studio.get(task['id'])
+            if current['status'] != 'generating' or current['revision'] != task['revision']:
+                return current
             return scope.studio.update(task['id'], current['revision'], {'status': 'generation_failed', 'message': f'生成失败：{error}。已保存内容和参考图选择已保留。'})
 
     def schedule_generation(self, scope, task, inputs):
         worker = asyncio.create_task(self.generate(scope, task, inputs))
         self.generation_workers.add(worker)
         worker.add_done_callback(self.generation_workers.discard)
+        key = (scope.workspace, task['id'])
+        self.generation_tasks[key] = worker
+        def finished(done):
+            if self.generation_tasks.get(key) is done:
+                self.generation_tasks.pop(key, None)
+        worker.add_done_callback(finished)
 
 
 def check_copy(body):
@@ -797,6 +806,8 @@ async def dispatch(request, runtime, body):
         finally:
             runtime.model_busy.discard(workspace)
     if path == '/api/import':
+        from .snapshots import validate_snapshot
+        body = validate_snapshot(body)
         account = body.get('account', {})
         bound = execution.account(account.get('id'))
         grant = request.state.grant
@@ -959,6 +970,12 @@ async def studio_dispatch(request, runtime, scope, execution, body):
             execution.release(task['id'])
         return JSONResponse(result)
     if action == 'cancel':
+        if task['status'] in ('generating', 'generation_failed') and not task.get('executionRunId'):
+            result = studio.update(task['id'], task['revision'], dict(status='blocked', message='图文生成已取消，已保存内容保留；尚未执行平台草稿操作。'))
+            generation = getattr(runtime, 'generation_tasks', {}).get((scope.workspace, task['id']))
+            if generation:
+                generation.cancel()
+            return JSONResponse(result)
         device = runtime.channel.binding(scope.workspace, task.get('profile') or execution.account(task['accountId'])['profile'])
         confirmed = False
         try:

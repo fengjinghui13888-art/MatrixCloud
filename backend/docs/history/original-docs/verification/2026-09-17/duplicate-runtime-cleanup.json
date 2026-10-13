@@ -1,9 +1,0 @@
-{
-  "root": "/Users/mima0000/Documents/ChatGPT/AI\u81ea\u52a8\u83b7\u5ba2\u7cfb\u7edf",
-  "reclaimedBytes": 214608829,
-  "removedFiles": 8641,
-  "skipped": [
-    "mac-connector-arm64/runtime/node/node-v20.20.2-darwin-arm64/bin/node"
-  ],
-  "manifest": "duplicate-runtime-cleanup.json.gz"
-}

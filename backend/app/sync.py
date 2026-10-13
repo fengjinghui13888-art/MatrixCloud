@@ -281,6 +281,8 @@ class WorkspaceExecution:
             await self.update(identifier, dict(status='blocked', stage='blocked', stopConfirmed=stopped, error=str(error), message=str(error), finishedAt=stamp()))
 
     def save_snapshot(self, snapshot, account, device, strip_media=False):
+        from .snapshots import validate_snapshot
+        snapshot = validate_snapshot(snapshot)
         current, actual = self.account(account['id']), snapshot.get('account', {})
         if not current or current['profile'] != account['profile'] or actual.get('id') != account['id'] or actual.get('handle') != account['handle'] or actual.get('profile') != account['profile'] or self.channel.binding(self.workspace, account['profile']) != device:
             raise ConnectorError(409, '账号绑定发生变化，结果未保存')
@@ -364,8 +366,14 @@ class WorkspaceExecution:
             await self.channel.bind(self.workspace, 'local:' + session, device)
             try:
                 await self.channel.json(self.workspace, device, 'POST', '/accounts/' + session + '/login')
+                job = self.login_read(identifier)
+                if job['status'] != 'starting':
+                    return job
                 job.update(status='waiting_scan', message=f'已在“{name}”打开浏览器登录窗口，请使用小红书 App 扫码')
             except Exception as error:
+                job = self.login_read(identifier)
+                if job['status'] != 'starting':
+                    return job
                 job.update(status='failed', message=str(error))
             atomic_json(self._login_path(identifier), job)
             return job

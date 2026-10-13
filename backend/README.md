@@ -48,8 +48,10 @@ PostgreSQL：设置 DATABASE_URL 或 DATABASE_URL_FILE 前，必须使用迁移�
 .\.venv\Scripts\python.exe -X utf8 -m pytest -q
 ```
 
-本次验证：后端普通测试 131 项、独立真实 PostgreSQL 16.15 测试 8 项、前端测试 96 项通过；前端构建与本机浏览器/API/配对/WS/MCP 联调通过。PostgreSQL 测试只在显式 TEST_DATABASE_URL 指定的独立回环测试集群运行，不读取应用 DATABASE_URL；未配置时这 8 项会跳过。
+本次对抗验证：后端普通测试 150 项、独立真实 PostgreSQL 16.15 测试 8 项、前端测试 96 项通过；前端构建通过。补充修复了非法导入数据、扫码取消竞态和生成取消竞态。PostgreSQL 测试只在显式 TEST_DATABASE_URL 指定的独立回环测试集群运行，不读取应用 DATABASE_URL；未配置时这 8 项会跳过。
 
 容器构建上下文分别为 backend 和 frontend，开发示例为 backend/compose.dev.yaml，生产示例为 compose.prod.example.yaml。Docker 镜像、Windows/Mac 发布安装包和真实平台账号流程仍需分别验收。本次修改未部署到生产，也未调用真实模型供应商或操作真实平台账号。
 
-文件保留与清理规则见 [删除指南](docs/文件与代码删除指南.md)，迁移记录见 [执行记录](docs/migration/ledger.md)。
+旧项目、旧 Node 代码、旧依赖和重复交付包已清理。独有的旧本机数据、生产恢复数据与运维凭证集中保留在 `data/recovery`，不参与当前启动，不上传 GitHub。原电脑的浏览器登录资料仍位于用户目录 `.matrix-cloud`，未删除。`data/preview` 是页面演示账号，`data/verification` 保存测试证据，均与正式数据分开。
+
+文件保留与清理规则见 [删除指南](docs/文件与代码删除指南.md)，检查详情见 [对抗测试与清理报告](docs/对抗测试与清理报告.md)。

@@ -70,7 +70,8 @@ def create_business_server(scope, legacy=False):
             elif name == 'complete_xhs_creation_task':
                 value = scope.creation.complete(args)
             else:
-                scope.store.import_snapshot(args)
+                from .snapshots import validate_snapshot
+                scope.store.import_snapshot(validate_snapshot(args))
                 value = dict(ok=True, accounts=len(scope.store.list_accounts()), notes=len(scope.store.list_notes()))
             return text_result(value)
         except Exception as error:
