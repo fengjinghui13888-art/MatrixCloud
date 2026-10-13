@@ -33,6 +33,8 @@ class Scope:
 
 class Services:
     def __init__(self,settings:Settings):
+        if not settings.database_url and (Path(settings.data_dir) / 'postgres-active').exists():
+            raise ValueError('此数据目录已迁移到 PostgreSQL，请恢复数据库连接配置，不能退回 SQLite。')
         self.settings=settings;self.root=Path(settings.data_dir);self.root.mkdir(parents=True,exist_ok=True,mode=0o700)
         self.db=Postgres(settings.database_url) if settings.database_url else None
         self.auth=Auth(settings,self.db);self._scopes={};self.lock=threading.RLock()

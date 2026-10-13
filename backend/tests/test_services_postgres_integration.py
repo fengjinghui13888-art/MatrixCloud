@@ -243,6 +243,26 @@ def _migration_module():
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
 
 
+def test_real_database_connection_failure_reports_503_without_sqlite(live):
+    from fastapi.testclient import TestClient
+    from app.api import create_app
+    srv, _, database = live
+    app = create_app(settings=srv.settings, services=srv)
+    with TestClient(app, base_url='https://test.example') as client:
+        assert client.get('/api/health').json()['storage'] == 'postgresql'
+        original = srv.db.url
+        try:
+            # Only this isolated test client's connection changes. The real
+            # PostgreSQL server rejects the nonexistent role; no service stops.
+            srv.db.url = make_conninfo(original, user='matrix_nonexistent_test_role')
+            response = client.get('/api/health')
+            assert response.status_code == 503
+            assert not list(srv.root.rglob('*.sqlite'))
+        finally:
+            srv.db.url = original
+        assert client.get('/api/health').status_code == 200
+
+
 def test_real_offline_migration_preserves_auth_tasks_media_templates_and_cipher(database,tmp_path):
     source=tmp_path/'synthetic-legacy';source.mkdir()
     local=Services(Settings(data_dir=source,platform_admin_username='platform'))
@@ -259,6 +279,10 @@ def test_real_offline_migration_preserves_auth_tasks_media_templates_and_cipher(
     scope.creation.create(creation('migration-create'))
     studio=scope.studio.create(brief('migration-studio'))['task'];scope.studio.update(studio['id'],1,dict(status='review',title='合成标题',body='合成正文'))
     scope.templates.create(template());scope.models.save(model())
+    sync_id=str(uuid.uuid4())
+    (source/'xhs-sync').mkdir()
+    sync_record=dict(id=sync_id,accountId='a',profile='local:a',status='completed',startedAt='2026-10-13T00:00:00Z',finishedAt='2026-10-13T00:01:00Z',counts={'notes':1})
+    (source/'xhs-sync'/f'{sync_id}.json').write_text(json.dumps(sync_record),encoding='utf-8')
     original=(source/'operations.sqlite').read_bytes();encrypted=(source/'model-settings.enc').read_bytes()
     migration=_migration_module()
     report=migration.migrate(source,database['admin'],app_role=database['role'])
@@ -271,6 +295,7 @@ def test_real_offline_migration_preserves_auth_tasks_media_templates_and_cipher(
     assert migrated_scope.store.list_leads()[0]['ownerId']=='member-legacy'
     assert migrated_scope.store.list_notes()[0]['mediaAssets']==snapshot()['notes'][0]['mediaAssets']
     assert migrated_scope.models.read()==model()
+    assert migrated.db.rows('owner','SELECT payload FROM job WHERE tenant_id=%s AND id=%s',('owner',sync_id))==[{'payload':sync_record}]
     assert migrated_scope.templates.list()[0]['draft']==template()
     assert migrated_scope.studio.get(studio['id'])['status']=='review'
     assert next(row for row in migrated.auth.team(owner)['items'] if row['username']=='operator')['enabled'] is False

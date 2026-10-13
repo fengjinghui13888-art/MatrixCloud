@@ -2,6 +2,8 @@
 
 当前目录使用 Python 3.13 + FastAPI，包含业务 API、MCP、本机连接器和执行工具。浏览器页面继续使用 React，位于旁边的 frontend。
 
+本机已迁移到 PostgreSQL 16.15（127.0.0.1:5433 / matrix），原页面账号已保留。数据库配置和独立启动方法见 [数据库与启动](docs/数据库与启动.md)。代码仓库不包含本机数据库或凭证。
+
 ## Windows 启动
 
 本机依赖已经安装。双击 **START-ALL.bat**，浏览器会打开 http://127.0.0.1:5173/。保持窗口打开，按 Ctrl+C 停止前后端。第一次在页面创建账号，已有数据目录则使用原账号。
@@ -33,7 +35,7 @@ Linux/macOS：`python3.13 -m venv .venv`，`.venv/bin/python -m pip install -r r
 
 ## 配置与数据
 
-需要自定义时将 .env.example 复制为 .env。默认数据位置为 backend/data/work/grey，配置和相对路径均从 backend 解析，不依赖打开终端的位置。不能删除数据目录、登录配置、模型加密密钥或连接器凭证。
+这台电脑的 .env 已配置 PostgreSQL，不要用示例覆盖它。新环境参考 .env.example 配置并显式初始化数据库。后端文件数据位置为 backend/data/work/grey，配置和相对路径均从 backend 解析，不依赖打开终端的位置。不能删除数据目录、登录配置、模型加密密钥或连接器凭证。
 
 根目录只放 frontend、backend 不会影响上述启动方式。启动脚本、文档、SQL、部署配置都已收进对应目录。隐藏的 .git 是版本记录，请保留。
 
@@ -48,10 +50,10 @@ PostgreSQL：设置 DATABASE_URL 或 DATABASE_URL_FILE 前，必须使用迁移�
 .\.venv\Scripts\python.exe -X utf8 -m pytest -q
 ```
 
-本次对抗验证：后端普通测试 150 项、独立真实 PostgreSQL 16.15 测试 8 项、前端测试 96 项通过；前端构建通过。补充修复了非法导入数据、扫码取消竞态和生成取消竞态。PostgreSQL 测试只在显式 TEST_DATABASE_URL 指定的独立回环测试集群运行，不读取应用 DATABASE_URL；未配置时这 8 项会跳过。
+最近一次数据库迁移验收：后端普通测试 154 项、独立真实 PostgreSQL 16.15 测试 9 项，共 163 项通过；前端 96 项及构建通过。此前对抗检查修复了非法导入数据、扫码取消竞态和生成取消竞态。PostgreSQL 测试只在显式 TEST_DATABASE_URL 指定的独立回环测试集群运行，不读取应用 DATABASE_URL；未配置时这 9 项会跳过。
 
 容器构建上下文分别为 backend 和 frontend，开发示例为 backend/compose.dev.yaml，生产示例为 compose.prod.example.yaml。Docker 镜像、Windows/Mac 发布安装包和真实平台账号流程仍需分别验收。本次修改未部署到生产，也未调用真实模型供应商或操作真实平台账号。
 
-旧项目、旧 Node 代码、旧依赖和重复交付包已清理。独有的旧本机数据、生产恢复数据与运维凭证集中保留在 `data/recovery`，不参与当前启动，不上传 GitHub。原电脑的浏览器登录资料仍位于用户目录 `.matrix-cloud`，未删除。`data/preview` 是页面演示账号，`data/verification` 保存测试证据，均与正式数据分开。
+旧项目、旧 Node 代码、旧依赖和重复交付包已清理。独有的旧本机数据、生产恢复数据与运维凭证集中保留在 `data/recovery`，不参与当前启动，不上传 GitHub。原电脑的浏览器登录资料仍位于用户目录 `.matrix-cloud`，未删除。原 `data/preview` 页面账号已迁入本机 PostgreSQL；迁移前副本保留在恢复目录，`data/verification` 保存测试证据。
 
 文件保留与清理规则见 [删除指南](docs/文件与代码删除指南.md)，检查详情见 [对抗测试与清理报告](docs/对抗测试与清理报告.md)。

@@ -13,6 +13,8 @@ pnpm dev
 
 Windows 可双击 START-FRONTEND.bat。要同时启动前后端，双击 backend/START-ALL.bat。
 
+当前本机后端使用 PostgreSQL；数据库仅由 Python 后端访问。前端启动与构建不需要数据库凭证，禁止把 DATABASE_URL、供应商密钥或后端 .env 放入本目录。后端独立启动和数据库管理见 [数据库与启动](../backend/docs/数据库与启动.md)。
+
 `pnpm build` 构建；`pnpm test` 跑页面回归测试。contracts 为前端使用的数据类型和恢复判断；本目录不依赖项目根目录的共享文件或配置。
 
 不能删除 src、contracts、index.html、package.json、pnpm-lock.yaml、tsconfig.json、vite.config.ts。node_modules 和 dist 可重新生成；删除 node_modules 后需重新安装依赖，删除 dist 后需重新构建。

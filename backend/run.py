@@ -82,7 +82,8 @@ def start_all(args, settings):
     children = []
     try:
         for command, cwd in commands:
-            children.append(subprocess.Popen(command, cwd=cwd, env=environment))
+            child_env = frontend_environment(environment, f'http://127.0.0.1:{settings.port}') if cwd == FRONTEND else environment
+            children.append(subprocess.Popen(command, cwd=cwd, env=child_env))
         wait_ready(f'http://127.0.0.1:{settings.port}/api/health', children)
         wait_ready(f'http://127.0.0.1:{args.frontend_port}/', children)
         url = f'http://127.0.0.1:{args.frontend_port}/'
@@ -104,6 +105,16 @@ def start_all(args, settings):
             except subprocess.TimeoutExpired:
                 child.kill()
                 child.wait()
+
+
+def frontend_environment(environment, backend_url):
+    # Pass only OS/toolchain variables. Database, provider and MCP credentials
+    # belong exclusively to the backend, even in development child processes.
+    allowed = {'PATH', 'PATHEXT', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP',
+               'TMPDIR', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'LANG',
+               'LC_ALL', 'TERM', 'COLORTERM', 'NO_COLOR', 'FORCE_COLOR'}
+    return {**{key: value for key, value in environment.items() if key.upper() in allowed},
+            'BACKEND_URL': backend_url}
 
 
 def main(argv=None):
@@ -133,6 +144,9 @@ def main(argv=None):
     if args.mode == 'check':
         print(f'依赖检查通过。前端：{FRONTEND}\n后端：{BACKEND}\n数据：{settings.data_dir}')
         return 0
+    if args.mode in ('all', 'server', 'mcp') and os.getenv('LOCAL_POSTGRES', '').lower() in ('1', 'true', 'yes'):
+        from tools.local_postgres import ensure_for_url
+        ensure_for_url(settings.database_url)
     if args.mode == 'all':
         return start_all(args, settings)
     if args.mode == 'server':

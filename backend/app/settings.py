@@ -89,6 +89,8 @@ class Settings:
         database_file = os.getenv("DATABASE_URL_FILE")
         if database_file:
             database_url = _path(database_file, database_file).read_text(encoding="utf-8").strip()
+        if _bool(os.getenv('DATABASE_REQUIRED'), False) and not database_url:
+            raise ValueError('当前部署要求 PostgreSQL，请配置 DATABASE_URL 或 DATABASE_URL_FILE。')
         data = os.getenv("SYNC_DATA_DIR") or os.getenv("DATA_DIR")
         origin = os.getenv("CUSTOMER_PUBLIC_ORIGIN") or os.getenv("PUBLIC_ORIGIN") or "http://127.0.0.1:5173"
         optional = lambda name: _path(os.environ[name], os.environ[name]) if os.getenv(name) else None

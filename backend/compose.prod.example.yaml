@@ -3,17 +3,22 @@ services:
   backend:
     image: ${MATRIX_BACKEND_IMAGE:?set reviewed immutable backend image digest}
     restart: unless-stopped
-    env_file: .env
+    env_file: .env.docker
     environment:
       APP_ENV: production
       HOST: 0.0.0.0
       PORT: 4174
       DATA_DIR: /app/data/work/grey
       TRUSTED_PROXY_IPS: 172.30.83.10
+      DATABASE_REQUIRED: "true"
+      LOCAL_POSTGRES: "false"
     volumes:
       - matrix-backend:/app/data
     expose: ["4174"]
-    networks: [matrix]
+    networks: [matrix, database]
+    depends_on:
+      postgres:
+        condition: service_healthy
   frontend:
     image: ${MATRIX_FRONTEND_IMAGE:?set reviewed immutable frontend image digest}
     restart: unless-stopped
@@ -29,7 +34,7 @@ services:
     volumes:
       - matrix-postgres:/var/lib/postgresql/data
     expose: ["5432"]
-    networks: [matrix]
+    networks: [database]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-matrix}"]
       interval: 10s
@@ -39,6 +44,8 @@ volumes:
   matrix-backend:
   matrix-postgres:
 networks:
+  database:
+    internal: true
   matrix:
     ipam:
       config: [{subnet: 172.30.83.0/24}]

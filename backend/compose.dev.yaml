@@ -2,6 +2,7 @@ name: matrix-python-dev
 services:
   backend:
     build: .
+    env_file: .env.docker
     environment:
       APP_ENV: development
       HOST: 0.0.0.0
@@ -12,9 +13,14 @@ services:
       TRUSTED_PROXY_IPS: 172.30.83.10
       MCP_REQUIRE_AUTH: "true"
       TRUST_LOCAL_PROXY_HTTP: "1"
+      DATABASE_REQUIRED: "true"
+      LOCAL_POSTGRES: "false"
     volumes:
       - matrix-backend-dev:/app/data
-    networks: [matrix]
+    networks: [matrix, database]
+    depends_on:
+      postgres:
+        condition: service_healthy
   frontend:
     build: ../frontend
     depends_on: [backend]
@@ -22,9 +28,23 @@ services:
     networks:
       matrix:
         ipv4_address: 172.30.83.10
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env.postgres
+    volumes:
+      - matrix-postgres-dev:/var/lib/postgresql/data
+    networks: [database]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-matrix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 volumes:
   matrix-backend-dev:
+  matrix-postgres-dev:
 networks:
+  database:
+    internal: true
   matrix:
     ipam:
       config: [{subnet: 172.30.83.0/24}]

@@ -9,6 +9,8 @@ node_modules/
 *.sqlite*
 .env*
 !.env.example
+!.env.docker.example
+!.env.postgres.example
 access-token
 connector-token
 model-encryption-key
