@@ -36,10 +36,7 @@
     "shared/studio-recovery.ts",
     "shared/templates.ts"
   ],
-  "frontendNotReachableFromEntry": [
-    "frontend/src/CreationCenter.tsx",
-    "frontend/src/SyncGuide.tsx"
-  ],
+  "frontendNotReachableFromEntry": [],
   "productionImports": {
     "frontend/index.html": [],
     "local-connector/browser-focus.mjs": [],
@@ -147,7 +144,6 @@
       "backend/server/domain.ts",
       "backend/server/postgres-schema.sql"
     ],
-    "scripts/phase-two-async.mjs": [],
     "scripts/preflight.mjs": [],
     "scripts/prepare-studio-page.mjs": [
       "scripts/studio-wait.mjs",
@@ -267,9 +263,6 @@
       "frontend/src/safe-storage.ts",
       "frontend/src/safe-clipboard.ts"
     ],
-    "frontend/src/CreationCenter.tsx": [
-      "shared/creation.ts"
-    ],
     "frontend/src/customer-message.ts": [],
     "frontend/src/EventSync.tsx": [],
     "frontend/src/GreyApp.tsx": [
@@ -334,9 +327,6 @@
     "frontend/src/StudioPublishActions.tsx": [
       "shared/domain.ts",
       "shared/studio-recovery.ts"
-    ],
-    "frontend/src/SyncGuide.tsx": [
-      "frontend/src/safe-clipboard.ts"
     ],
     "frontend/src/TeamSettings.tsx": [],
     "frontend/src/TemplateLibrary.tsx": [
@@ -879,11 +869,9 @@
     ],
     "frontend/src/safe-clipboard.ts": [
       "frontend/src/ConnectorPairingPanel.tsx",
-      "frontend/src/OneClickPublish.tsx",
-      "frontend/src/SyncGuide.tsx"
+      "frontend/src/OneClickPublish.tsx"
     ],
     "shared/creation.ts": [
-      "frontend/src/CreationCenter.tsx",
       "backend/server/creation-queue.ts",
       "backend/server/creation-queue.ts"
     ],
@@ -1176,5 +1164,10 @@
       "scripts/studio-browser.mjs",
       "./browser/"
     ]
+  ],
+  "cleanupRemovedSourceFiles": [
+    "frontend/src/CreationCenter.tsx",
+    "frontend/src/SyncGuide.tsx",
+    "scripts/phase-two-async.mjs"
   ]
 }

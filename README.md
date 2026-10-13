@@ -76,3 +76,5 @@ docker build -t matrix-cloud-frontend:your-release -f frontend/Dockerfile .
 先看 [文件与代码删除指南](docs/文件与代码删除指南.md)，逐文件记录见 [file-deletion-inventory.csv](docs/file-deletion-inventory.csv)。指南包含可再生目录、条件删除项、未被页面入口引用的代码候选和必须保留的业务/运维代码。没有自动删除任何业务文件。
 
 [验证记录](docs/verification/2026-10-13-separation.md)区分构建、模拟测试、本机 API/浏览器检查、Docker 和真实平台待验项。`SOURCE-SNAPSHOT.json` 保存原始来源和每个源码文件的哈希。
+
+2026-10-13 已按指南移除三份闲置源码和三个未使用依赖；清理范围、恢复位置及验证见 [清理记录](docs/verification/2026-10-13-cleanup.md)。

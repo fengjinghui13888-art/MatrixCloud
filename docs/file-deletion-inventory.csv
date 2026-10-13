@@ -290,7 +290,7 @@ frontend/src/AccountSafety.tsx,必须保留,前端页面、样式或页面工具
 frontend/src/ConnectorAuthorize.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,2066
 frontend/src/ConnectorPairingPanel.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1884
 frontend/src/ConnectorPairingPanel.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,8620
-frontend/src/CreationCenter.tsx,条件可删除,未启用代码或可选入口,当前页面未引用；不恢复旧创作组件时可删,,5984
+frontend/src/CreationCenter.tsx,2026-10-13 已移除,未启用代码或可选入口,已确认当前代码无引用；恢复位置见清理记录,无当前代码引用,5984
 frontend/src/customer-message.ts,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/AccountSafety.tsx; frontend/src/ConnectorAuthorize.tsx; frontend/src/ConnectorPairingPanel.tsx; frontend/src/GreyApp.tsx; frontend/src/OneClickPublish.tsx; frontend/src/XhsQrLogin.tsx,980
 frontend/src/EventSync.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,3497
 frontend/src/GreyApp.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,30618
@@ -316,7 +316,7 @@ frontend/src/styles/reference-light.css,必须保留,前端页面、样式或页
 frontend/src/styles/studio-layout.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,9601
 frontend/src/styles/template-library.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/TemplateLibrary.tsx,5629
 frontend/src/styles/workspace-layout.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,12594
-frontend/src/SyncGuide.tsx,条件可删除,未启用代码或可选入口,当前页面未引用；不恢复旧手动同步说明时可删,,1166
+frontend/src/SyncGuide.tsx,2026-10-13 已移除,未启用代码或可选入口,已确认当前代码无引用；恢复位置见清理记录,无当前代码引用,1166
 frontend/src/TeamSettings.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/PersonalCenter.tsx,4552
 frontend/src/TemplateLibrary.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/PublishCenter.tsx,10200
 frontend/src/test-setup.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,43
@@ -376,7 +376,7 @@ scripts/maintenance-context.mjs,必须保留,执行器、启动、迁移、备�
 scripts/maintenance.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,7772
 scripts/media-quarantine.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,3348
 scripts/migrate-postgres.ts,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,10512
-scripts/phase-two-async.mjs,条件可删除,未启用代码或可选入口,完成一次性转换、不再需要复用转换工具时可删,,3170
+scripts/phase-two-async.mjs,2026-10-13 已移除,未启用代码或可选入口,已确认当前代码无引用；恢复位置见清理记录,无当前代码引用,3170
 scripts/postgres_backup.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1187
 scripts/preflight.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1949
 scripts/preflight.ps1,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,370
@@ -453,10 +453,12 @@ node_modules/（根、前端、后端）,可重新生成,第三方依赖,删除�
 frontend/dist/,可重新生成,前端构建结果,生产使用时需重新 pnpm --dir frontend build,,
 *.tsbuildinfo、__pycache__/、*.pyc,可重新生成,编译缓存,停止相关进程后可删,,
 *.log（本轮测试日志）,可删除测试日志,测试输出,保存必要验证结论后可删，不包括业务审计日志,,
-work/separation-qa-artifacts/,可删除合成测试数据,本轮 QA 合成数据归档,仅限本目录本轮合成数据，确认未投入真实使用,,
+work/separation-qa-artifacts/,2026-10-13 已移出项目,本轮 QA 合成数据归档,本轮合成测试数据已归档；真实数据目录保留,,
 .git/,开发保留,本副本版本和回退,维护 Git 仓库必须保留,,
 原项目 work/、.handoff/、媒体、Profile、密钥、业务库,禁止按缓存删除,真实业务数据和凭证,先备份并按迁移与媒体引用清单逐项核验,,
 原项目 outputs/,禁止整目录删除,交付、验收和回滚材料,逐文件确认是否被用户、生产或回滚引用,,
 docs/file-deletion-inventory.csv,保留验收，运行可不带,本清单,保存清理与来源追溯依据,,
 frontend/vitest.config.ts,开发/验收保留，运行可不带,前端独立测试配置,开发源项目保留,,387
 docs/verification/2026-10-13-separation.md,开发/验收保留，运行可不带,本轮验证与待验说明,保存本轮交付和迁移依据,,4613
+docs/verification/2026-10-13-cleanup.md,保留清理追溯，运行可不带,本轮清理与验收记录,记录删除范围、恢复方式和验证结果,,
+docs/cleanup-archive-path.txt,保留清理追溯，运行可不带,本机恢复备份位置,记录删除范围、恢复方式和验证结果,,
