@@ -2,14 +2,14 @@
 import ts from 'typescript';
 import fs from 'node:fs';
 const files={
- 'server/grey-app.ts':{objects:['store','modelSettings','queue','creations','templates','studioApi','studio','connectorPairing','connectorChannel','auth','xhsSync','localAccounts'],names:['overview','isPlatformAdmin','remoteSync','canDispatch','validateExecutionGrant']},
- 'server/studio-routes.ts':{objects:['store','studio','models'],names:['recoverStalledExecutions','launch','canDispatch']},
- 'server/studio-execution.ts':{objects:['studio'],names:['get','update','fail']},
- 'server/xhs-sync.ts':{objects:['store'],names:['remote']},
- 'server/local-accounts.ts':{objects:['store'],names:[]},
- 'server/customer-connector.ts':{objects:['channel'],names:['route']},
- 'server/connector-channel.ts':{objects:['pairing','storage'],names:['online','binding','selected','select','active','bind','authorize']},
- 'server/connector-pairing.ts':{objects:['pairing','auth','channel'],names:['webWorkspace','origin']}
+ 'backend/server/grey-app.ts':{objects:['store','modelSettings','queue','creations','templates','studioApi','studio','connectorPairing','connectorChannel','auth','xhsSync','localAccounts'],names:['overview','isPlatformAdmin','remoteSync','canDispatch','validateExecutionGrant']},
+ 'backend/server/studio-routes.ts':{objects:['store','studio','models'],names:['recoverStalledExecutions','launch','canDispatch']},
+ 'backend/server/studio-execution.ts':{objects:['studio'],names:['get','update','fail']},
+ 'backend/server/xhs-sync.ts':{objects:['store'],names:['remote']},
+ 'backend/server/local-accounts.ts':{objects:['store'],names:[]},
+ 'backend/server/customer-connector.ts':{objects:['channel'],names:['route']},
+ 'backend/server/connector-channel.ts':{objects:['pairing','storage'],names:['online','binding','selected','select','active','bind','authorize']},
+ 'backend/server/connector-pairing.ts':{objects:['pairing','auth','channel'],names:['webWorkspace','origin']}
 };
 const printer=ts.createPrinter({newLine:ts.NewLineKind.LineFeed});
 for(const [file,rules] of Object.entries(files)){

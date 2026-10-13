@@ -16,8 +16,9 @@ if (existsSync(output)) throw new Error(`输出目录已存在，为避免覆盖
 mkdirSync(join(output, 'source'), { recursive: true });
 const tracked = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
 const untracked = execFileSync('git', ['-C', root, 'ls-files', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
-const sourceRoots = /^(server|src|scripts|shared|local-connector|public|deploy)\//;
+const sourceRoots = /^(frontend|backend|server|src|scripts|shared|local-connector|workbuddy-connector|public|deploy|migration)\//;
 const sourceFiles = new Set(['.gitignore','.dockerignore','.editorconfig','.gitattributes','.node-version','.npmrc','.env.example','Dockerfile','index.html','package.json','pnpm-lock.yaml','pnpm-workspace.yaml','tsconfig.json','tsconfig.node.json','vite.config.ts','postcss.config.js','tailwind.config.js','START-CONNECTOR.bat','START-LOCAL-DEV.bat','README.md','DEVELOPMENT.md','ARCHITECTURE.md','OPERATIONS.md','RELEASE.md','compose.dev.yaml','compose.prod.example.yaml','railway.json','render.yaml']);
+for(const name of ['tsconfig.base.json','vitest.config.ts','SOURCE-SNAPSHOT.json','docs/文件与代码删除指南.md','docs/file-deletion-inventory.csv','docs/dependency-analysis.json'])sourceFiles.add(name);
 const allowedExtension=/\.(?:[cm]?js|[cm]?tsx?|json|sql|conf|service|Dockerfile|css|html|svg|png|jpe?g|webp|gif|ico|py|ps1|bat|sh|txt|ya?ml|md)$|(?:^|\/)Dockerfile$/i;
 const excludedFile=/(?:^|\/)(?:\.env(?:\..+)?|cloud-device\.json|connector-token|model-encryption-key|device-lease\.json|[^/]+\.local\.json)$|\.(?:pem|key|pub|pfx|p12|sqlite|db|log|pyc)$/i;
 const included=[];

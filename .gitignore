@@ -18,3 +18,14 @@ mac-connector-x64/
 *.log
 
 node_modules
+
+.handoff/
+.env*
+!.env.example
+
+*.sqlite
+*.sqlite-*
+model-encryption-key
+connector-token
+access-token
+workspaces/

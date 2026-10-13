@@ -1,14 +1,18 @@
+# 分离副本说明
+
+本目录为 2026-10-13 的前后端分离源码副本，未上线。当前入口与删除规则见 README.md 和 docs/文件与代码删除指南.md。历史生产记录仅供参考，不能作为本副本已部署的证明。原项目保留在桌面 MatrixCloud-Dev。后端不提供前端静态页面；旧单容器维护发布器已阻止分离版本自动上线。
+
 # 矩阵云维护入口
 
 先运行 `node scripts/maintenance-context.mjs`（可加 creation / execution / maintenance），再按需读取验收记录的最新条目。不要重复读取整段历史或整个仓库，只读目标模块和相关差异。
 
 用户最新要求：成本优化仅指 Codex 制作、修复和维护系统时消耗的额度。生图/文案供应商、模型、原有费用设置、洗图二创及已上传素材均受保护；不得为开发降本增加业务预算、收费拦截、生成缓存替代新任务或缩减生图数量。单个创作任务支持1–12张，原有默认值保留。素材库实现、上传数据和原图不纳入本次改动或清理。
 
-- 客户界面：`src/PublishCenter.tsx`、`src/OneClickPublish.tsx`、`src/GreyApp.tsx`；共享样式 `src/styles/workspace-layout.css`。默认图文创作，登录完成后自动同步、审核通过后自动保存草稿，错误经 `customer-message.ts` 转换。
-- 执行：`server/studio-routes.ts`、`studio-execution.ts`、`browser-runs.ts`、`xhs-sync.ts`；本机 `local-connector/*`；平台动作 `scripts/studio-executor.mjs`、`xhs-playwright.mjs`。连接器协议4；无新协议保护能力禁止自动任务。用户2026-09-20已明确恢复自动衔接；仍保留取消、限速、账号限制暂停及结果未知时禁止重复上传。
+- 客户界面：`frontend/src/PublishCenter.tsx`、`frontend/src/OneClickPublish.tsx`、`frontend/src/GreyApp.tsx`；共享样式 `frontend/src/styles/workspace-layout.css`。默认图文创作，登录完成后自动同步、审核通过后自动保存草稿，错误经 `customer-message.ts` 转换。
+- 执行：`backend/server/studio-routes.ts`、`studio-execution.ts`、`browser-runs.ts`、`xhs-sync.ts`；本机 `local-connector/*`；平台动作 `scripts/studio-executor.mjs`、`xhs-playwright.mjs`。连接器协议4；无新协议保护能力禁止自动任务。用户2026-09-20已明确恢复自动衔接；仍保留取消、限速、账号限制暂停及结果未知时禁止重复上传。
 - 开发成本：按模块检索和读取，复用已有依赖、通过的检查及交接记录；一个问题定位一次，只有相关变更才重跑对应检查。不增开重复任务或让多个代理重复读仓库；日志先看摘要和末尾，必要时再读报错上下文。维护MCP自身不调用模型。
-- 维护 MCP：`server/maintenance*.ts`，部署说明 `docs/maintenance-mcp.md`。运行服务和受信部署脚本置于源码工作区外。AI不能通过工具自我确认上线。
-- 清理：`scripts/release_cleanup.py`、`release_retention.py`、`media-quarantine.py`；PostgreSQL引用快照 `server/media-reference-snapshot.ts`。不删除有效数据、登录目录、密钥或必要回滚；文件变化即跳过。
+- 维护 MCP：`backend/server/maintenance*.ts`，部署说明 `docs/maintenance-mcp.md`。运行服务和受信部署脚本置于源码工作区外。AI不能通过工具自我确认上线。
+- 清理：`scripts/release_cleanup.py`、`release_retention.py`、`media-quarantine.py`；PostgreSQL引用快照 `backend/server/media-reference-snapshot.ts`。不删除有效数据、登录目录、密钥或必要回滚；文件变化即跳过。
 
 ## 验证与发布
 

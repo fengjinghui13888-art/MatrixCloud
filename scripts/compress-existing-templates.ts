@@ -1,9 +1,9 @@
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {Postgres,databaseUrl} from '../server/postgres';
-import {createPostgresTemplates} from '../server/postgres-tasks';
-import {decodeTemplateImage} from '../server/personal-templates';
+import {Postgres,databaseUrl} from '../backend/server/postgres';
+import {createPostgresTemplates} from '../backend/server/postgres-tasks';
+import {decodeTemplateImage} from '../backend/server/personal-templates';
 
 const apply=process.argv.includes('--apply');
 const root='/app/work/grey',tenant='owner';

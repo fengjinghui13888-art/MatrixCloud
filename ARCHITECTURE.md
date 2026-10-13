@@ -1,3 +1,9 @@
+# 分离版本架构
+
+`frontend/` 提供页面，`backend/` 提供 API，`shared/` 是公共契约。浏览器请求先到 Vite 或前端 nginx，再代理到后端；Express 不再负责静态页面。生产入口 nginx 保留在两个业务容器之外。
+
+独立容器内使用精确的代理 IP 信任配置，转发规则依据 [Express 官方代理文档](https://expressjs.com/en/guide/behind-proxies/)。默认网络为 172.30.83.0/24，前端为 172.30.83.10；修改网络时同时修改 Compose、frontend/nginx.conf 的网关和后端 TRUSTED_PROXY_IPS。
+
 # 架构说明
 
 ## 组件

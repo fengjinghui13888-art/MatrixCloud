@@ -1,14 +1,14 @@
-# Keep the maintenance runtime independent from the business container and editable repository.
-# Pass a local tag verified against the recorded business image ID.
-ARG VERIFIED_BASE=matrix-cloud:verified-maintenance-base
+# Maintenance remains separate from business containers.
+ARG VERIFIED_BASE=matrix-cloud-backend:verified-maintenance-base
 FROM ${VERIFIED_BASE}
 USER root
 RUN apk add --no-cache git python3 py3-requests docker-cli
 WORKDIR /opt/matrix-maintenance/runtime
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base.json ./
 RUN ln -s /app/node_modules ./node_modules
-COPY server ./server
+COPY backend ./backend
+RUN ln -s /app/backend/node_modules ./backend/node_modules
+COPY shared ./shared
 COPY scripts /opt/matrix-maintenance/trusted
-COPY tsconfig.json ./
 ENV MAINTENANCE_CONFIG=/etc/matrix-maintenance/config.json
-CMD ["node", "--import", "tsx", "server/maintenance.ts"]
+CMD ["node", "--import", "tsx", "backend/server/maintenance.ts"]

@@ -1,11 +1,11 @@
 import {existsSync,readFileSync,readdirSync,mkdirSync,writeFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {runSqliteJson} from '../server/sqlite-client';
+import {runSqliteJson} from '../backend/server/sqlite-client';
 import {createHash} from 'node:crypto';
-import {Postgres,databaseUrl} from '../server/postgres';
-import {createPostgresStore} from '../server/postgres-store';
-import {modelCipher} from '../server/postgres-models';
-import type {Database} from '../server/domain';
+import {Postgres,databaseUrl} from '../backend/server/postgres';
+import {createPostgresStore} from '../backend/server/postgres-store';
+import {modelCipher} from '../backend/server/postgres-models';
+import type {Database} from '../backend/server/domain';
 
 const dir=process.argv[2];if(!dir||!databaseUrl())throw Error('需要数据目录和迁移数据库凭证');
 const db=new Postgres(databaseUrl()!);
@@ -19,7 +19,7 @@ const stable=(v:any):any=>Array.isArray(v)?v.map(stable).sort((a,b)=>JSON.string
 const hash=(v:any)=>createHash('sha256').update(JSON.stringify(stable(v))).digest('hex');
 const report:any={schema:2,tenants:[],devices:0,verified:false};
 try{
- await db.pool.query(readFileSync(new URL('../server/postgres-schema.sql',import.meta.url),'utf8'));
+ await db.pool.query(readFileSync(new URL('../backend/server/postgres-schema.sql',import.meta.url),'utf8'));
  const users=read(join(dir,'accounts.sqlite'),'login_users');
  const tenants=new Map<string,string>();for(const u of users)tenants.set(u.workspace,u.display_name||u.username);if(!tenants.has('owner'))tenants.set('owner','平台工作区');
  const currentTenants=new Set((await db.pool.query('SELECT tenant_id FROM tenant')).rows.map(r=>r.tenant_id));

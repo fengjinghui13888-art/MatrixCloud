@@ -1,0 +1,462 @@
+﻿文件或目录,删除结论,用途,删除条件或恢复方法,静态引用者（不含外部命令）,字节数
+.dockerignore,必须保留,源码、运行或开发配置,维持当前功能时保留,,208
+.editorconfig,必须保留,源码、运行或开发配置,维持当前功能时保留,,179
+.env.example,必须保留,源码、运行或开发配置,维持当前功能时保留,,551
+.gitattributes,必须保留,源码、运行或开发配置,维持当前功能时保留,,270
+.gitignore,必须保留,源码、运行或开发配置,维持当前功能时保留,,377
+.node-version,必须保留,源码、运行或开发配置,维持当前功能时保留,,8
+.npmrc,必须保留,源码、运行或开发配置,维持当前功能时保留,,74
+access-token,必须保留,源码、运行或开发配置,维持当前功能时保留,,64
+AGENTS.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,5088
+ARCHITECTURE.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,2408
+backend/package.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,940
+backend/server/__tests__/account-login.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,13860
+backend/server/__tests__/account-scope.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1431
+backend/server/__tests__/api-only.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1119
+backend/server/__tests__/billing-service.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1746
+backend/server/__tests__/browser-bridge-path.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,354
+backend/server/__tests__/browser-focus.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1011
+backend/server/__tests__/browser-runs.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,969
+backend/server/__tests__/cdp.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,978
+backend/server/__tests__/cloud-client.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2756
+backend/server/__tests__/connection-contract.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1083
+backend/server/__tests__/connector-access.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1128
+backend/server/__tests__/connector-browser-path.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1467
+backend/server/__tests__/connector-channel.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3786
+backend/server/__tests__/connector-cleanup.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1147
+backend/server/__tests__/connector-cli.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2430
+backend/server/__tests__/connector-downloads.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2426
+backend/server/__tests__/connector-events.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4256
+backend/server/__tests__/connector-onboarding.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3485
+backend/server/__tests__/connector-packaging.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,12944
+backend/server/__tests__/connector-pair-cli.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4121
+backend/server/__tests__/connector-pairing-flow.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,5618
+backend/server/__tests__/connector-pairing.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,958
+backend/server/__tests__/connector-reconnect.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2375
+backend/server/__tests__/connector-version.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1744
+backend/server/__tests__/connector-windows-start.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,8929
+backend/server/__tests__/creation.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2283
+backend/server/__tests__/creator-self-identity.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1607
+backend/server/__tests__/customer-connector.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3091
+backend/server/__tests__/customer-delivery.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4787
+backend/server/__tests__/customer-device-switch.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,8835
+backend/server/__tests__/deletion.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,6733
+backend/server/__tests__/event-sync-api.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,8315
+backend/server/__tests__/event-sync.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,9522
+backend/server/__tests__/execution-protection.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1563
+backend/server/__tests__/executor-contract.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,491
+backend/server/__tests__/grey.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2533
+backend/server/__tests__/identity-adversarial.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,838
+backend/server/__tests__/image-provider.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2772
+backend/server/__tests__/import-binding.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1184
+backend/server/__tests__/local-accounts.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,6558
+backend/server/__tests__/local-cdp.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1261
+backend/server/__tests__/local-media.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1858
+backend/server/__tests__/local-proxy-transport.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1569
+backend/server/__tests__/local-sync-worker.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,7840
+backend/server/__tests__/login-adversarial.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3316
+backend/server/__tests__/maintenance-auth.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3340
+backend/server/__tests__/maintenance-cleanup.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2833
+backend/server/__tests__/maintenance-http.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4003
+backend/server/__tests__/maintenance-runner.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2026
+backend/server/__tests__/maintenance.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4107
+backend/server/__tests__/matrix-dispatch.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1869
+backend/server/__tests__/media-cache.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,630
+backend/server/__tests__/model-chat.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2009
+backend/server/__tests__/model-network.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,462
+backend/server/__tests__/model-settings.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2601
+backend/server/__tests__/model-timeout.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2219
+backend/server/__tests__/multi-sync-queue.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,521
+backend/server/__tests__/partial-snapshot.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1713
+backend/server/__tests__/personal-templates.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,7376
+backend/server/__tests__/postgres-integration.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,27840
+backend/server/__tests__/postgres-sync-jobs.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,7707
+backend/server/__tests__/publish-queue.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2463
+backend/server/__tests__/release-builder.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,5008
+backend/server/__tests__/release-cleanup.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1941
+backend/server/__tests__/remote-sync.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,6335
+backend/server/__tests__/retired-execution.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1006
+backend/server/__tests__/rich-snapshot.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2135
+backend/server/__tests__/role-path-security.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,739
+backend/server/__tests__/runtime-paths.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,587
+backend/server/__tests__/separated-maintenance.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1304
+backend/server/__tests__/separated-proxy.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1652
+backend/server/__tests__/session-queue.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,701
+backend/server/__tests__/session-state.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1123
+backend/server/__tests__/sqlite-client.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1292
+backend/server/__tests__/store.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1102
+backend/server/__tests__/studio-device.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2507
+backend/server/__tests__/studio-dispatch.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,7298
+backend/server/__tests__/studio-download.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1131
+backend/server/__tests__/studio-draft.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,807
+backend/server/__tests__/studio-execution.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1046
+backend/server/__tests__/studio-fast-sync.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,11240
+backend/server/__tests__/studio-opencli.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,484
+backend/server/__tests__/studio-page.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2539
+backend/server/__tests__/studio-persisted.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3639
+backend/server/__tests__/studio-ready.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3157
+backend/server/__tests__/studio-safety.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1097
+backend/server/__tests__/studio-save-button.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1675
+backend/server/__tests__/studio-topics.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4036
+backend/server/__tests__/studio-transfer.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2736
+backend/server/__tests__/studio-upload.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1008
+backend/server/__tests__/studio.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,7373
+backend/server/__tests__/sync-incremental.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,452
+backend/server/__tests__/sync-path.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,540
+backend/server/__tests__/team-device-permissions.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,769
+backend/server/__tests__/template-library.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2752
+backend/server/__tests__/trusted-proxy.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1192
+backend/server/__tests__/web-self-identity.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2906
+backend/server/__tests__/workbench-launch.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1094
+backend/server/__tests__/workbuddy-billing.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1447
+backend/server/__tests__/workbuddy-mcp.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1060
+backend/server/__tests__/workbuddy-service.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1148
+backend/server/__tests__/workspace-isolation.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2991
+backend/server/__tests__/xhs-collector.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2474
+backend/server/__tests__/xhs-content.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,988
+backend/server/__tests__/xhs-events-validation.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,846
+backend/server/__tests__/xhs-incremental.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4244
+backend/server/__tests__/xhs-network.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1805
+backend/server/__tests__/xhs-sync-cancel.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2384
+backend/server/__tests__/xhs-sync-status.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,9255
+backend/server/__tests__/xhs-sync-worker.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2680
+backend/server/__tests__/xhs-watch.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,18495
+backend/server/account-auth.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/tenant-auth.ts,9222
+backend/server/billing-service.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/workbuddy-mcp-server.ts,3835
+backend/server/browser-runs.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/local-accounts.ts; backend/server/studio-routes.ts; backend/server/xhs-sync.ts,2513
+backend/server/channel-storage.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/connector-channel.ts,2704
+backend/server/connector-channel.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/connector-pairing.ts; backend/server/customer-connector.ts; backend/server/grey-app.ts,17464
+backend/server/connector-downloads.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,1222
+backend/server/connector-pairing.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/connector-channel.ts; backend/server/grey-app.ts; backend/server/postgres-pairing.ts,14990
+backend/server/creation-queue.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/postgres-tasks.ts,4163
+backend/server/customer-connector.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,2063
+backend/server/domain.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/migrate-postgres.ts; backend/server/postgres-store.ts; backend/server/seed.ts; backend/server/store.ts,43
+backend/server/event-sync.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,8946
+backend/server/execution-access.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/grey-app.ts; backend/server/grey-app.ts; backend/server/studio-execution.ts; backend/server/xhs-sync.ts,1757
+backend/server/grey-app.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey.ts,62421
+backend/server/grey-proxy.ts,条件可删除,未启用代码或可选入口,确认所有 MCP 客户端配置不再指向此 stdio 入口后可删,,1224
+backend/server/grey.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,,2278
+backend/server/local-accounts.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,11519
+backend/server/local-connector.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/customer-connector.ts; backend/server/grey-app.ts; backend/server/local-accounts.ts,3491
+backend/server/local-media.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,775
+backend/server/maintenance-app.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/maintenance.ts,11277
+backend/server/maintenance-auth.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/maintenance-app.ts; backend/server/maintenance.ts,6913
+backend/server/maintenance-cleanup.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/maintenance-app.ts,2371
+backend/server/maintenance-runner.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/maintenance.ts,4419
+backend/server/maintenance-service.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/maintenance-app.ts; backend/server/maintenance-runner.ts; backend/server/maintenance.ts,10388
+backend/server/maintenance-state.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/maintenance-auth.ts; backend/server/maintenance-cleanup.ts; backend/server/maintenance-service.ts,2024
+backend/server/maintenance.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,,2813
+backend/server/media-reference-snapshot.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,,2082
+backend/server/model-gateway.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/diagnose-reference-service.ts; backend/server/grey-app.ts; backend/server/studio-routes.ts,10572
+backend/server/model-settings.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/model-gateway.ts; backend/server/postgres-models.ts; backend/server/studio-routes.ts; backend/server/studio-routes.ts,4639
+backend/server/personal-templates.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/compress-existing-templates.ts; backend/server/grey-app.ts; backend/server/studio-routes.ts,8220
+backend/server/postgres-jobs.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/xhs-sync.ts,3267
+backend/server/postgres-models.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/diagnose-reference-service.ts; scripts/migrate-postgres.ts; backend/server/grey-app.ts; backend/server/studio-routes.ts,4574
+backend/server/postgres-pairing.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/connector-channel.ts; backend/server/connector-pairing.ts; backend/server/grey-app.ts,5539
+backend/server/postgres-schema.sql,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/migrate-postgres.ts,10094
+backend/server/postgres-store.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/migrate-postgres.ts; backend/server/grey-app.ts; backend/server/grey.ts; backend/server/local-accounts.ts; backend/server/studio-routes.ts; backend/server/xhs-sync.ts,16346
+backend/server/postgres-tasks.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/compress-existing-templates.ts; backend/server/grey-app.ts; backend/server/personal-templates.ts; backend/server/studio-execution.ts; backend/server/studio-routes.ts,10137
+backend/server/postgres.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/compress-existing-templates.ts; scripts/diagnose-reference-service.ts; scripts/migrate-postgres.ts; backend/server/channel-storage.ts; backend/server/connector-channel.ts; backend/server/grey-app.ts; backend/server/grey.ts; backend/server/media-reference-snapshot.ts; backend/server/postgres-jobs.ts; backend/server/postgres-models.ts; backend/server/postgres-pairing.ts; backend/server/postgres-store.ts; backend/server/postgres-tasks.ts; backend/server/tenant-auth.ts,1801
+backend/server/publish-queue.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/postgres-tasks.ts,4590
+backend/server/runtime-paths.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/grey.ts; backend/server/local-connector.ts; backend/server/workbuddy-mcp-server.ts; backend/server/xhs-qr-login.ts; backend/server/xhs-sync.ts,748
+backend/server/seed.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/store.ts,4236
+backend/server/serial.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/event-sync.ts; backend/server/local-accounts.ts; backend/server/xhs-sync.ts,414
+backend/server/sqlite-client.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,scripts/migrate-postgres.ts; backend/server/account-auth.ts; backend/server/browser-runs.ts; backend/server/channel-storage.ts; backend/server/connector-pairing.ts; backend/server/creation-queue.ts; backend/server/maintenance-state.ts; backend/server/publish-queue.ts; backend/server/store.ts; backend/server/studio.ts; backend/server/template-library.ts,2261
+backend/server/store.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/grey.ts; backend/server/postgres-store.ts; backend/server/workbuddy-mcp-server.ts; backend/server/xhs-qr-login.ts,14812
+backend/server/studio-execution.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/studio-routes.ts,5899
+backend/server/studio-export.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/studio-routes.ts,738
+backend/server/studio-routes.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,24472
+backend/server/studio.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/postgres-tasks.ts; backend/server/studio-execution.ts; backend/server/studio-routes.ts; backend/server/studio-routes.ts; backend/server/studio-routes.ts; backend/server/studio-routes.ts; backend/server/studio-routes.ts; backend/server/studio-routes.ts,4633
+backend/server/template-library.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/postgres-tasks.ts,3450
+backend/server/tenant-auth.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/connector-pairing.ts; backend/server/grey-app.ts,13876
+backend/server/trusted-proxy.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/connector-channel.ts; backend/server/connector-pairing.ts; backend/server/grey-app.ts; backend/server/maintenance-app.ts,1423
+backend/server/workbuddy-mcp-server.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/workbuddy-mcp.ts,3626
+backend/server/workbuddy-mcp.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,,244
+backend/server/workbuddy-service.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/workbuddy-mcp-server.ts,1366
+backend/server/workspace-scope.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts,941
+backend/server/xhs-qr-login.ts,条件可删除,未启用代码或可选入口,确认不使用旧桥接扫码、外部工具没有直接调用后可删,,2287
+backend/server/xhs-sync.ts,必须保留,后端 API、认证、数据、任务或独立 CLI,维持当前功能时保留,backend/server/grey-app.ts; backend/server/postgres-jobs.ts,13072
+backend/tsconfig.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,147
+backend/vitest.config.ts,必须保留,源码、运行或开发配置,维持当前功能时保留,,328
+CLAUDE.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,908
+compose.dev.yaml,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,1411
+compose.prod.example.yaml,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,1197
+deploy/maintenance-checks.Dockerfile,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,352
+deploy/maintenance-config.example.json,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,693
+deploy/maintenance-runtime.Dockerfile,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,671
+deploy/matrix-ingress.conf,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,2161
+deploy/matrix-maintenance.service,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,520
+deploy/matrix-ssh-keepalive.conf,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,136
+deploy/matrix-tls-renew.service,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,216
+DEVELOPMENT.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,1837
+Dockerfile,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,1134
+docs/CORE-PUBLISH-CONTRACT.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,959
+docs/current-sync-baseline.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2380
+docs/customer-delivery.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,4529
+docs/dependency-analysis.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,39697
+docs/maintenance-mcp-portable.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,899
+docs/maintenance-mcp.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,8724
+docs/studio-speed-audit-2026-09-10.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,4358
+docs/superpowers/plans/2026-09-06-real-sync.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2930
+docs/superpowers/plans/2026-09-07-rich-sync.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2831
+docs/superpowers/plans/2026-09-08-reviewed-publishing.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1956
+docs/superpowers/plans/2026-09-11-playwright-collection.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1712
+docs/superpowers/plans/2026-09-17-customer-reliability.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,3092
+docs/superpowers/plans/2026-09-23-portable-windows.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,838
+docs/superpowers/plans/2026-10-08-customer-delivery.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,5353
+docs/superpowers/plans/2026-10-12-event-sync.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,5470
+docs/superpowers/plans/2026-10-13-frontend-backend-separation.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,3726
+docs/superpowers/specs/2026-10-08-customer-delivery.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1664
+docs/superpowers/specs/2026-10-12-event-sync.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1790
+docs/superpowers/specs/2026-10-13-frontend-backend-separation-design.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1771
+docs/verification/2026-09-17/customer-delivery.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,9157
+docs/verification/2026-09-17/duplicate-runtime-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,289
+docs/verification/2026-09-17/duplicate-runtime-cleanup.json.gz,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,310985
+docs/verification/2026-09-17/local-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,902
+docs/verification/2026-09-17/packages.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,647
+docs/verification/2026-09-17/publish-desktop.png,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,58536
+docs/verification/2026-09-17/publish-keyboard.png,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,50671
+docs/verification/2026-09-17/publish-mobile.png,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,33971
+docs/verification/2026-09-17/report.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,10548
+docs/verification/2026-09-18/local-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1451
+docs/verification/2026-09-18/production.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,7177
+docs/verification/2026-09-20/cloud-cleanup-20260920.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1668
+docs/verification/2026-09-20/cloud-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,858
+docs/verification/2026-09-20/cloud-space-reclaimed.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,7603
+docs/verification/2026-09-20/customer-build-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1644
+docs/verification/2026-09-20/customer-startup-and-cleanup.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,5682
+docs/verification/2026-09-20/draft-fix/cleanup-draft.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1442
+docs/verification/2026-09-20/draft-fix/data-preservation.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,618
+docs/verification/2026-09-20/draft-fix/deployed.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,532
+docs/verification/2026-09-20/draft-fix/local-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1030
+docs/verification/2026-09-20/draft-fix/packages.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,582
+docs/verification/2026-09-20/draft-fix/public-asset.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,151
+docs/verification/2026-09-20/draft-fix/ui.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,526
+docs/verification/2026-09-20/draft-save-fix.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,5511
+docs/verification/2026-09-20/local-cleanup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1548
+docs/verification/2026-09-20/package-startup.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,907
+docs/verification/2026-09-20/security-and-auto-sync.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,9578
+docs/verification/2026-09-20/verified-runtime.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2187
+docs/verification/2026-09-22/all-accounts-connector.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2335
+docs/verification/2026-09-22/browser-login-compatibility.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2328
+docs/verification/2026-09-22/sync-checkpoint-fix.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2304
+docs/verification/2026-09-22/unified-publish-actions.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2509
+docs/verification/2026-09-23/account-relogin.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,966
+docs/verification/2026-10-13-proxy-smoke.json,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,995
+docs/verification/2026-10-13-separation-ledger.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,274
+docs/windows-local-connector.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2004
+docs/商业交付执行大纲.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,9745
+docs/团队快速上手.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2916
+docs/实拍素材二创故障修复与验收-2026-09-15.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,4177
+docs/客户交付与维护手册.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,12740
+docs/客户电脑同步修复-20260917.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2436
+docs/对抗式审查-20260914.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,8424
+docs/小红书真实话题验收-2026-09-16.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,1849
+docs/文件与代码删除指南.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,10702
+docs/模板上传与二创验收-2026-09-15.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,5651
+docs/模板库上传与看图提速验收-2026-09-15.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,2682
+docs/第二阶段验收-2026-09-15.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,11318
+docs/项目阶段总结与后续执行计划-2026-09-15.md,条件可归档,文档、验收或历史记录,保留必要验收、迁移、回滚和删除说明后可归档历史材料,,16777
+frontend/Dockerfile,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,742
+frontend/index.html,必须保留,源码、运行或开发配置,维持当前功能时保留,,338
+frontend/nginx.conf,必须保留,部署、入口代理或维护运行配置,使用这套部署/维护方式必须保留,,1447
+frontend/package.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,1119
+frontend/src/__tests__/account-login.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,9456
+frontend/src/__tests__/account-safety.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,837
+frontend/src/__tests__/connector-authorize.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1204
+frontend/src/__tests__/connector-pairing-panel.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2036
+frontend/src/__tests__/creation-center.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1106
+frontend/src/__tests__/customer-computer-sync.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3892
+frontend/src/__tests__/event-sync.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2003
+frontend/src/__tests__/grey-content.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1595
+frontend/src/__tests__/grey-followup.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1506
+frontend/src/__tests__/grey-model-settings.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2991
+frontend/src/__tests__/messages.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1295
+frontend/src/__tests__/multi-account-sync.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,18511
+frontend/src/__tests__/new-sync-records.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,563
+frontend/src/__tests__/overview.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1002
+frontend/src/__tests__/personal-center.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1519
+frontend/src/__tests__/provider-picker.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1079
+frontend/src/__tests__/publish-center-flow.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1767
+frontend/src/__tests__/qr-errors.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,827
+frontend/src/__tests__/qr-stability.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,2264
+frontend/src/__tests__/rich-content.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1718
+frontend/src/__tests__/safe-storage.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,663
+frontend/src/__tests__/studio-ui.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,9754
+frontend/src/__tests__/template-upload.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3825
+frontend/src/__tests__/workspace-state.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,4759
+frontend/src/AccountLogin.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,6726
+frontend/src/AccountSafety.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,1476
+frontend/src/ConnectorAuthorize.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,2066
+frontend/src/ConnectorPairingPanel.test.tsx,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1884
+frontend/src/ConnectorPairingPanel.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,8620
+frontend/src/CreationCenter.tsx,条件可删除,未启用代码或可选入口,当前页面未引用；不恢复旧创作组件时可删,,5984
+frontend/src/customer-message.ts,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/AccountSafety.tsx; frontend/src/ConnectorAuthorize.tsx; frontend/src/ConnectorPairingPanel.tsx; frontend/src/GreyApp.tsx; frontend/src/OneClickPublish.tsx; frontend/src/XhsQrLogin.tsx,980
+frontend/src/EventSync.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,3497
+frontend/src/GreyApp.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,30618
+frontend/src/main.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,,335
+frontend/src/message-threads.test.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,425
+frontend/src/message-threads.ts,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,555
+frontend/src/ModelSettings.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,13343
+frontend/src/new-sync-records.ts,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,593
+frontend/src/NoteContent.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,7310
+frontend/src/OneClickPublish.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/PublishCenter.tsx,17841
+frontend/src/Overview.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,4669
+frontend/src/PersonalCenter.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,3567
+frontend/src/ProviderPicker.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/ModelSettings.tsx,3094
+frontend/src/PublishCenter.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,1327
+frontend/src/safe-clipboard.ts,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/ConnectorPairingPanel.tsx; frontend/src/OneClickPublish.tsx; frontend/src/SyncGuide.tsx,710
+frontend/src/safe-storage.ts,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/AccountLogin.tsx; frontend/src/ConnectorAuthorize.tsx; frontend/src/ConnectorPairingPanel.tsx; frontend/src/GreyApp.tsx,697
+frontend/src/StudioPublishActions.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/OneClickPublish.tsx,4116
+frontend/src/styles/connector-pairing.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/ConnectorPairingPanel.tsx,1239
+frontend/src/styles/grey.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,15308
+frontend/src/styles/index.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,10654
+frontend/src/styles/liquid-glass.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,11489
+frontend/src/styles/reference-light.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,10983
+frontend/src/styles/studio-layout.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,9601
+frontend/src/styles/template-library.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/TemplateLibrary.tsx,5629
+frontend/src/styles/workspace-layout.css,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/main.tsx,12594
+frontend/src/SyncGuide.tsx,条件可删除,未启用代码或可选入口,当前页面未引用；不恢复旧手动同步说明时可删,,1166
+frontend/src/TeamSettings.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/PersonalCenter.tsx,4552
+frontend/src/TemplateLibrary.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/PublishCenter.tsx,10200
+frontend/src/test-setup.ts,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,43
+frontend/src/XhsQrLogin.tsx,必须保留,前端页面、样式或页面工具,维持当前功能时保留,frontend/src/GreyApp.tsx,5228
+frontend/tsconfig.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,118
+frontend/vite.config.ts,必须保留,源码、运行或开发配置,维持当前功能时保留,,826
+local-connector/browser-focus.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,583
+local-connector/browser-path.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,1836
+local-connector/cdp.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs; scripts/local-browser.mjs; scripts/verify-native-topics.mjs,9563
+local-connector/cleanup.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,2206
+local-connector/cloud-channel.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,3873
+local-connector/cloud-client.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/cloud-channel.mjs; local-connector/connector.mjs; local-connector/onboarding.mjs; local-connector/pair.mjs; local-connector/reconnect.mjs; local-connector/workbench-launch.mjs,4878
+local-connector/cloud-migration.test.js,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3923
+local-connector/connector.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/launch.mjs; local-connector/pair.mjs,20189
+local-connector/identity.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/login.mjs; local-connector/session-state.mjs; scripts/studio-executor.mjs,8629
+local-connector/launch.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,,570
+local-connector/login.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,1930
+local-connector/onboarding.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,3350
+local-connector/pair.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,,1732
+local-connector/queue.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/cleanup.mjs; local-connector/connector.mjs; local-connector/studio-jobs.mjs; local-connector/sync-jobs.mjs,957
+local-connector/README.md,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,,2050
+local-connector/reconnect.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,1461
+local-connector/session-queue.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,386
+local-connector/session-state.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,1528
+local-connector/startup-guard.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,1143
+local-connector/studio-jobs.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,5721
+local-connector/sync-jobs.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,4928
+local-connector/sync-worker.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,,2338
+local-connector/workbench-launch.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,764
+local-connector/xhs-watch.mjs,必须保留,客户电脑连接器和浏览器执行链路,维持当前功能时保留,local-connector/connector.mjs,13168
+migration/README.md,必须保留,生产迁移和数据恢复流程,上线迁移与恢复期间保留,,485
+OPERATIONS.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,3350
+package.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,1355
+pnpm-lock.yaml,必须保留,源码、运行或开发配置,维持当前功能时保留,,155158
+pnpm-workspace.yaml,必须保留,源码、运行或开发配置,维持当前功能时保留,,86
+railway.json,条件可删除,未启用代码或可选入口,不使用 Railway 部署时可删,,330
+README.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,4628
+RELEASE.md,必须保留,源码、运行或开发配置,维持当前功能时保留,,2031
+render.yaml,条件可删除,未启用代码或可选入口,不使用 Render 部署时可删,,287
+scripts/action-pacing.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,local-connector/connector.mjs; scripts/studio-executor.mjs; scripts/xhs-playwright.mjs,311
+scripts/bootstrap-windows.ps1,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,687
+scripts/browser-bridge-path.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/xhs-qr-login.mjs,400
+scripts/build-connector-packages.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,16504
+scripts/build-release.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,6530
+scripts/check-public-ingress.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1778
+scripts/check-yingdao.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1221
+scripts/collector-requirements.txt,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,17
+scripts/compress-existing-templates.ts,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,3488
+scripts/deploy-existing.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,10201
+scripts/diagnose-reference-service.ts,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,2359
+scripts/execution-guard.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,local-connector/connector.mjs; scripts/studio-executor.mjs; scripts/xhs-playwright.mjs,1593
+scripts/install-local-service.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1282
+scripts/install-windows-service.ps1,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,975
+scripts/local-browser.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-browser.mjs,954
+scripts/local-supervisor.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1039
+scripts/maintenance-context.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1840
+scripts/maintenance.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,7772
+scripts/media-quarantine.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,3348
+scripts/migrate-postgres.ts,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,10512
+scripts/phase-two-async.mjs,条件可删除,未启用代码或可选入口,完成一次性转换、不再需要复用转换工具时可删,,3170
+scripts/postgres_backup.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1187
+scripts/preflight.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1949
+scripts/preflight.ps1,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,370
+scripts/prepare-studio-page.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs,3510
+scripts/provision-postgres.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,2067
+scripts/release_cleanup.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,3031
+scripts/release_retention.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,4049
+scripts/remote-sync.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/xhs-sync.mjs,5445
+scripts/renew-tls.sh,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,642
+scripts/runtime-path.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/local-browser.mjs; scripts/studio-executor.mjs; scripts/xhs-media.mjs; scripts/xhs-playwright.mjs; scripts/xhs-sync.mjs,360
+scripts/setup-collector.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,567
+scripts/start-local-connector.ps1,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,5595
+scripts/start-local-dev.ps1,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,1665
+scripts/studio-browser.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs; scripts/verify-native-topics.mjs; scripts/xhs-qr-login.mjs,4320
+scripts/studio-cli-input.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,304
+scripts/studio-copy.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-page.mjs; scripts/studio-persisted-draft.mjs,471
+scripts/studio-draft-flow.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs; scripts/verify-native-topics.mjs,2754
+scripts/studio-draft.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-draft-flow.mjs,2064
+scripts/studio-executor.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,local-connector/studio-jobs.mjs,14886
+scripts/studio-lock.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,local-connector/sync-worker.mjs; scripts/studio-executor.mjs; scripts/xhs-sync.mjs,910
+scripts/studio-media.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs,1944
+scripts/studio-opencli.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,559
+scripts/studio-page.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/prepare-studio-page.mjs; scripts/studio-executor.mjs; scripts/verify-native-topics.mjs,3887
+scripts/studio-persisted-draft.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-draft-flow.mjs; scripts/studio-executor.mjs; scripts/verify-native-topics.mjs,4915
+scripts/studio-refresh-drafts.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-draft-flow.mjs,1215
+scripts/studio-safety.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs,1976
+scripts/studio-save-button.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs; scripts/verify-native-topics.mjs,1008
+scripts/studio-topics.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs; scripts/verify-native-topics.mjs,2494
+scripts/studio-transfer.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-browser.mjs,1956
+scripts/studio-upload.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/studio-executor.mjs,3261
+scripts/studio-wait.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/prepare-studio-page.mjs; scripts/studio-draft-flow.mjs; scripts/studio-executor.mjs; scripts/verify-native-topics.mjs,554
+scripts/sync-policy.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/xhs-playwright.mjs,157
+scripts/tests/test_deploy_existing.py,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3409
+scripts/tests/test_maintenance.py,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,1962
+scripts/tests/test_media_download.py,开发保留，运行包可不带,测试与回归验证,开发源码保留；生产打包按镜像/客户包规则裁剪,,3338
+scripts/verify-live-template.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,1278
+scripts/verify-native-topics.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,2690
+scripts/verify-real-photo-recovery.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,1446
+scripts/verify-template-compression-ui.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,2976
+scripts/verify-template-draft.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,929
+scripts/verify-template-speed.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,1817
+scripts/verify-template-ui.mjs,条件可删除,手工核验或诊断工具,不再需要该项验证/维护诊断时可删,,5010
+scripts/xhs-content.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/xhs-playwright.mjs,6834
+scripts/xhs-media.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,local-connector/sync-worker.mjs; scripts/xhs-sync.mjs,3501
+scripts/xhs-network.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,scripts/xhs-playwright.mjs,2393
+scripts/xhs-playwright.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,local-connector/sync-worker.mjs; scripts/xhs-sync.mjs,18687
+scripts/xhs-qr-login.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,3876
+scripts/xhs-sync.mjs,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,8136
+scripts/xhs_media_download.py,必须保留,执行器、启动、迁移、备份或打包工具,由脚本/进程启动的工具无 import 也可能必须保留,,6012
+shared/connector-platforms.d.mts,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,,101
+shared/connector-platforms.mjs,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,scripts/build-release.mjs; backend/server/connector-downloads.ts,1079
+shared/connector-protocol.mjs,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,local-connector/cloud-channel.mjs; backend/server/connector-channel.ts,1495
+shared/creation.ts,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,frontend/src/CreationCenter.tsx; backend/server/creation-queue.ts; backend/server/creation-queue.ts,328
+shared/domain.ts,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,frontend/src/GreyApp.tsx; frontend/src/message-threads.ts; frontend/src/NoteContent.tsx; frontend/src/OneClickPublish.tsx; frontend/src/Overview.tsx; frontend/src/PublishCenter.tsx; frontend/src/StudioPublishActions.tsx; frontend/src/XhsQrLogin.tsx; backend/server/domain.ts,2150
+shared/studio-recovery.ts,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,frontend/src/StudioPublishActions.tsx; backend/server/studio-routes.ts,728
+shared/templates.ts,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,frontend/src/OneClickPublish.tsx; frontend/src/PublishCenter.tsx; frontend/src/TemplateLibrary.tsx; backend/server/personal-templates.ts; backend/server/postgres-tasks.ts; backend/server/template-library.ts,556
+shared/xhs-events.mjs,必须保留,公共类型、业务规则或连接器协议,维持当前功能时保留,local-connector/cloud-channel.mjs; local-connector/xhs-watch.mjs; backend/server/connector-channel.ts; backend/server/event-sync.ts,1176
+SmartSteer_Status.md,保留追溯，运行可不带,源快照或历史维护记录,当前迁移/验收期间保留；历史归档后运行包可不带,,45884
+SOURCE-SNAPSHOT.json,保留追溯，运行可不带,源快照或历史维护记录,当前迁移/验收期间保留；历史归档后运行包可不带,,66018
+START-CONNECTOR.bat,必须保留,源码、运行或开发配置,维持当前功能时保留,,161
+START-LOCAL-DEV.bat,必须保留,源码、运行或开发配置,维持当前功能时保留,,137
+tsconfig.base.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,533
+tsconfig.json,必须保留,源码、运行或开发配置,维持当前功能时保留,,234
+vitest.config.ts,必须保留,源码、运行或开发配置,维持当前功能时保留,,382
+workbuddy-connector/connector-meta.json,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,965
+workbuddy-connector/icon.svg,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,297
+workbuddy-connector/mcp.json,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,268
+workbuddy-connector/mcp.production.json,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,221
+workbuddy-connector/README.md,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,1618
+workbuddy-connector/skills/zhixu-xhs-operations/SKILL.md,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,1033
+workbuddy-connector/token-schema.json,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,280
+workbuddy-connector/yingdao.local.json,条件可删除,WorkBuddy 配套交付文件,停用相应交付方式并确认没有外部引用后可删,,441
+node_modules/（根、前端、后端）,可重新生成,第三方依赖,删除后在根目录 pnpm install --frozen-lockfile,,
+frontend/dist/,可重新生成,前端构建结果,生产使用时需重新 pnpm --dir frontend build,,
+*.tsbuildinfo、__pycache__/、*.pyc,可重新生成,编译缓存,停止相关进程后可删,,
+*.log（本轮测试日志）,可删除测试日志,测试输出,保存必要验证结论后可删，不包括业务审计日志,,
+work/separation-qa-artifacts/,可删除合成测试数据,本轮 QA 合成数据归档,仅限本目录本轮合成数据，确认未投入真实使用,,
+.git/,开发保留,本副本版本和回退,维护 Git 仓库必须保留,,
+原项目 work/、.handoff/、媒体、Profile、密钥、业务库,禁止按缓存删除,真实业务数据和凭证,先备份并按迁移与媒体引用清单逐项核验,,
+原项目 outputs/,禁止整目录删除,交付、验收和回滚材料,逐文件确认是否被用户、生产或回滚引用,,
+docs/file-deletion-inventory.csv,保留验收，运行可不带,本清单,保存清理与来源追溯依据,,
+frontend/vitest.config.ts,开发/验收保留，运行可不带,前端独立测试配置,开发源项目保留,,387
+docs/verification/2026-10-13-separation.md,开发/验收保留，运行可不带,本轮验证与待验说明,保存本轮交付和迁移依据,,4613

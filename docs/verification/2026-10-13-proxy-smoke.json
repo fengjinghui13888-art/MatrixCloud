@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-13",
+  "frontend": "http://127.0.0.1:18573",
+  "backend": "http://127.0.0.1:18474",
+  "checks": [
+    {
+      "name": "frontend HTML",
+      "status": 200
+    },
+    {
+      "name": "backend API-only root",
+      "status": 404
+    },
+    {
+      "name": "backend health",
+      "status": 200
+    },
+    {
+      "name": "proxy health",
+      "status": 200
+    },
+    {
+      "name": "anonymous API refused",
+      "status": 401
+    },
+    {
+      "name": "cross-origin write refused",
+      "status": 403
+    },
+    {
+      "name": "same-origin isolated test registration",
+      "status": 201
+    },
+    {
+      "name": "session cookie through proxy",
+      "status": 200
+    },
+    {
+      "name": "authenticated operations through proxy",
+      "status": 200
+    },
+    {
+      "name": "WebSocket upgrade reaches backend authentication",
+      "status": 401
+    },
+    {
+      "name": "logout through proxy",
+      "status": 200
+    }
+  ],
+  "productionDataUsed": false
+}

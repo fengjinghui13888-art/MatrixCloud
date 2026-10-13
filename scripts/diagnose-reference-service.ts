@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { Postgres, databaseUrl } from '../server/postgres';
-import { createPostgresModels } from '../server/postgres-models';
-import { publicHttpsJson } from '../server/model-gateway';
+import { Postgres, databaseUrl } from '../backend/server/postgres';
+import { createPostgresModels } from '../backend/server/postgres-models';
+import { publicHttpsJson } from '../backend/server/model-gateway';
 
 const db = new Postgres(databaseUrl()!);
 try {

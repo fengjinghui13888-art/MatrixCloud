@@ -5,9 +5,9 @@ import {fileURLToPath} from 'node:url';
 const cwd=fileURLToPath(new URL('..',import.meta.url));
 const git=(...args)=>execFileSync('git',args,{cwd,encoding:'utf8',maxBuffer:256*1024}).trim();
 const modules={
-  creation:{source:['src/OneClickPublish.tsx','src/PublishCenter.tsx','server/studio-routes.ts'],tests:['src/__tests__/studio-ui.test.tsx','src/__tests__/publish-center-flow.test.tsx','server/__tests__/studio.test.ts']},
-  execution:{source:['server/studio-execution.ts','server/browser-runs.ts','local-connector/studio-jobs.mjs'],tests:['server/__tests__/studio-execution.test.ts','server/__tests__/execution-protection.test.js']},
-  maintenance:{source:['server/maintenance-service.ts','server/maintenance-runner.ts'],tests:['server/__tests__/maintenance.test.ts','server/__tests__/maintenance-http.test.ts']},
+  creation:{source:['frontend/src/OneClickPublish.tsx','frontend/src/PublishCenter.tsx','backend/server/studio-routes.ts'],tests:['frontend/src/__tests__/studio-ui.test.tsx','frontend/src/__tests__/publish-center-flow.test.tsx','backend/server/__tests__/studio.test.ts']},
+  execution:{source:['backend/server/studio-execution.ts','backend/server/browser-runs.ts','local-connector/studio-jobs.mjs'],tests:['backend/server/__tests__/studio-execution.test.ts','backend/server/__tests__/execution-protection.test.js']},
+  maintenance:{source:['backend/server/maintenance-service.ts','backend/server/maintenance-runner.ts'],tests:['backend/server/__tests__/maintenance.test.ts','backend/server/__tests__/maintenance-http.test.ts']},
 };
 const selected=process.argv[2];
 if(selected&&!Object.hasOwn(modules,selected))throw Error('模块可选：creation / execution / maintenance');

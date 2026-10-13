@@ -1,3 +1,13 @@
+# 分离版本运维补充
+
+本副本未上线。生产是两个镜像：matrix-cloud-frontend 与 matrix-cloud-backend，使用同一明确版本号和各自镜像摘要；发布和回滚必须成对进行。后端 API 仅容器网络可达，前端端口 8080 绑定宿主机 127.0.0.1，由现有 HTTPS 入口 nginx 转发。
+
+使用 compose.prod.example.yaml 前，准备 .env、.env.postgres，设置 MATRIX_RELEASE_TAG。PUBLIC_ORIGIN 和 MATRIX_CLOUD_URL 必须等于真实 HTTPS 工作台地址，DATABASE_URL 或 DATABASE_URL_FILE 指向已恢复并完成 schema version 2 迁移的 PostgreSQL；按 migration 说明恢复媒体、密钥和数据。不要直接用空的新 volume 替换生产 volume。先启动 PostgreSQL 和完成迁移，再启动后端/前端。默认测试 .env 模板不能直接用于生产。
+
+如修改 172.30.83.0/24 网络，Compose 子网、前端固定 IP、frontend/nginx.conf 的受信网关和后端 TRUSTED_PROXY_IPS 必须一起更新。端口 4174 不对公网发布；本机 Docker 开发模板的数据库、密码与卷不可复用于生产。
+
+旧维护发布器只管理单容器，对本架构的发布/回滚已阻止执行。维护服务的读取、修改、检查代码继续保留；双容器部署能力需要上线前由受信部署流程接入并验证。
+
 # 运维指南
 
 ## 部署与端口

@@ -1,3 +1,4 @@
+name: matrix-separated-dev
 services:
   postgres:
     image: postgres:16-alpine
@@ -9,25 +10,47 @@ services:
       - "127.0.0.1:55432:5432"
     volumes:
       - matrix-postgres-dev:/var/lib/postgresql/data
-  app:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U matrix -d matrix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [matrix]
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on:
-      - postgres
     environment:
       NODE_ENV: development
       HOST: 0.0.0.0
       PORT: 4174
       DATA_DIR: /app/work/grey
-      DATABASE_URL: postgresql://matrix:matrix-dev-only@postgres:5432/matrix
-      PUBLIC_ORIGIN: http://127.0.0.1:4174
-      MCP_REQUIRE_AUTH: "false"
-      MCP_SERVICE_TOKEN: local-development-only
+      PUBLIC_ORIGIN: http://127.0.0.1:8080
+      MATRIX_CLOUD_URL: http://127.0.0.1:8080
+      TRUSTED_PROXY_IPS: 172.30.83.10
+      MCP_REQUIRE_AUTH: "true"
+      MCP_SERVICE_TOKEN: local-development-only-token-at-least-32-characters
+      TRUST_LOCAL_PROXY_HTTP: "1"
     ports:
       - "127.0.0.1:4174:4174"
     volumes:
-      - matrix-app-dev:/app/work
+      - matrix-backend-dev:/app/work
+    networks: [matrix]
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on: [backend]
+    ports:
+      - "127.0.0.1:8080:80"
+    networks:
+      matrix:
+        ipv4_address: 172.30.83.10
 volumes:
   matrix-postgres-dev:
-  matrix-app-dev:
+  matrix-backend-dev:
+networks:
+  matrix:
+    ipam:
+      config:
+        - subnet: 172.30.83.0/24

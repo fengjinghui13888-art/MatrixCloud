@@ -1,2 +1,0 @@
-import {createBoundedQueue} from '../../local-connector/queue.mjs';
-test('matrix sync queues every account beyond device concurrency',()=>{const q=createBoundedQueue(1),done={};expect(q.submit({id:'a',start:r=>done.a=r})).toEqual({status:'running'});expect(q.submit({id:'b',start:r=>done.b=r})).toEqual({status:'queued',queuePosition:1});expect(q.submit({id:'c',start:r=>done.c=r})).toEqual({status:'queued',queuePosition:2});done.a();expect(q.active()).toEqual(['b']);done.b();expect(q.active()).toEqual(['c']);});

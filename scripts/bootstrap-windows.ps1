@@ -6,4 +6,4 @@ if (-not (Get-Command docker.exe -ErrorAction SilentlyContinue)) { throw "请安
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 if (-not $SkipDockerStart) { docker compose -f (Join-Path $root "compose.dev.yaml") up -d --build }
 docker compose -f (Join-Path $root "compose.dev.yaml") ps
-Write-Output "矩阵云开发环境已准备：http://127.0.0.1:4174"
+Write-Output "矩阵云开发环境已准备：http://127.0.0.1:8080"

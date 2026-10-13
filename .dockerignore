@@ -12,3 +12,8 @@ windows-connector
 mac-connector-arm64
 mac-connector-x64
 *.log
+
+**/node_modules
+**/dist
+**/__pycache__
+*.tsbuildinfo
