@@ -1,6 +1,6 @@
 
-import type {Account} from '../../shared/domain';
-import {canRetryStudio} from '../../shared/studio-recovery';
+import type {Account} from '../contracts/domain';
+import {canRetryStudio} from '../contracts/studio-recovery';
 
 type Task={status:string;accountId:string;message:string;executionStartedAt?:string;executionRunId?:string};
 type Props={task:Task;accounts:Account[];busy:boolean;dirty:boolean;onAction:(name:string,body:object)=>Promise<void>;onDispatch:(ids:string[])=>Promise<void>};

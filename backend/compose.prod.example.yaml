@@ -1,0 +1,44 @@
+name: matrix-python
+services:
+  backend:
+    image: ${MATRIX_BACKEND_IMAGE:?set reviewed immutable backend image digest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4174
+      DATA_DIR: /app/data/work/grey
+      TRUSTED_PROXY_IPS: 172.30.83.10
+    volumes:
+      - matrix-backend:/app/data
+    expose: ["4174"]
+    networks: [matrix]
+  frontend:
+    image: ${MATRIX_FRONTEND_IMAGE:?set reviewed immutable frontend image digest}
+    restart: unless-stopped
+    depends_on: [backend]
+    ports: ["127.0.0.1:8080:80"]
+    networks:
+      matrix:
+        ipv4_address: 172.30.83.10
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file: .env.postgres
+    volumes:
+      - matrix-postgres:/var/lib/postgresql/data
+    expose: ["5432"]
+    networks: [matrix]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-matrix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  matrix-backend:
+  matrix-postgres:
+networks:
+  matrix:
+    ipam:
+      config: [{subnet: 172.30.83.0/24}]

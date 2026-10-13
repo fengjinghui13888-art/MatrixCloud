@@ -3,11 +3,11 @@ import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   test: {
-    root: fileURLToPath(new URL('..', import.meta.url)),
-    include: ['frontend/src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
+    root: fileURLToPath(new URL('.', import.meta.url)),
+    include: ['src/**/*.{test,spec}.{js,ts,jsx,tsx}'],
     testTimeout: 15000,
     environment: 'jsdom',
-    setupFiles: ['frontend/src/test-setup.ts'],
+    setupFiles: ['src/test-setup.ts'],
     globals: true
   }
 });

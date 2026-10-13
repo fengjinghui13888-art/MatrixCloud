@@ -2,7 +2,7 @@ import {ConnectorAuthorize} from './ConnectorAuthorize';
 import {AccountSafety} from './AccountSafety';
 import {customerMessage} from './customer-message';
 import { useEffect, useRef, useState } from 'react';
-import type { Account, Note, Comment, DirectMessage, Lead, FollowUp } from '../../shared/domain';
+import type { Account, Note, Comment, DirectMessage, Lead, FollowUp } from '../contracts/domain';
 import './styles/grey.css';
 import { ModelSettings } from './ModelSettings';
 import { NoteCard, NoteDetail } from './NoteContent';

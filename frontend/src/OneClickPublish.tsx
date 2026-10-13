@@ -2,8 +2,8 @@ import {customerMessage} from './customer-message';
 import {copyText} from './safe-clipboard';
 import {StudioPublishActions} from './StudioPublishActions';
 import { useEffect,useRef,useState } from 'react';
-import type { LibraryTemplate } from '../../shared/templates';
-import type { Account } from '../../shared/domain';
+import type { LibraryTemplate } from '../contracts/templates';
+import type { Account } from '../contracts/domain';
 
 type Task={imageMode?:'direct'|'reference';templateIds?:string[];strength?:number;id:string;revision:number;accountId:string;status:string;topic:string;persona:string;style:string;imageCount:number;size:string;title:string;body:string;tags:string[];images:string[];message:string;url?:string;executionStartedAt?:string;executionRunId?:string};
 type Props={visible?:boolean;accounts:Account[];request:(path:string,body?:unknown)=>Promise<any>;templates?:LibraryTemplate[];onClearTemplates?:()=>void;onChooseTemplates?:()=>void;onManageAccounts?:()=>void};

@@ -1,6 +1,6 @@
 import {customerMessage} from './customer-message';
 import {useEffect,useRef,useState} from 'react';
-import type {Account} from '../../shared/domain';
+import type {Account} from '../contracts/domain';
 type Props={request:(path:string,body?:unknown)=>Promise<any>;onDone:(job:any)=>void;onStopped?:()=>void;externalJob?:any;accounts?:Account[]};
 export function XhsQrLogin({request,onDone,onStopped,externalJob,accounts=[]}:Props){
  const [job,setJob]=useState<any>(null),[target,setTarget]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');

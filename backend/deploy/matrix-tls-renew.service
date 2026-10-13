@@ -1,0 +1,7 @@
+[Unit]
+Description=Matrix certificate renewal
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/matrix-tls/renew.env
+ExecStart=/opt/matrix-maintenance/venv/bin/python /opt/matrix-maintenance/trusted/renew_tls.py
+UMask=0077

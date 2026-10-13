@@ -1,0 +1,884 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/auth/status",
+    "file": "backend/server/account-auth.ts",
+    "line": 32,
+    "handler": "(req,res)=>res.json({configured:configured(),setupAllowed:localSetup(req)})"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/session",
+    "file": "backend/server/account-auth.ts",
+    "line": 33,
+    "handler": "(req,res)=>{const username=user(req);return username?res.json({username}):res.status(401).json({message:'请登录工作台'});}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/profile",
+    "file": "backend/server/account-auth.ts",
+    "line": 34,
+    "handler": "(req,res)=>{const username=user(req);if(!username)return res.status(401).json({message:'请登录'});return res.json({username,displayName:sql(`SELECT display_name FROM login_users WHERE username=${quote(username)};`),workspace:workspace(req),sessionHours:8});}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/setup",
+    "file": "backend/server/account-auth.ts",
+    "line": 40,
+    "handler": "async(req,res)=>{\n      if(!localSetup(req))return res.status(403).json({message:'首次初始化请在服务器本机完成'});\n      if(configured())return res.status(409).json({message:'管理员已创建，请直接登录'});\n      const parsed=credentials.safeParse(req.body);if(!parsed.success)return res.status(400).json({message:'账号需为 3–40 位英文、数字或 ._-；密码至少 12 个字符，UTF-8 不超过 72 字节'});\n      const salt=randomBytes(16).toString('hex');const hash=(await derive(parsed.data.password,salt,64) as Buffer).toString('hex');\n      const changed=sql(`BEGIN IMMEDIATE;\n        INSERT OR IGNORE INTO administrator SELECT 1,${quote(parsed.data.username)},${quote(salt)},${quote(hash)} WHERE NOT EXISTS(SELECT 1 FROM login_users WHERE username=${quote(parsed.data.username)} OR workspace='owner');\n        INSERT OR IGNORE INTO login_users SELECT username,salt,hash,'owner',username FROM administrator WHERE username=${quote(parsed.data.username)} AND salt=${quote(salt)};\n        SELECT changes(); COMMIT;`);\n      if(changed!=='1')return res.status(409).json({message:'管理员或此账号已存在，请登录或使用其他账号名'});\n      issue(req,res,parsed.data.username);return res.status(201).json({username:parsed.data.username});\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "file": "backend/server/account-auth.ts",
+    "line": 52,
+    "handler": "async(req,res)=>{\n      const now=Date.now();for(const [key,value] of attempts)if(value.until<=now)attempts.delete(key);\n      const ip=req.ip??'unknown';const bucket=attempts.get(ip)??{count:0,until:now+15*60*1000};\n      if(bucket.count>=10||attempts.size>=5000)return res.status(429).json({message:'尝试次数过多，请 15 分钟后重试'});\n      bucket.count++;attempts.set(ip,bucket);\n      if(req.path.endsWith('/register')){\n        const parsed=credentials.safeParse(req.body);if(!parsed.success)return res.status(400).json({message:'账号需为 3–40 位英文、数字或 ._-；密码至少 12 个字符，UTF-8 不超过 72 字节'});\n        if(parsed.data.username===platformUsername?.trim().toLowerCase())return res.status(409).json({message:'此账号名由平台保留，请使用其他账号名'});\n        const salt=randomBytes(16).toString('hex');const hash=(await derive(parsed.data.password,salt,64) as Buffer).toString('hex');\n        const workspace=randomUUID();\n        const changed=sql(`INSERT OR IGNORE INTO login_users VALUES(${quote(parsed.data.username)},${quote(salt)},${quote(hash)},${quote(workspace)},${quote(parsed.data.username)}); SELECT changes();`);\n        if(changed!=='1')return res.status(409).json({message:'此账号已存在，请登录或使用其他账号名'});\n        issue(req,res,parsed.data.username);return res.status(201).json({username:parsed.data.username,workspace});\n      }\n      const input=z.object({username:z.string().trim().max(40),password:z.string().max(128)}).safeParse(req.body);\n      if(!input.success)return res.status(401).json({message:'账号或密码不正确'});\n      const saved=sql(`SELECT username,salt,hash FROM login_users WHERE username=${quote(input.data.username.toLowerCase())};`).split('|');\n      const actual=await derive(input.data.password,saved[1]??'unknown-account-salt',64) as Buffer;\n      const expected=saved[2]?Buffer.from(saved[2],'hex'):Buffer.alloc(64);\n      if(expected.length!==actual.length||!timingSafeEqual(actual,expected)||saved[0]!==input.data.username.toLowerCase())return res.status(401).json({message:'账号或密码不正确'});\n      attempts.delete(ip);issue(req,res,saved[0]);return res.json({username:saved[0]});\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/register",
+    "file": "backend/server/account-auth.ts",
+    "line": 52,
+    "handler": "async(req,res)=>{\n      const now=Date.now();for(const [key,value] of attempts)if(value.until<=now)attempts.delete(key);\n      const ip=req.ip??'unknown';const bucket=attempts.get(ip)??{count:0,until:now+15*60*1000};\n      if(bucket.count>=10||attempts.size>=5000)return res.status(429).json({message:'尝试次数过多，请 15 分钟后重试'});\n      bucket.count++;attempts.set(ip,bucket);\n      if(req.path.endsWith('/register')){\n        const parsed=credentials.safeParse(req.body);if(!parsed.success)return res.status(400).json({message:'账号需为 3–40 位英文、数字或 ._-；密码至少 12 个字符，UTF-8 不超过 72 字节'});\n        if(parsed.data.username===platformUsername?.trim().toLowerCase())return res.status(409).json({message:'此账号名由平台保留，请使用其他账号名'});\n        const salt=randomBytes(16).toString('hex');const hash=(await derive(parsed.data.password,salt,64) as Buffer).toString('hex');\n        const workspace=randomUUID();\n        const changed=sql(`INSERT OR IGNORE INTO login_users VALUES(${quote(parsed.data.username)},${quote(salt)},${quote(hash)},${quote(workspace)},${quote(parsed.data.username)}); SELECT changes();`);\n        if(changed!=='1')return res.status(409).json({message:'此账号已存在，请登录或使用其他账号名'});\n        issue(req,res,parsed.data.username);return res.status(201).json({username:parsed.data.username,workspace});\n      }\n      const input=z.object({username:z.string().trim().max(40),password:z.string().max(128)}).safeParse(req.body);\n      if(!input.success)return res.status(401).json({message:'账号或密码不正确'});\n      const saved=sql(`SELECT username,salt,hash FROM login_users WHERE username=${quote(input.data.username.toLowerCase())};`).split('|');\n      const actual=await derive(input.data.password,saved[1]??'unknown-account-salt',64) as Buffer;\n      const expected=saved[2]?Buffer.from(saved[2],'hex'):Buffer.alloc(64);\n      if(expected.length!==actual.length||!timingSafeEqual(actual,expected)||saved[0]!==input.data.username.toLowerCase())return res.status(401).json({message:'账号或密码不正确'});\n      attempts.delete(ip);issue(req,res,saved[0]);return res.json({username:saved[0]});\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/profile",
+    "file": "backend/server/account-auth.ts",
+    "line": 74,
+    "handler": "(req,res)=>{\n      const username=user(req);if(!username)return res.status(401).json({message:'请登录'});\n      if(!sameOrigin(req)||!req.is('application/json'))return res.status(403).json({message:'请从工作台操作'});\n      const parsed=z.object({displayName:z.string().trim().min(1).max(40).regex(/^[^\\r\\n]+$/)}).strict().safeParse(req.body);\n      if(!parsed.success)return res.status(400).json({message:'昵称需为 1–40 个字符'});\n      sql(`UPDATE login_users SET display_name=${quote(parsed.data.displayName)} WHERE username=${quote(username)};`);return res.json({username,displayName:parsed.data.displayName});\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "file": "backend/server/account-auth.ts",
+    "line": 81,
+    "handler": "(req,res)=>{const id=sessionId(req);if(id)sql(`DELETE FROM sessions WHERE hash=${quote(digest(id))};`);res.clearCookie(cookieName,{httpOnly:true,sameSite:'strict',secure:publicOrigin?.startsWith('https:')||req.secure,path:'/api'});res.json({ok:true});}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/connector/downloads",
+    "file": "backend/server/connector-downloads.ts",
+    "line": 12,
+    "handler": "(_req,res)=>res.json({downloads:available()})"
+  },
+  {
+    "method": "GET",
+    "path": "/api/connector/download/:platform",
+    "file": "backend/server/connector-downloads.ts",
+    "line": 13,
+    "handler": "(req,res)=>{\r\n    const item=available().find(p=>p.id===req.params.platform);\r\n    if(!item)return res.status(404).json({message:'此平台安装包尚未发布，请联系管理员'});\r\n    res.set({'Content-Type':'application/zip','X-Content-Type-Options':'nosniff','Cache-Control':'private, no-store'});\r\n    return res.download(resolve(directory,item.filename),item.filename,error=>{\r\n      if(error&&!res.headersSent)res.status(500).json({message:'安装包下载失败，请重试'});\r\n    });\r\n  }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/connector/capabilities",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 155,
+    "handler": "wrap(async (req, res) => { (await webWorkspace(req)); res.json({ secure: trustedConnectorTransport(req), pairingTtlSeconds: 300, customerExecution: !!channel }); })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/pairings",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 156,
+    "handler": "wrap(async (req, res) => { (await origin(req)); const workspace = (await webWorkspace(req)); secure(req); res.status(201).json((await pairing.create(workspace))); })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/connector/pairings/:id",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 157,
+    "handler": "wrap(async (req, res) => {\r\n        const workspace = await webWorkspace(req), state = await pairing.pairingStatus(String(req.params.id), workspace);\r\n        if (state.status === 'claimed' && state.device && !state.device.revoked)\r\n            rememberBrowserDevice(req, res, workspace, state.device.id);\r\n        res.json(state);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/pairings/:id/cancel",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 163,
+    "handler": "wrap(async (req, res) => { (await origin(req)); res.json((await pairing.cancel(String(req.params.id), (await webWorkspace(req))))); })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/connector/devices",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 164,
+    "handler": "wrap(async (req, res) => {\r\n        const workspace = await webWorkspace(req), devices = await pairing.devices(workspace);\r\n        const choice = requestedBrowserDevice(req, workspace), available = devices.filter(d => !d.revoked);\r\n        const selectedDeviceId = choice ? available.find(d => d.id === choice)?.id : available.length === 1 ? available[0].id : undefined;\r\n        res.json({selectedDeviceId, devices:await Promise.all(available.map(async d => ({...d,executionReady:!!await channel?.online(d.id)})))});\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/devices/:id/revoke",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 170,
+    "handler": "wrap(async (req, res) => { (await origin(req)); const result = (await pairing.revoke(String(req.params.id), (await webWorkspace(req)))); (await channel?.close(String(req.params.id))); res.json(result); })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/devices/:id/select",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 171,
+    "handler": "wrap(async (req, res) => { (await origin(req)); if (!channel)\r\n        throw new ConnectorError(503, '任务通道未启用'); const workspace = await webWorkspace(req), id = await channel.browserDevice(workspace, String(req.params.id)); rememberBrowserDevice(req, res, workspace, id); res.json({ ok: true, deviceId:id }); })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/devices/:id/cleanup",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 173,
+    "handler": "wrap(async(req,res)=>{await origin(req);const workspace=await webWorkspace(req);if(!channel)throw new ConnectorError(503,'任务通道未启用');const device=(await pairing.devices(workspace)).find(d=>d.id===req.params.id&&!d.revoked);if(!device)throw new ConnectorError(404,'设备不存在');if(!await channel.online(device.id))return res.status(202).json({status:'pending',message:'设备离线，清理待处理'});const body=z.object({manifestId:z.string().uuid().optional()}).strict().parse(req.body);res.json(await channel.json(workspace,device.id,'POST','/cleanup',body));})"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/register",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 174,
+    "handler": "wrap(async (req, res) => {\r\n        secure(req);\r\n        if (!req.is('application/json'))\r\n            throw new ConnectorError(415, '请求格式必须为 JSON');\r\n        const input = z.object({ code: z.string().regex(/^\\d{8}$/), deviceName: z.string().trim().min(1).max(100), platform: z.enum(['darwin', 'win32', 'linux']), version: z.string().min(1).max(40) }).strict().parse(req.body);\r\n        const registered=await pairing.register(input.code, input.deviceName, input.platform, input.version, req.ip ?? 'unknown');\r\n        // Completing an explicit pairing selects that computer for the next\r\n        // account login. Existing accounts keep their verified device binding.\r\n        await channel?.select(registered.workspace,registered.deviceId);\r\n        res.status(201).json(registered);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/connector/heartbeat",
+    "file": "backend/server/connector-pairing.ts",
+    "line": 185,
+    "handler": "wrap(async (req, res) => { secure(req); res.json((await pairing.heartbeat(connectorToken(req)))); })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/health",
+    "file": "backend/server/grey-app.ts",
+    "line": 173,
+    "handler": "async (_, res) => { try {\r\n        if (db)\r\n            await db.pool.query('SELECT version FROM schema_migration WHERE version=2');\r\n        return res.json({ ok: true, mode: 'grey', storage: db ? 'postgresql' : 'sqlite', schema: db ? 2 : 1, demo: false });\r\n    }\r\n    catch {\r\n        return res.status(503).json({ ok: false, message: '数据库暂时不可用' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/event-sync",
+    "file": "backend/server/grey-app.ts",
+    "line": 218,
+    "handler": "async (_req, res) => {\r\n        if (!eventSync) return res.json({ enabled: false, mode: 'event', accounts: [] });\r\n        return res.json(await eventSync.status());\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/event-sync",
+    "file": "backend/server/grey-app.ts",
+    "line": 222,
+    "handler": "async (req, res) => {\r\n        try {\r\n            if (!eventSync) return res.status(409).json({ message: '事件同步未配置' });\r\n            const input = z.object({ enabled: z.boolean() }).strict().parse(req.body ?? {});\r\n            await eventSync.setEnabled(input.enabled);\r\n            await refreshEventWatches();\r\n            return res.json(await eventSync.status());\r\n        }\r\n        catch (e) { return res.status(400).json({ message: e instanceof Error ? e.message : '事件同步设置失败' }); }\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/media/:noteId/:assetId",
+    "file": "backend/server/grey-app.ts",
+    "line": 256,
+    "handler": "async (req, res) => {\r\n        const note = (await store.listNotes({ accountId: req.params.id })).find(n => n.id === req.params.noteId);\r\n        const asset = note?.mediaAssets?.find(a => a.id === req.params.assetId);\r\n        const file = asset && mediaArchive?.file(asset.path, req.params.id, req.params.noteId);\r\n        if (!file)\r\n            return res.sendStatus(404);\r\n        res.set('X-Content-Type-Options', 'nosniff');\r\n        return res.sendFile(file, { cacheControl: false }, error => { if (error && !res.headersSent)\r\n            res.sendStatus(404); });\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/local-connector/status",
+    "file": "backend/server/grey-app.ts",
+    "line": 266,
+    "handler": "async (req, res) => {\r\n        try { const id = await executionDevice(req); return res.json({...await connectorChannel!.json(scope.current(),id,'GET','/verify'),deviceId:id,transport:'customer-channel'}); }\r\n        catch(e) { return res.json({ok:false,message:e instanceof Error?e.message:'连接器未连接'}); }\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/xhs/qr-login",
+    "file": "backend/server/grey-app.ts",
+    "line": 270,
+    "handler": "async (req, res) => {\r\n        try { return res.json(await localAccounts?.latest(await executionDevice(req)) ?? null); }\r\n        catch { return res.json(null); }\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/xhs/qr-login/:id/image",
+    "file": "backend/server/grey-app.ts",
+    "line": 274,
+    "handler": "async (req, res) => { try {\r\n        const image = await localAccounts?.image(req.params.id);\r\n        if (!image?.data)\r\n            return res.sendStatus(404);\r\n        return res.type('png').send(Buffer.from(image.data, 'base64'));\r\n    }\r\n    catch {\r\n        return res.sendStatus(404);\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/xhs/qr-login",
+    "file": "backend/server/grey-app.ts",
+    "line": 283,
+    "handler": "async (req, res) => { try {\r\n        const input = z.object({ accountId: z.string().min(1).optional(), deviceId:z.string().uuid().optional() }).strict().parse(req.body ?? {});\r\n        if (!localAccounts)\r\n            throw Error('本机连接器未配置');\r\n        return res.status(201).json(await loginOnDevice(input.accountId, await executionDevice(req, input.deviceId)));\r\n    }\r\n    catch (e) {\r\n        return res.status(400).json({ message: e instanceof Error ? e.message : '无法打开扫码登录' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/xhs/qr-login/:id",
+    "file": "backend/server/grey-app.ts",
+    "line": 292,
+    "handler": "async (req, res) => { try {\r\n        return res.json(await localAccounts?.status(req.params.id));\r\n    }\r\n    catch (e) {\r\n        return res.status(400).json({ message: e instanceof Error ? e.message : '无法读取扫码状态' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/xhs/qr-login/:id/adopt",
+    "file": "backend/server/grey-app.ts",
+    "line": 298,
+    "handler": "async (req, res) => { try {\r\n        return res.json(await localAccounts?.adopt(req.params.id));\r\n    }\r\n    catch (e) {\r\n        return res.status(400).json({ message: e instanceof Error ? e.message : '接入失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/xhs/qr-login/:id/cancel",
+    "file": "backend/server/grey-app.ts",
+    "line": 304,
+    "handler": "async (req, res) => { try {\r\n        return res.json((await localAccounts?.cancel(req.params.id)));\r\n    }\r\n    catch (e) {\r\n        return res.status(400).json({ message: e instanceof Error ? e.message : '取消失败' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/browser/profiles",
+    "file": "backend/server/grey-app.ts",
+    "line": 310,
+    "handler": "async (_req, res) => res.json({ profiles: [], default: null, transport: 'local-connector', message: '请使用账号矩阵扫码绑定本机连接器' })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/sync-all",
+    "file": "backend/server/grey-app.ts",
+    "line": 311,
+    "handler": "async (req, res) => {\r\n        try {\r\n            const input = z.object({deviceId:z.string().uuid().optional()}).strict().parse(req.body ?? {});\r\n            const device = await executionDevice(req, input.deviceId);\r\n            const accounts = await store.listAccounts();\r\n            if (!accounts.length)\r\n                throw Error('没有已绑定的账号，请先扫码登录');\r\n            if (new Set(accounts.map(a => a.profile)).size !== accounts.length)\r\n                throw Error('多个账号绑定了相同浏览器会话，请先修正账号绑定');\r\n            const needsLogin = [];\r\n            for (const account of accounts) {\r\n                if (await connectorChannel?.binding(scope.current(),account.profile) !== device) needsLogin.push(account);\r\n            }\r\n            if (needsLogin.length) return res.status(202).json({loginRequired:true,loginJob:await loginOnDevice(needsLogin[0].id,device),remainingAccountIds:accounts.map(a=>a.id)});\r\n            for (const account of accounts)\r\n                await localConnector?.ensure(account.profile);\r\n            // Every account gets a visible job. The worker waits for authoritative identity.\r\n            const jobs = await Promise.all(accounts.map(a => xhsSync?.start(a.id, a.profile)));\r\n            return res.status(201).json({ jobs });\r\n        }\r\n        catch (e) {\r\n            return res.status(400).json({ message: e instanceof Error ? e.message : '无法同步全部账号' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/safety",
+    "file": "backend/server/grey-app.ts",
+    "line": 335,
+    "handler": "async(req,res)=>{try{const a=(await store.listAccounts()).find(a=>a.id===req.params.id);if(!a)return res.sendStatus(404);const device=await connectorChannel?.binding(scope.current(),a.profile);if(!device||!connectorChannel)return res.status(409).json({message:'请连接账号原执行电脑后查看'});res.json(await connectorChannel.json(scope.current(),device,'GET','/accounts/'+a.profile.slice(6)+'/safety'));}catch{res.status(409).json({message:'原执行电脑离线，无法确认账号状态'});}}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/:id/resume",
+    "file": "backend/server/grey-app.ts",
+    "line": 336,
+    "handler": "async(req,res)=>{try{if(req.body?.confirmed!==true)throw Error('请先人工核对平台提示');const a=(await store.listAccounts()).find(a=>a.id===req.params.id);if(!a)return res.sendStatus(404);const device=await connectorChannel?.binding(scope.current(),a.profile);if(!device||!connectorChannel)throw Error('请连接账号原执行电脑');const lock=browserRuns?.active(a.handle);if(lock){if(lock.profile!==a.profile)throw Error('请先核对原执行电脑，不能在新电脑解除旧任务');let path:string;const task=(await studioApi?.list())?.find(t=>t.id===lock.id&&t.accountId===a.id);if(task?.executionRunId)path='/studio/'+task.executionRunId+'/cancel';else{const job=await xhsSync?.status(lock.id);if(!job||job.accountId!==a.id)throw Error('旧任务尚未核对，请联系管理员');path='/sync/'+lock.id+'/cancel';}const stopped=await connectorChannel.json(scope.current(),device,'POST',path,{});if(stopped.stopConfirmed!==true)throw Error('停止尚未确认，请稍后再次核对');browserRuns?.release(lock.id);}res.json(await connectorChannel.json(scope.current(),device,'POST','/accounts/'+a.profile.slice(6)+'/resume',{confirmed:true}));}catch(e){res.status(409).json({message:e instanceof Error?e.message:'恢复失败'});}}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/:id/sync",
+    "file": "backend/server/grey-app.ts",
+    "line": 337,
+    "handler": "async (req, res) => {\r\n        const account = (await store.listAccounts()).find(a => a.id === req.params.id);\r\n        if (!account)\r\n            return res.status(404).json({ message: '账号不存在' });\r\n        try {\r\n            const input = z.object({deviceId:z.string().uuid().optional()}).strict().parse(req.body ?? {});\r\n            const device = await executionDevice(req, input.deviceId);\r\n            const profile = account.profile;\r\n            if (!profile.startsWith('local:') || await connectorChannel?.binding(scope.current(),profile) !== device)\r\n                return res.status(202).json({loginRequired:true,loginJob:await loginOnDevice(account.id,device)});\r\n            const conflict = (await store.listAccounts()).find(a => a.id !== account.id && a.profile === profile);\r\n            if (conflict)\r\n                throw Error(`浏览器 Profile ${profile} 已绑定账号 ${conflict.name}，请为 ${account.name} 绑定独立 Chrome Profile`);\r\n            const state = await localConnector?.state(profile.slice(6));\r\n            if (!state?.creatorLoggedIn || !state?.webLoggedIn || String(state.handle ?? state.creatorHandle ?? '').toLowerCase() !== account.handle.toLowerCase() || String(state.webHandle ?? '').toLowerCase() !== account.handle.toLowerCase())\r\n                return res.status(202).json({loginRequired:true,loginJob:await loginOnDevice(account.id,device)});\r\n            return res.status(201).json((await xhsSync?.start(account.id, profile)));\r\n        }\r\n        catch (e) {\r\n            return res.status(400).json({ message: e instanceof Error ? e.message : '无法启动同步' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/sync-jobs/:id/progress",
+    "file": "backend/server/grey-app.ts",
+    "line": 359,
+    "handler": "async(req,res)=>{\r\n      const token=req.header('authorization')?.replace(/^Bearer /,'')??'';\r\n      if(!executionWorkspace(token)||!xhsSync?.update)return res.sendStatus(403);\r\n      const job=await xhsSync.status(String(req.params.id));if(!job)return res.sendStatus(404);\r\n      const input=z.object({status:z.enum(['running','partial','complete','blocked']).optional(),stage:z.enum(['starting','queued','account','notes','comments','messages','media','saving','finished','blocked']).optional(),queuePosition:z.number().int().positive().nullable().optional(),stopConfirmed:z.boolean().optional(),message:z.string().max(10000).optional(),counts:z.object({notes:count,comments:count,messages:count}).optional(),finishedAt:z.string().optional()}).passthrough().parse(req.body);\r\n      return res.json(await xhsSync.update(String(req.params.id),input));\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/sync/latest",
+    "file": "backend/server/grey-app.ts",
+    "line": 366,
+    "handler": "async (req, res) => { if (!(await store.listAccounts()).some(a => a.id === req.params.id))\r\n        return res.sendStatus(404); return res.json((await xhsSync?.latest(req.params.id)) ?? null); }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/sync/:jobId",
+    "file": "backend/server/grey-app.ts",
+    "line": 368,
+    "handler": "async (req, res) => { const state = (await xhsSync?.status(req.params.jobId)); if (!state || state.accountId !== req.params.id)\r\n        return res.status(404).json({ message: '同步任务不存在' }); return res.json(state); }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/:id/sync/:jobId/cancel",
+    "file": "backend/server/grey-app.ts",
+    "line": 370,
+    "handler": "async (req, res) => { const state = (await xhsSync?.status(req.params.jobId)); if (!state || state.accountId !== req.params.id)\r\n        return res.status(404).json({ message: '同步任务不存在' }); return res.json((await xhsSync?.cancel(req.params.jobId))); }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/creation-tasks/:id/run-text",
+    "file": "backend/server/grey-app.ts",
+    "line": 396,
+    "handler": "retiredExecution"
+  },
+  {
+    "method": "GET",
+    "path": "/api/templates/access",
+    "file": "backend/server/grey-app.ts",
+    "line": 398,
+    "handler": "async (req, res) => res.json({ canManage: (await isPlatformAdmin(req)), executionPolicy: { mode: 'economy', deterministicFirst: true, automaticModelUpgrade: false }, collector: 'platform-only' })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/templates",
+    "file": "backend/server/grey-app.ts",
+    "line": 399,
+    "handler": "async (req, res) => {\r\n        const query = z.object({ q: z.string().max(100).optional(), category: z.string().max(30).optional(), page: z.coerce.number().int().min(1).max(100000).default(1) }).safeParse(req.query);\r\n        if (!query.success)\r\n            return res.status(400).json({ message: '查询参数不正确' });\r\n        const { q = '', category, page } = query.data;\r\n        const all = ((await templates?.published()) ?? []).filter(t => (!category || t.category === category) && (t.name + t.title + t.body).toLowerCase().includes(q.toLowerCase()));\r\n        return res.json({ items: all.slice((page - 1) * 24, page * 24), total: all.length, page, pageSize: 24 });\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/templates",
+    "file": "backend/server/grey-app.ts",
+    "line": 414,
+    "handler": "async (_, res) => res.json({ items: (await templates?.list()) ?? [] })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/templates",
+    "file": "backend/server/grey-app.ts",
+    "line": 415,
+    "handler": "async (req, res) => { try {\r\n        if (!templates)\r\n            throw Error('模板存储未启用');\r\n        return res.status(201).json((await templates.create(req.body)));\r\n    }\r\n    catch (e) {\r\n        return res.status(400).json({ message: e instanceof Error ? e.message : '导入失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/templates/:id",
+    "file": "backend/server/grey-app.ts",
+    "line": 423,
+    "handler": "async (req, res) => { try {\r\n        if (!templates)\r\n            throw Error('模板存储未启用');\r\n        const { expectedRevision, ...input } = req.body;\r\n        return res.json((await templates.update(req.params.id, templateInput.parse(input), z.number().int().positive().parse(expectedRevision))));\r\n    }\r\n    catch {\r\n        return res.status(409).json({ message: '保存失败：模板已更新、内容重复或字段不正确，请刷新检查' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts",
+    "file": "backend/server/grey-app.ts",
+    "line": 442,
+    "handler": "async (_, res) => res.json(await accountsWithDevices())"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/:id/delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 473,
+    "handler": "async (req, res) => {\r\n        try {\r\n            const result = await removeAccount(req.params.id);\r\n            return res.json({ ok: true, ...result, message: `已删除账号 ${result.account.name} 及其 ${result.notes} 篇内容` });\r\n        }\r\n        catch (e) {\r\n            const message = e instanceof Error ? e.message : '账号删除失败';\r\n            return res.status(message === '账号不存在' ? 404 : 409).json({ message });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/bulk-delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 483,
+    "handler": "async (req, res) => { try {\r\n        const ids = idList(req.body?.ids, '账号 ID');\r\n        const plans = await Promise.all(ids.map(assertAccountDeletable));\r\n        const results = [];\r\n        for (const plan of plans)\r\n            results.push(await removeAccount(plan.account.id));\r\n        return res.json({ ok: true, deleted: results.length, items: results });\r\n    }\r\n    catch (e) {\r\n        const message = e instanceof Error ? e.message : '批量删除账号失败';\r\n        return res.status(message === '账号不存在' ? 404 : 409).json({ message });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/content/clear",
+    "file": "backend/server/grey-app.ts",
+    "line": 495,
+    "handler": "async (req, res) => {\r\n        try {\r\n            const accountId = typeof req.body?.accountId === 'string' && req.body.accountId.trim() ? req.body.accountId.trim() : undefined;\r\n            if (accountId && !(await store.listAccounts()).some(a => a.id === accountId))\r\n                return res.status(404).json({ message: '账号不存在' });\r\n            const result = (await store.clearContent(accountId));\r\n            return res.json({ ok: true, ...result, message: accountId ? '已清除此账号的历史内容' : '已清空全部历史内容' });\r\n        }\r\n        catch (e) {\r\n            return res.status(400).json({ message: e instanceof Error ? e.message : '历史内容清理失败' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/accounts/:accountId/notes/:noteId/delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 507,
+    "handler": "async (req, res) => {\r\n        try {\r\n            const result = (await store.deleteNote(req.params.accountId, req.params.noteId));\r\n            return res.json({ ok: true, ...result, message: `已删除内容“${result.note.title}”` });\r\n        }\r\n        catch (e) {\r\n            return res.status(404).json({ message: e instanceof Error ? e.message : '内容删除失败' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notes/bulk-delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 516,
+    "handler": "async (req, res) => { try {\r\n        const input = req.body?.items;\r\n        if (!Array.isArray(input) || !input.length || input.length > 200 || input.some((x: any) => !x || typeof x.accountId !== 'string' || typeof x.noteId !== 'string'))\r\n            throw Error('内容删除必须提交明确的账号 ID 和内容 ID');\r\n        return res.json({ ok: true, ...(await store.deleteNotes(input)) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '批量删除内容失败' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/operations",
+    "file": "backend/server/grey-app.ts",
+    "line": 525,
+    "handler": "async (req, res) => {\r\n        const identity=res.locals.identity as Identity|undefined;\r\n        if(identity?.role==='lead_viewer'){\r\n            const leads=await store.listLeads(),ids=new Set(leads.map(l=>l.sourceCommentId)),accountIds=new Set(leads.map(l=>l.accountId));\r\n            return res.json({role:identity.role,accounts:(await store.listAccounts()).filter(a=>accountIds.has(a.id)).map(({profile,...a})=>({...a,profile:''})),notes:[],messages:[],comments:(await store.listComments()).filter(c=>ids.has(c.id)),leads:await Promise.all(leads.map(async l=>({...l,followUps:await store.listFollowUps(l.id)})))});\r\n        }\r\n        const accountId = req.query.accountId;\r\n        if (accountId !== undefined && typeof accountId !== 'string')\r\n            return res.status(400).json({ message: '账号参数无效' });\r\n        if (!accountId || accountId === 'all')\r\n            return res.json({...await overview(),role:identity?.role});\r\n        const account = (await store.listAccounts()).find(a => a.id === accountId);\r\n        if (!account)\r\n            return res.status(404).json({ message: '账号不存在，请重新选择' });\r\n        return res.json({ accounts: [account], notes: (await store.listNotes({ accountId })), comments: (await store.listComments({ accountId })), messages: (await store.listMessages({ accountId })), leads: await Promise.all((await store.listLeads({ accountId })).map(async (l) => ({ ...l, followUps: (await store.listFollowUps(l.id)) }))) });\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/notes",
+    "file": "backend/server/grey-app.ts",
+    "line": 542,
+    "handler": "async (req, res) => { if (!(await store.listAccounts()).some(a => a.id === req.params.id))\r\n        return res.status(404).json({ message: '账号不存在' }); return res.json(paged((await store.listNotes({ accountId: req.params.id })), req)); }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/comments",
+    "file": "backend/server/grey-app.ts",
+    "line": 544,
+    "handler": "async (req, res) => { if (!(await store.listAccounts()).some(a => a.id === req.params.id))\r\n        return res.status(404).json({ message: '账号不存在' }); return res.json(paged((await store.listComments({ accountId: req.params.id })), req)); }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/accounts/:id/messages",
+    "file": "backend/server/grey-app.ts",
+    "line": 546,
+    "handler": "async (req, res) => { if (!(await store.listAccounts()).some(a => a.id === req.params.id))\r\n        return res.status(404).json({ message: '账号不存在' }); return res.json(paged((await store.listMessages({ accountId: req.params.id })), req)); }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/creation-tasks",
+    "file": "backend/server/grey-app.ts",
+    "line": 548,
+    "handler": "async (_, res) => creations ? res.json((await creations.list())) : res.status(503).json({ message: '创作存储尚未启用' })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/creation-tasks/:id/delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 549,
+    "handler": "async (req, res) => { try {\r\n        if (!creations)\r\n            throw Error('创作存储尚未启用');\r\n        return res.json({ ok: true, deleted: (await creations.delete(req.params.id)) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '删除创作任务失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/creation-tasks/bulk-delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 557,
+    "handler": "async (req, res) => { try {\r\n        if (!creations)\r\n            throw Error('创作存储尚未启用');\r\n        return res.json({ ok: true, ...(await creations.deleteMany(idList(req.body?.ids, '创作任务 ID', 200))) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '批量删除创作任务失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/creation-tasks",
+    "file": "backend/server/grey-app.ts",
+    "line": 565,
+    "handler": "async (req, res) => { try {\r\n        if (!creations)\r\n            throw Error('创作存储尚未启用');\r\n        return res.status(201).json((await creations.create(req.body)));\r\n    }\r\n    catch (e) {\r\n        return res.status(400).json({ message: e instanceof Error ? e.message : '创建失败' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/publish-tasks",
+    "file": "backend/server/grey-app.ts",
+    "line": 573,
+    "handler": "async (_, res) => queue ? res.json((await queue.list())) : res.status(503).json({ message: '发布存储尚未启用' })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publish-tasks/:id/delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 574,
+    "handler": "async (req, res) => { try {\r\n        if (!queue)\r\n            throw Error('发布存储尚未启用');\r\n        return res.json({ ok: true, deleted: (await queue.delete(req.params.id)) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '删除发布任务失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publish-tasks/bulk-delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 582,
+    "handler": "async (req, res) => { try {\r\n        if (!queue)\r\n            throw Error('发布存储尚未启用');\r\n        return res.json({ ok: true, ...(await queue.deleteMany(idList(req.body?.ids, '发布任务 ID', 200))) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '批量删除发布任务失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publish-tasks",
+    "file": "backend/server/grey-app.ts",
+    "line": 590,
+    "handler": "async (req, res) => {\r\n        if (!queue)\r\n            return res.status(503).json({ message: '发布存储尚未启用' });\r\n        try {\r\n            if (!(await store.listAccounts()).some(a => a.id === req.body.accountId))\r\n                throw Error('请先同步目标账号');\r\n            return res.status(201).json((await queue.create(req.body)));\r\n        }\r\n        catch (e) {\r\n            return res.status(400).json({ message: e instanceof Error ? e.message : '任务创建失败' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/publish-tasks/:id/cancel",
+    "file": "backend/server/grey-app.ts",
+    "line": 602,
+    "handler": "async (req, res) => { try {\r\n        if (!queue)\r\n            throw Error('发布存储尚未启用');\r\n        return res.json((await queue.cancel(req.params.id)));\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '取消失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/one-click/publish",
+    "file": "backend/server/grey-app.ts",
+    "line": 610,
+    "handler": "retiredExecution"
+  },
+  {
+    "method": "GET",
+    "path": "/api/connections",
+    "file": "backend/server/grey-app.ts",
+    "line": 611,
+    "handler": "async (_, res) => res.json({\r\n        connector: { transport: 'paired-device', statusPath: '/api/local-connector/status', loginPath: '/api/xhs/qr-login' },\r\n        models: { protocols: ['chat-completions', 'anthropic-messages'], customBaseUrl: true, customModel: true, credentialOwner: 'customer', liveExecutionAvailable: !!(await modelSettings?.read()) }\r\n    })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/models",
+    "file": "backend/server/grey-app.ts",
+    "line": 615,
+    "handler": "async (_, res) => res.json((await modelSettings?.summary()) ?? null)"
+  },
+  {
+    "method": "POST",
+    "path": "/api/models/discover",
+    "file": "backend/server/grey-app.ts",
+    "line": 616,
+    "handler": "async (req, res) => {\r\n        try {\r\n            const input = z.object({ baseUrl: z.string().url(), apiKey: z.string().min(1).max(4096).optional(), kind: z.enum(['text', 'image']), protocol: z.enum(['chat-completions', 'anthropic-messages']) }).strict().parse(req.body);\r\n            const saved = (await modelSettings?.read());\r\n            const base = input.baseUrl.replace(/\\/+$/, '').replace(/\\/(chat\\/completions|images\\/generations|messages)$/, '');\r\n            const savedBase = (input.kind === 'image' ? (saved?.imageBaseUrl || saved?.baseUrl) : saved?.baseUrl)?.replace(/\\/+$/, '').replace(/\\/(chat\\/completions|images\\/generations|messages)$/, '');\r\n            const key = input.apiKey ?? (base === savedBase ? (input.kind === 'image' ? (saved?.imageApiKey || saved?.apiKey) : saved?.apiKey) : undefined);\r\n            if (!key)\r\n                throw Error('请先填写此服务的密钥');\r\n            const anthropic = input.protocol === 'anthropic-messages' && input.kind === 'text';\r\n            const headers: Record<string, string> = anthropic ? { 'x-api-key': key, 'anthropic-version': '2023-06-01' } : { Authorization: 'Bearer ' + key };\r\n            const raw = await (options.modelTransport ?? publicHttpsJson)(base + (anthropic && !base.endsWith('/v1') ? '/v1/models' : '/models'), headers, undefined);\r\n            const parsed = z.object({ data: z.array(z.object({ id: z.string().min(1).max(200) })).max(5000) }).parse(raw);\r\n            const imageId = /(?:gpt-image|dall-e|cogview|agnes-image|seedream|flux|stable-diffusion|sdxl|kolors|wanx)/i;\r\n            const models = [...new Set(parsed.data.map(m => m.id))].filter(id => input.kind === 'image' ? imageId.test(id) : !imageId.test(id)).sort();\r\n            return res.json({ models });\r\n        }\r\n        catch {\r\n            return res.status(400).json({ message: '无法获取模型列表。请检查 URL 和密钥；该服务没有返回列表时，请在自定义设置中填写模型名称。' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/models/profiles",
+    "file": "backend/server/grey-app.ts",
+    "line": 637,
+    "handler": "async (_, res) => res.json((await modelSettings?.profiles()) ?? { activeId: '', profiles: [] })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/models/profiles",
+    "file": "backend/server/grey-app.ts",
+    "line": 638,
+    "handler": "async (req, res) => { try {\r\n        if (!modelSettings)\r\n            throw Error('配置存储未启用');\r\n        return res.json((await modelSettings.save(req.body, true)));\r\n    }\r\n    catch {\r\n        return res.status(400).json({ message: '新增失败，请检查地址、模型和密钥；最多保存 50 组配置' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/models/activate",
+    "file": "backend/server/grey-app.ts",
+    "line": 646,
+    "handler": "async (req, res) => { try {\r\n        if (!modelSettings)\r\n            throw Error('配置存储未启用');\r\n        return res.json((await modelSettings.activate(z.string().min(1).parse(req.body?.id))));\r\n    }\r\n    catch {\r\n        return res.status(400).json({ message: '无法切换到指定模型配置' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/models",
+    "file": "backend/server/grey-app.ts",
+    "line": 654,
+    "handler": "async (req, res) => {\r\n        if (!modelSettings)\r\n            return res.status(503).json({ message: '模型配置存储未启用' });\r\n        try {\r\n            return res.json((await modelSettings.save(req.body)));\r\n        }\r\n        catch {\r\n            return res.status(400).json({ message: '配置未保存：请检查协议、HTTPS 地址、模型名和密钥。' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/models/chat",
+    "file": "backend/server/grey-app.ts",
+    "line": 665,
+    "handler": "async (req, res) => {\r\n        const parsed = z.object({ prompt: z.string().trim().min(1).max(8000), confirmCharge: z.literal(true) }).strict().safeParse(req.body);\r\n        if (!parsed.success)\r\n            return res.status(400).json({ message: '请输入内容，并确认由所选服务计费' });\r\n        if (modelBusy.has(scope.current()))\r\n            return res.status(429).json({ message: '已有模型请求执行中，请稍后再试' });\r\n        modelBusy.add(scope.current());\r\n        try {\r\n            const config = (await modelSettings?.read());\r\n            if (!config)\r\n                return res.status(409).json({ message: '请先保存客户自己的模型配置' });\r\n            return res.json(await callModel(config, parsed.data.prompt, options.modelTransport));\r\n        }\r\n        catch {\r\n            return res.status(502).json({ message: '模型调用失败：请检查地址、协议、模型名、密钥、余额及网络。仅支持公网 HTTPS，不跟随重定向。' });\r\n        }\r\n        finally {\r\n            modelBusy.delete(scope.current());\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/models/images",
+    "file": "backend/server/grey-app.ts",
+    "line": 685,
+    "handler": "async (req, res) => {\r\n        const parsed = z.object({ prompt: z.string().trim().min(1).max(2000), count: z.number().int().min(1).max(12).optional(), confirmCharge: z.literal(true) }).strict().safeParse(req.body);\r\n        if (!parsed.success)\r\n            return res.status(400).json({ message: '请输入生图提示词，并确认由所选服务计费' });\r\n        try {\r\n            const config = (await modelSettings?.read());\r\n            if (!config)\r\n                return res.status(409).json({ message: '请先保存模型配置，并填写生图模型名' });\r\n            return res.json(await generateImages(config, parsed.data.prompt, parsed.data.count ?? 1, options.modelTransport));\r\n        }\r\n        catch (e) {\r\n            return res.status(502).json({ message: e instanceof Error ? e.message : '生图服务调用失败，请检查模型名、地址、密钥和余额。' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/import",
+    "file": "backend/server/grey-app.ts",
+    "line": 699,
+    "handler": "async (req, res) => {\r\n        try {\r\n            const input = snapshot.parse(req.body);\r\n            const candidate = req.header('authorization')?.replace(/^Bearer /, '') ?? '';\r\n            const owner = candidate === token || (await auth?.workspace(req)) === 'owner';\r\n            const bound = (await store.listAccounts()).find(a => a.id === input.account.id);\r\n            if (!owner && (!bound || bound.profile !== input.account.profile || bound.handle !== input.account.handle))\r\n                return res.status(403).json({ message: '导入不能创建或更改浏览器绑定，请先扫码核验账号' });\r\n            (await store.importSnapshot(input));\r\n            return res.json({ ok: true });\r\n        }\r\n        catch (e) {\r\n            if (e instanceof z.ZodError)\r\n                return res.status(400).json({ message: '同步数据暂未准备好，未写入内容；请保持执行电脑在线后重试' });\r\n            return res.status(400).json({ message: e instanceof Error ? e.message : '导入失败' });\r\n        }\r\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/leads",
+    "file": "backend/server/grey-app.ts",
+    "line": 716,
+    "handler": "async (req, res) => { try {\r\n        const input = z.object({ commentId: z.string().min(1), level: z.enum(['high', 'medium', 'low']) }).parse(req.body);\r\n        return res.json((await store.createLeadFromComment(input.commentId, input)));\r\n    }\r\n    catch {\r\n        return res.status(400).json({ message: '评论不存在或参数不合法' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/leads/:id/follow-ups",
+    "file": "backend/server/grey-app.ts",
+    "line": 723,
+    "handler": "async (req, res) => { try {\r\n        const input = z.object({ body: z.string().trim().min(1) }).parse(req.body);\r\n        return res.json((await store.addFollowUp(req.params.id, input.body, res.locals.identity?.username??'系统操作员')));\r\n    }\r\n    catch {\r\n        return res.status(400).json({ message: '线索不存在或跟进内容为空' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/leads/:id/delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 730,
+    "handler": "async (req, res) => { try {\r\n        return res.json({ ok: true, ...(await store.deleteLead(req.params.id)) });\r\n    }\r\n    catch (e) {\r\n        return res.status(404).json({ message: e instanceof Error ? e.message : '线索删除失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/leads/bulk-delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 736,
+    "handler": "async (req, res) => { try {\r\n        return res.json({ ok: true, ...(await store.deleteLeads(idList(req.body?.ids, '线索 ID', 500))) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '批量删除线索失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/follow-ups/:id/delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 742,
+    "handler": "async (req, res) => { try {\r\n        return res.json({ ok: true, deleted: (await store.deleteFollowUp(req.params.id)) });\r\n    }\r\n    catch (e) {\r\n        return res.status(404).json({ message: e instanceof Error ? e.message : '跟进记录删除失败' });\r\n    } }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/follow-ups/bulk-delete",
+    "file": "backend/server/grey-app.ts",
+    "line": 748,
+    "handler": "async (req, res) => { try {\r\n        return res.json({ ok: true, ...(await store.deleteFollowUps(idList(req.body?.ids, '跟进记录 ID', 1000))) });\r\n    }\r\n    catch (e) {\r\n        return res.status(409).json({ message: e instanceof Error ? e.message : '批量删除跟进记录失败' });\r\n    } }"
+  },
+  {
+    "method": "GET",
+    "path": "/maintenance/health",
+    "file": "backend/server/maintenance-app.ts",
+    "line": 21,
+    "handler": "(_req,res)=>res.json({ok:true,service:'matrix-maintenance'})"
+  },
+  {
+    "method": "GET",
+    "path": "/.well-known/oauth-authorization-server",
+    "file": "backend/server/maintenance-app.ts",
+    "line": 22,
+    "handler": "(_req,res)=>res.json({...createOAuthMetadata({provider:auth,issuerUrl:new URL(origin),scopesSupported:maintenanceScopes}),authorization_response_iss_parameter_supported:true})"
+  },
+  {
+    "method": "GET",
+    "path": "/maintenance/consent",
+    "file": "backend/server/maintenance-app.ts",
+    "line": 27,
+    "handler": "(req,res)=>{try{const p=auth.pending(String(req.query.id));form(res,p.id,`<h1>允许客户端维护矩阵云</h1><p>客户端：${escapeHtml(p.clientId)}</p><p>权限：${escapeHtml(p.scopes.join('、'))}</p><form method=\"post\"><input type=\"hidden\" name=\"csrf\" value=\"${escapeHtml(p.id)}\"><label>维护管理员密码 <input name=\"password\" type=\"password\" required autocomplete=\"current-password\"></label><button>授权</button></form>`);}catch{res.status(400).send('授权请求无效或已过期');}}"
+  },
+  {
+    "method": "POST",
+    "path": "/maintenance/consent",
+    "file": "backend/server/maintenance-app.ts",
+    "line": 28,
+    "handler": "(req,res)=>{try{verifyForm(req);res.redirect(auth.consent(req.body.csrf,String(req.body.password??'')));}catch(e){res.status(403).send(escapeHtml(String((e as Error).message)));}}"
+  },
+  {
+    "method": "GET",
+    "path": "/maintenance/releases/:id/approve",
+    "file": "backend/server/maintenance-app.ts",
+    "line": 29,
+    "handler": "(req,res)=>{const release=service.state.get('release',req.params.id);if(!z.string().uuid().safeParse(req.params.id).success||!release||release.status!=='prepared')return res.status(404).send('发布版本不存在或已执行');auth.state.pruneExpiring(['approval-form'],Date.now());if(auth.state.list('approval-form').length>=100)return res.status(429).send('确认请求过多，请稍后重试');const nonce=randomBytes(32).toString('hex');auth.state.put('approval-form',hash(nonce),{releaseId:req.params.id,expires:Date.now()+300000,stage:'login'});form(res,nonce,`<h1>管理员审查发布版本</h1><form method=\"post\"><input type=\"hidden\" name=\"csrf\" value=\"${nonce}\"><label>维护管理员密码 <input name=\"password\" type=\"password\" required autocomplete=\"current-password\"></label><button>验证并查看差异</button></form>`);}"
+  },
+  {
+    "method": "POST",
+    "path": "/maintenance/releases/:id/approve",
+    "file": "backend/server/maintenance-app.ts",
+    "line": 30,
+    "handler": "(req,res)=>{try{\n  verifyForm(req);const pending=auth.state.get('approval-form',hash(req.body.csrf));\n  if(!pending||pending.releaseId!==req.params.id||pending.expires<Date.now()||!auth.verifyAdministrator(String(req.body.password??'')))throw Error('发布确认验证失败');\n  const release=service.state.get('release',req.params.id);if(!release||release.status!=='prepared')throw Error('发布版本不存在或已执行');\n  auth.state.remove('approval-form',hash(req.body.csrf));\n  if(pending.stage==='login'){\n   const nonce=randomBytes(32).toString('hex');auth.state.put('approval-form',hash(nonce),{releaseId:release.id,commit:release.commit,imageDigest:release.imageDigest,expires:Date.now()+300000,stage:'review'});\n   return form(res,nonce,`<h1>确认维护版本上线</h1><p>版本：${escapeHtml(release.commit)}</p><p>镜像：${escapeHtml(release.imageDigest)}</p><pre>${escapeHtml(service.releaseDiff(release.id))}</pre><p>超过显示上限的差异须在维护客户端完整审查。</p><form method=\"post\"><input type=\"hidden\" name=\"csrf\" value=\"${nonce}\"><label><input type=\"checkbox\" name=\"compatible\" value=\"yes\" required>已审查完整差异、检查结果、备份及数据库回滚兼容性</label><p><label>维护管理员密码 <input name=\"password\" type=\"password\" required autocomplete=\"current-password\"></label></p><button>确认此版本，15分钟内有效</button></form>`);\n  }\n  if(pending.stage!=='review'||pending.commit!==release.commit||pending.imageDigest!==release.imageDigest||req.body.compatible!=='yes')throw Error('版本确认已失效');\n  service.approveRelease(req.params.id,'owner');res.send('已确认此版本，可返回维护客户端执行上线。');\n }catch(e){res.status(403).send(escapeHtml((e as Error).message));}}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/templates/mine",
+    "file": "backend/server/personal-templates.ts",
+    "line": 60,
+    "handler": "async (_req,res)=>{\r\n    try { res.json({items:(await personal()).map(t=>({...t.draft,id:t.id,revision:t.revision,updatedAt:t.updatedAt}))}); }\r\n    catch { res.status(500).json({message:'素材读取失败，请重试'}); }\r\n  }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/templates/upload",
+    "file": "backend/server/personal-templates.ts",
+    "line": 64,
+    "handler": "express.json({limit:'12mb'})\nasync (req,res)=>{\r\n    const tenant=workspace();\r\n    if(busy.has(tenant))return res.status(409).json({message:'正在保存上一张图片，请稍后重试'});\r\n    busy.add(tenant);\r\n    try {\r\n      const parsed=z.object({fileName:z.string().trim().min(1).max(240),data:z.string(),category:z.enum(templateCategories).default('生活方式')}).strict().safeParse(req.body);\r\n      if(!parsed.success)return res.status(400).json({message:'请提供图片文件、文件名和有效分类'});\r\n      const {bytes,key}=decodeTemplateImage(parsed.data.data), url='/api/templates/media/'+key;\r\n      const existing=(await personal()).find(t=>t.draft.images.includes(url));\r\n      if(existing)return res.json({item:{...existing.draft,id:existing.id,revision:existing.revision,updatedAt:existing.updatedAt},duplicate:true});\r\n      await mkdir(folder(),{recursive:true,mode:0o700});\r\n      let used=0;\r\n      for(const name of await readdir(folder()))if(keyPattern.test(name))used+=(await stat(join(folder(),name))).size;\r\n      const already=await stat(join(folder(),key)).catch(()=>null);\r\n      if(used+(already?0:bytes.length)>maxLibraryBytes)return res.status(413).json({message:'素材空间已达 512 MB，请联系管理员扩容'});\r\n      await writeFile(join(folder(),key),bytes,{mode:0o600});\r\n      const name=parsed.data.fileName.replace(/\\.[^.]+$/,'').slice(0,100)||'未命名素材';\r\n      const item=await library.create({name,category:parsed.data.category,title:name.slice(0,20),body:'',images:[url],sourceUrl:'',usage:'owned',rightsNote:'客户本地上传'});\r\n      return res.status(201).json({item:{...item.draft,id:item.id,revision:item.revision,updatedAt:item.updatedAt},duplicate:false});\r\n    } catch(e) { return res.status(400).json({message:e instanceof Error?e.message:'上传失败，请重试'}); }\r\n    finally {busy.delete(tenant);}\r\n  }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/templates/media/:key",
+    "file": "backend/server/personal-templates.ts",
+    "line": 86,
+    "handler": "async (req,res)=>{\r\n    const key=String(req.params.key);\r\n    if(!keyPattern.test(key))return res.sendStatus(404);\r\n    try {\r\n      const url='/api/templates/media/'+key;\r\n      if(!(await personal()).some(t=>t.draft.images.includes(url)))return res.sendStatus(404);\r\n      const thumbnail=req.query.size==='thumb';\r\n      const etag='\"'+key+(thumbnail?'-thumb-v1':'')+'\"';\r\n      // Revalidate after authentication and ownership checks, including after deletion.\r\n      res.set('Cache-Control','private, no-cache').set('ETag',etag).vary('Cookie').vary('Authorization');\r\n      if(req.fresh)return res.status(304).end();\r\n      let bytes:Buffer;\r\n      if(thumbnail){\r\n        bytes=await thumbnailBytes(folder(),key);\r\n      }else bytes=await readFile(join(folder(),key));\r\n      return res.set('X-Content-Type-Options','nosniff').type(thumbnail?'image/webp':key.endsWith('.jpg')?'image/jpeg':key.endsWith('.png')?'image/png':'image/webp').send(bytes);\r\n    } catch {return res.sendStatus(404);}\r\n  }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/templates/bulk-delete",
+    "file": "backend/server/personal-templates.ts",
+    "line": 104,
+    "handler": "async (req,res)=>{\r\n    const parsed=z.object({ids:z.array(z.string().uuid()).min(1).max(100)}).strict().safeParse(req.body);\r\n    if(!parsed.success)return res.status(400).json({message:'请选择要删除的素材'});\r\n    try {\r\n      const all=await personal();\r\n      if(parsed.data.ids.some(id=>!all.some(t=>t.id===id)))return res.status(404).json({message:'素材不存在，请刷新列表'});\r\n      await library.deleteMany(parsed.data.ids);\r\n      return res.json({deleted:parsed.data.ids.length});\r\n    } catch {return res.status(500).json({message:'删除失败，请重试'});}\r\n  }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/studio",
+    "file": "backend/server/studio-routes.ts",
+    "line": 54,
+    "handler": "wrap(async (_req, res) => { await recoverGeneration(); (await recoverStalledExecutions(studio)); res.json((await studio.list())); })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/studio/:id/media/:key",
+    "file": "backend/server/studio-routes.ts",
+    "line": 55,
+    "handler": "wrap(async(req,res)=>{const t=await studio.get(String(req.params.id)),key=String(req.params.key);if(!files||!t.images.includes('/api/templates/media/'+key))return res.sendStatus(404);return res.sendFile(files.file(key));})"
+  },
+  {
+    "method": "GET",
+    "path": "/api/studio/:id/download",
+    "file": "backend/server/studio-routes.ts",
+    "line": 56,
+    "handler": "wrap(async(req,res)=>{\r\n      const task=await studio.get(String(req.params.id));const entries:{name:string;data:Buffer}[]=[{name:'copy.txt',data:Buffer.from([task.title,task.body,task.tags.map(t=>'#'+t).join(' ')].join('\\n\\n'))}];\r\n      for(let i=0;i<task.images.length;i++){\r\n        const url=task.images[i];let data:Buffer;\r\n        if(url.startsWith('/api/templates/media/')&&files)data=readFileSync(files.file(url.split('/').at(-1)!));\r\n        else {const uri=url.startsWith('data:')?url:await downloadModelImage(url);const match=/^data:image\\/(?:png|jpeg|webp);base64,(.+)$/.exec(uri);if(!match)throw Error('图片暂时无法读取');data=Buffer.from(match[1],'base64');}\r\n        if(data.length>8*1024*1024)throw Error('单张图片超过导出大小限制');const ext=data[0]===255?'jpg':data.toString('ascii',0,4)==='RIFF'?'webp':'png';entries.push({name:'image-'+(i+1)+'.'+ext,data});\r\n      }\r\n      res.set({'Content-Type':'application/gzip','Content-Disposition':'attachment; filename=\"matrix-materials.tar.gz\"','Cache-Control':'no-store'}).send(materialArchive(entries));\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/bulk-delete",
+    "file": "backend/server/studio-routes.ts",
+    "line": 72,
+    "handler": "wrap(async (req, res) => { const ids = z.array(z.string().min(1)).min(1).max(200).parse(req.body?.ids); if (ids.some(isStudioExecutorRunning))\r\n        throw Error('选中任务正在同步，请等待执行结束'); res.json({ ok: true, ...(await studio.deleteMany(ids)) }); })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/delete",
+    "file": "backend/server/studio-routes.ts",
+    "line": 74,
+    "handler": "wrap(async (req, res) => { const id = String(req.params.id); if (isStudioExecutorRunning(id))\r\n        throw Error('任务正在同步，请等待执行结束'); res.json({ ok: true, deleted: (await studio.delete(id)) }); })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/studio/:id",
+    "file": "backend/server/studio-routes.ts",
+    "line": 76,
+    "handler": "wrap(async (req, res) => { (await recoverStalledExecutions(studio)); res.json((await studio.get(String(req.params.id)))); })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/import-synced-cover",
+    "file": "backend/server/studio-routes.ts",
+    "line": 77,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ accountId: z.string(), noteId: z.string(), title: z.string().min(1).max(20), body: z.string().min(1).max(900), tags: z.array(z.string()).max(5) }).strict().parse(req.body);\r\n        const note = (await store.listNotes()).find(n => n.id === input.noteId && n.accountId === input.accountId);\r\n        if (!note?.cover)\r\n            throw Error('只能使用已有真实封面，当前笔记没有封面');\r\n        const made = (await studio.create({ accountId: input.accountId, topic: input.title, persona: '已同步账号内容', style: '沿用原内容', imageCount: 1, size: '1024x1536', requestId: `import-${input.noteId}-${Date.now()}`, confirmCharge: true }));\r\n        const task = (await studio.update(made.task.id, made.task.revision, { title: input.title, body: input.body, tags: input.tags, images: [note.cover], status: 'review', message: '已使用工作台同步的真实封面，请人工审核后执行发布' }));\r\n        res.status(201).json(task);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/generate",
+    "file": "backend/server/studio-routes.ts",
+    "line": 130,
+    "handler": "wrap(async(req,res)=>{\r\n        const brief=briefSchema.parse(req.body);\r\n        const inputs=await generationInputs(brief);\r\n        const made=await studio.create(brief);\r\n        if(!made.fresh)return res.json(made.task);\r\n        await respondGeneration(req,res,made.task,inputs,201);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/images",
+    "file": "backend/server/studio-routes.ts",
+    "line": 137,
+    "handler": "wrap(async(req,res)=>{\r\n        const input=z.object({revision,confirmCharge:z.literal(true)}).strict().parse(req.body);\r\n        let task=await studio.get(String(req.params.id));\r\n        if(task.status!=='generation_failed')throw Error('仅可继续未完成的生成任务');\r\n        if(req.path.endsWith('/images')&&(!task.body||task.images.length>=task.imageCount))throw Error('仅可补生成未完成的配图');\r\n        const inputs=await generationInputs(task);\r\n        task=await studio.update(task.id,input.revision,{status:'generating',message:task.body?'正在补生成配图，已保存文案不变':'正在重新生成文案，参考图选择已保留'});\r\n        await respondGeneration(req,res,task,inputs);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/resume",
+    "file": "backend/server/studio-routes.ts",
+    "line": 137,
+    "handler": "wrap(async(req,res)=>{\r\n        const input=z.object({revision,confirmCharge:z.literal(true)}).strict().parse(req.body);\r\n        let task=await studio.get(String(req.params.id));\r\n        if(task.status!=='generation_failed')throw Error('仅可继续未完成的生成任务');\r\n        if(req.path.endsWith('/images')&&(!task.body||task.images.length>=task.imageCount))throw Error('仅可补生成未完成的配图');\r\n        const inputs=await generationInputs(task);\r\n        task=await studio.update(task.id,input.revision,{status:'generating',message:task.body?'正在补生成配图，已保存文案不变':'正在重新生成文案，参考图选择已保留'});\r\n        await respondGeneration(req,res,task,inputs);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/edit",
+    "file": "backend/server/studio-routes.ts",
+    "line": 146,
+    "handler": "wrap(async (req, res) => {\r\n        const input = copySchema.extend({ revision }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (!['review', 'approved', 'rejected', 'generation_failed'].includes(t.status))\r\n            throw Error('当前任务不可修改，请先核对执行结果');\r\n        res.json((await studio.update(t.id, input.revision, { title: input.title, body: input.body, tags: input.tags, status: t.images.length === t.imageCount ? 'review' : 'generation_failed', approvedRevision: undefined, message: '修改已保存，需重新审核' })));\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/review",
+    "file": "backend/server/studio-routes.ts",
+    "line": 153,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ revision, decision: z.enum(['approve', 'reject']) }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (!['review', 'rejected'].includes(t.status))\r\n            throw Error('仅完整生成的待审核内容可审核');\r\n        copySchema.parse(t);\r\n        if (t.images.length !== t.imageCount)\r\n            throw Error('配图未完成');\r\n        const next = await studio.update(t.id,input.revision,{status:input.decision==='approve'?'approved':'rejected',executionStartedAt:undefined,approvedRevision:input.decision==='approve'?input.revision:undefined,message:input.decision==='approve'?'审核通过，正在准备自动同步到草稿。':'已驳回，请修改后重新审核'});\r\n        if(input.decision==='reject')return res.json(next);\r\n        try{return res.json(await startApproved(next,req));}\r\n        catch(e){\r\n            const current=await studio.get(next.id);\r\n            if(current.executionStartedAt||current.status!=='approved')throw e;\r\n            return res.json(await studio.update(current.id,current.revision,{message:'审核通过，自动同步暂未开始：'+(e instanceof Error?e.message:'请检查执行电脑')}));\r\n        }\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/claim",
+    "file": "backend/server/studio-routes.ts",
+    "line": 170,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ revision, profile: z.string().min(1).max(100),runId:z.string().uuid() }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (t.status !== 'approved' || !t.executionRunId || t.executionRunId!==input.runId)\r\n            throw Error('执行编号不匹配或任务尚未由客户启动');\r\n        if (!input.profile.startsWith('local:'))\r\n            throw Error('该账号尚未完成连接，请先在账号矩阵中扫码登录');\r\n        const bound = (await store.listAccounts()).find(a => a.id === t.accountId);\r\n        if (!bound || bound.profile !== input.profile)\r\n            throw Error('执行器会话与目标账号绑定不一致');\r\n        res.json((await studio.update(t.id, input.revision, { status: 'filling', profile: input.profile, message: '本地执行器已领取；上传完成后由人发布' })));\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/cancel",
+    "file": "backend/server/studio-routes.ts",
+    "line": 182,
+    "handler": "wrap(async(req,res)=>{const t=await studio.get(String(req.params.id));const state=await cancelStudioExecution(t.id);if(state.stopConfirmed)browserRuns?.release(t.id);res.json(await studio.update(t.id,t.revision,{status:'blocked',message:state.message+'。草稿结果待核对，请勿重复上传。'}));})"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/execute",
+    "file": "backend/server/studio-routes.ts",
+    "line": 183,
+    "handler": "wrap(async (req, res) => {\r\n        const t = (await studio.get(String(req.params.id)));\r\n        res.json(await startApproved(t,req));\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/dispatch",
+    "file": "backend/server/studio-routes.ts",
+    "line": 187,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ accountIds: z.array(z.string().min(1)).min(1).max(50) }).strict().parse(req.body);\r\n        const source = (await studio.get(String(req.params.id)));\r\n        if (!['review', 'approved', 'filled'].includes(source.status))\r\n            throw Error('只有待审核或已审核内容可以批量同步');\r\n        copySchema.parse(source);\r\n        if (source.images.length !== source.imageCount)\r\n            throw Error('配图未完成，不能批量同步');\r\n        const unique = [...new Set(input.accountIds)];\r\n        const allAccounts=await store.listAccounts();\r\n        const accounts = unique.map(id => allAccounts.find(a => a.id === id));\r\n        if (accounts.some(a => !a))\r\n            throw Error('批量目标包含不存在的账号');\r\n        if (accounts.some(a => !a?.profile))\r\n            throw Error('批量目标中有账号尚未绑定独立 Chrome Profile');\r\n        if (accounts.some(a => accounts.some(b => a !== b && a?.profile === b?.profile)))\r\n            throw Error('批量目标中存在共用 Chrome Profile 的账号，请先分别绑定');\r\n        for (const account of accounts) if (account) await checkDevice?.(account.profile,req);\r\n        const results = [];\r\n        for (const account of accounts) {\r\n            if (!account)\r\n                continue;\r\n            let task: any;\r\n            if (account.id === source.accountId)\r\n                task = source;\r\n            else {\r\n                const made = (await studio.create({ accountId: account.id, topic: source.topic, persona: source.persona, style: source.style, imageCount: source.imageCount, size: source.size, requestId: 'dispatch-' + createHash('sha256').update(JSON.stringify([source.id, account.id, source.title, source.body, source.tags, source.images])).digest('hex'), confirmCharge: true }));\r\n                task = made.task;\r\n                if (task.status === 'generating' || task.status === 'generation_failed' || task.status === 'review')\r\n                    task = (await studio.update(task.id, task.revision, { title: source.title, body: source.body, tags: source.tags, images: source.images, status: 'approved', approvedRevision: task.revision, message: `已从 ${source.title || source.topic} 创建批量草稿，目标账号：${account.name}` }));\r\n            }\r\n            if (task.status === 'review')\r\n                task = (await studio.update(task.id, task.revision, { status: 'approved', approvedRevision: task.revision, message: '已审核，准备同步到目标账号' }));\r\n            if (task.status === 'approved' && !isStudioExecutorRunning(task.id)) {\r\n                const claimed = (await studio.update(task.id, task.revision, { status: 'approved', profile: account.profile, executionStartedAt: new Date().toISOString(), message: `正在同步到 ${account.name} 的小红书草稿` }));\r\n                (await launch(studio, claimed.id, account.profile));\r\n                task = await studio.get(claimed.id);\r\n            }\r\n            results.push(task);\r\n        }\r\n        res.status(201).json({ sourceId: source.id, tasks: results });\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/progress",
+    "file": "backend/server/studio-routes.ts",
+    "line": 229,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ revision: z.number().int().positive(), message: z.string().min(1).max(500) }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (t.status !== 'filling')\r\n            throw Error('当前任务不可接收执行进度');\r\n        res.json((await studio.update(t.id, input.revision, { message: input.message })));\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/receipt",
+    "file": "backend/server/studio-routes.ts",
+    "line": 236,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ revision, status: z.enum(['filled', 'blocked', 'pending_confirmation']), message: z.string().min(1).max(2000), accountId: z.string().optional(), title: z.string().optional(), body: z.string().optional(), tags: z.array(z.string()).optional(), imageCount: z.number().optional(),runId:z.string().uuid().optional(),draftId:z.union([z.string().min(1),z.number()]).optional(),retrySafe:z.boolean().optional() }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (t.status !== 'filling')\r\n            throw Error('当前任务不可接收填充回执');\r\n        const bound=(await store.listAccounts()).find(a=>a.id===t.accountId);if(!bound||bound.profile!==t.profile)throw Error('账号已切换执行电脑，旧任务结果不能覆盖新绑定');\r\n        if(input.retrySafe&&(!t.executionRunId||input.runId!==t.executionRunId||input.status!=='blocked'))throw Error('本次执行的停止凭据不匹配');\r\n        if (input.status === 'filled' && (!input.draftId || !t.executionRunId || input.runId !== t.executionRunId))throw Error('缺少匹配的运行编号或平台草稿凭据，不能标记成功');\r\n        if (input.status === 'filled' && (input.accountId !== t.accountId || input.title !== t.title || input.body !== t.body || JSON.stringify(input.tags) !== JSON.stringify(t.tags) || input.imageCount !== t.images.length))\r\n            throw Error('页面回读与审核稿不一致，不能标记填充完成');\r\n        const elapsed = t.executionStartedAt ? Date.now() - Date.parse(t.executionStartedAt) : NaN;\r\n        const executionElapsedMs = Number.isFinite(elapsed) && elapsed >= 0 ? elapsed : undefined;\r\n        const speed = '';\r\n        const next = (await studio.update(t.id, input.revision, { status: input.status, message: input.message + speed, executionElapsedMs,draftId:input.draftId,...(input.retrySafe?{executionStartedAt:undefined}:{}) }));\r\n        finishStudioExecution(t.id);if(input.status==='filled'||input.retrySafe)browserRuns?.release(t.id);\r\n        res.json(next);\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/link",
+    "file": "backend/server/studio-routes.ts",
+    "line": 254,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ revision, url: noteUrl }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (!['review','approved','filled', 'pending_confirmation'].includes(t.status))\r\n            throw Error('请先完成发布准备');\r\n        res.json((await studio.update(t.id, input.revision, { url: input.url, status: 'pending_confirmation', message: '链接已补录，尚未核实作者和内容，不标记已发布' })));\r\n    })"
+  },
+  {
+    "method": "POST",
+    "path": "/api/studio/:id/retry",
+    "file": "backend/server/studio-routes.ts",
+    "line": 261,
+    "handler": "wrap(async (req, res) => {\r\n        const input = z.object({ revision, checkedNotPublished: z.literal(true) }).strict().parse(req.body);\r\n        const t = (await studio.get(String(req.params.id)));\r\n        if (!canRetryStudio(t) || isStudioExecutorRunning(t.id))\r\n            throw Error('结果不确定时禁止重新填充，请先人工核对发布记录');\r\n        const target = (await store.listAccounts()).find(a => a.id === t.accountId);\r\n        if (!target?.profile?.startsWith('local:'))\r\n            throw Error('目标账号未连接，请先扫码');\r\n        await checkDevice?.(target.profile,req);\r\n        finishStudioExecution(t.id);\r\n        const next = (await studio.update(t.id, input.revision, { status: 'approved', executionStartedAt: undefined, executionRunId:undefined, executionElapsedMs: undefined, message: '正在重新检查已有草稿并保存到目标账号' }));\r\n        res.json(await startApproved(next,req));\r\n    })"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/status",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 33,
+    "handler": "async(req,res)=>res.json({configured:await configured(),setupAllowed:localSetup(req)})"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/session",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 34,
+    "handler": "async(req,res)=>{const u=await identity(req);return u?res.json(u):res.status(401).json({message:'请登录工作台'});}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/profile",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 35,
+    "handler": "async(req,res)=>{const u=await identity(req);return u?res.json({...u,sessionHours:8}):res.status(401).json({message:'请登录'});}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/profile",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 36,
+    "handler": "async(req,res)=>{const u=await identity(req);if(!u)return res.sendStatus(401);const p=z.object({displayName:z.string().trim().min(1).max(40).regex(/^[^\\r\\n]+$/)}).strict().safeParse(req.body);if(!p.success)return res.status(400).json({message:'昵称需为 1–40 个字符'});await db.pool.query('UPDATE app_user SET display_name=$1 WHERE tenant_id=$2 AND username=$3',[p.data.displayName,u.workspace,u.username]);return res.json({...u,displayName:p.data.displayName});}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/setup",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 37,
+    "handler": "async(req,res)=>{\n      const key=digest(req.ip??'unknown'),stamp=Math.floor(Date.now()/900000);\n      const count=await db.pool.query('INSERT INTO login_limit VALUES($1,$2,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN login_limit.bucket=excluded.bucket THEN login_limit.count+1 ELSE 1 END,bucket=excluded.bucket RETURNING count',[key,stamp]);\n      if(count.rows[0].count>10)return res.status(429).json({message:'尝试次数过多，请 15 分钟后重试'});\n      if(req.path.endsWith('/login')){\n        const parsed=z.object({username:z.string().trim().max(40).transform(s=>s.toLowerCase()),password:z.string().max(128)}).safeParse(req.body);if(!parsed.success)return res.status(401).json({message:'账号或密码不正确'});\n        const u=(await db.pool.query('SELECT u.*,t.enabled AS tenant_enabled FROM app_user u JOIN tenant t ON t.tenant_id=u.tenant_id WHERE username=$1',[parsed.data.username])).rows[0];\n        if(!await verify(parsed.data.password,u)||!u?.enabled||!u?.tenant_enabled)return res.status(401).json({message:'账号或密码不正确，或账号已停用'});\n        // Existing scrypt credentials remain valid; upgrade only after successful verification.\n        if(!u.password_hash.startsWith('$2')&&Buffer.byteLength(parsed.data.password)<=72)await db.pool.query(\"UPDATE app_user SET password_hash=$1,password_salt='' WHERE username=$2 AND password_hash=$3\",[await bcrypt.hash(parsed.data.password,12),u.username,u.password_hash]);\n        await db.pool.query('DELETE FROM login_limit WHERE key=$1',[key]);await issue(req,res,{username:u.username,workspace:u.tenant_id});await db.audit(u.tenant_id,u.username,'login','session','success');return res.json({username:u.username,role:u.role,workspace:u.tenant_id});\n      }\n      const setup=req.path.endsWith('/setup');if(setup&&!localSetup(req))return res.status(403).json({message:'首次初始化请在服务器本机完成'});\n      const p=credentials.safeParse(req.body);if(!p.success)return res.status(400).json({message:'账号需为 3–40 位英文、数字或 ._-；密码至少 12 个字符，UTF-8 不超过 72 字节'});\n      if(!setup&&p.data.username===platformUsername?.trim().toLowerCase())return res.status(409).json({message:'此账号名由平台保留，请使用其他账号名'});\n      const hash=await bcrypt.hash(p.data.password,12);\n      try{\n        const tenant=await db.transaction('owner',async s=>{\n          await s.query(\"SELECT pg_advisory_xact_lock(hashtextextended('matrix-registration',0))\");\n          if(setup&&(await s.query(\"SELECT 1 FROM app_user WHERE tenant_id='owner'\")).rowCount)throw Error('管理员已创建，请直接登录');\n          const id=setup?'owner':randomUUID();\n          await s.query('INSERT INTO tenant(tenant_id,name) VALUES($1,$2) ON CONFLICT DO NOTHING',[id,p.data.username]);\n          await s.query(\"INSERT INTO app_user(tenant_id,username,password_hash,display_name,role) VALUES($1,$2,$3,$2,'admin')\",[id,p.data.username,hash]);\n          return id;\n        });\n        await issue(req,res,{username:p.data.username,workspace:tenant});return res.status(201).json({username:p.data.username,role:'admin',workspace:tenant});\n      }catch{return res.status(409).json({message:'此账号已存在，请登录或使用其他账号名'});}\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/register",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 37,
+    "handler": "async(req,res)=>{\n      const key=digest(req.ip??'unknown'),stamp=Math.floor(Date.now()/900000);\n      const count=await db.pool.query('INSERT INTO login_limit VALUES($1,$2,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN login_limit.bucket=excluded.bucket THEN login_limit.count+1 ELSE 1 END,bucket=excluded.bucket RETURNING count',[key,stamp]);\n      if(count.rows[0].count>10)return res.status(429).json({message:'尝试次数过多，请 15 分钟后重试'});\n      if(req.path.endsWith('/login')){\n        const parsed=z.object({username:z.string().trim().max(40).transform(s=>s.toLowerCase()),password:z.string().max(128)}).safeParse(req.body);if(!parsed.success)return res.status(401).json({message:'账号或密码不正确'});\n        const u=(await db.pool.query('SELECT u.*,t.enabled AS tenant_enabled FROM app_user u JOIN tenant t ON t.tenant_id=u.tenant_id WHERE username=$1',[parsed.data.username])).rows[0];\n        if(!await verify(parsed.data.password,u)||!u?.enabled||!u?.tenant_enabled)return res.status(401).json({message:'账号或密码不正确，或账号已停用'});\n        // Existing scrypt credentials remain valid; upgrade only after successful verification.\n        if(!u.password_hash.startsWith('$2')&&Buffer.byteLength(parsed.data.password)<=72)await db.pool.query(\"UPDATE app_user SET password_hash=$1,password_salt='' WHERE username=$2 AND password_hash=$3\",[await bcrypt.hash(parsed.data.password,12),u.username,u.password_hash]);\n        await db.pool.query('DELETE FROM login_limit WHERE key=$1',[key]);await issue(req,res,{username:u.username,workspace:u.tenant_id});await db.audit(u.tenant_id,u.username,'login','session','success');return res.json({username:u.username,role:u.role,workspace:u.tenant_id});\n      }\n      const setup=req.path.endsWith('/setup');if(setup&&!localSetup(req))return res.status(403).json({message:'首次初始化请在服务器本机完成'});\n      const p=credentials.safeParse(req.body);if(!p.success)return res.status(400).json({message:'账号需为 3–40 位英文、数字或 ._-；密码至少 12 个字符，UTF-8 不超过 72 字节'});\n      if(!setup&&p.data.username===platformUsername?.trim().toLowerCase())return res.status(409).json({message:'此账号名由平台保留，请使用其他账号名'});\n      const hash=await bcrypt.hash(p.data.password,12);\n      try{\n        const tenant=await db.transaction('owner',async s=>{\n          await s.query(\"SELECT pg_advisory_xact_lock(hashtextextended('matrix-registration',0))\");\n          if(setup&&(await s.query(\"SELECT 1 FROM app_user WHERE tenant_id='owner'\")).rowCount)throw Error('管理员已创建，请直接登录');\n          const id=setup?'owner':randomUUID();\n          await s.query('INSERT INTO tenant(tenant_id,name) VALUES($1,$2) ON CONFLICT DO NOTHING',[id,p.data.username]);\n          await s.query(\"INSERT INTO app_user(tenant_id,username,password_hash,display_name,role) VALUES($1,$2,$3,$2,'admin')\",[id,p.data.username,hash]);\n          return id;\n        });\n        await issue(req,res,{username:p.data.username,workspace:tenant});return res.status(201).json({username:p.data.username,role:'admin',workspace:tenant});\n      }catch{return res.status(409).json({message:'此账号已存在，请登录或使用其他账号名'});}\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 37,
+    "handler": "async(req,res)=>{\n      const key=digest(req.ip??'unknown'),stamp=Math.floor(Date.now()/900000);\n      const count=await db.pool.query('INSERT INTO login_limit VALUES($1,$2,1) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN login_limit.bucket=excluded.bucket THEN login_limit.count+1 ELSE 1 END,bucket=excluded.bucket RETURNING count',[key,stamp]);\n      if(count.rows[0].count>10)return res.status(429).json({message:'尝试次数过多，请 15 分钟后重试'});\n      if(req.path.endsWith('/login')){\n        const parsed=z.object({username:z.string().trim().max(40).transform(s=>s.toLowerCase()),password:z.string().max(128)}).safeParse(req.body);if(!parsed.success)return res.status(401).json({message:'账号或密码不正确'});\n        const u=(await db.pool.query('SELECT u.*,t.enabled AS tenant_enabled FROM app_user u JOIN tenant t ON t.tenant_id=u.tenant_id WHERE username=$1',[parsed.data.username])).rows[0];\n        if(!await verify(parsed.data.password,u)||!u?.enabled||!u?.tenant_enabled)return res.status(401).json({message:'账号或密码不正确，或账号已停用'});\n        // Existing scrypt credentials remain valid; upgrade only after successful verification.\n        if(!u.password_hash.startsWith('$2')&&Buffer.byteLength(parsed.data.password)<=72)await db.pool.query(\"UPDATE app_user SET password_hash=$1,password_salt='' WHERE username=$2 AND password_hash=$3\",[await bcrypt.hash(parsed.data.password,12),u.username,u.password_hash]);\n        await db.pool.query('DELETE FROM login_limit WHERE key=$1',[key]);await issue(req,res,{username:u.username,workspace:u.tenant_id});await db.audit(u.tenant_id,u.username,'login','session','success');return res.json({username:u.username,role:u.role,workspace:u.tenant_id});\n      }\n      const setup=req.path.endsWith('/setup');if(setup&&!localSetup(req))return res.status(403).json({message:'首次初始化请在服务器本机完成'});\n      const p=credentials.safeParse(req.body);if(!p.success)return res.status(400).json({message:'账号需为 3–40 位英文、数字或 ._-；密码至少 12 个字符，UTF-8 不超过 72 字节'});\n      if(!setup&&p.data.username===platformUsername?.trim().toLowerCase())return res.status(409).json({message:'此账号名由平台保留，请使用其他账号名'});\n      const hash=await bcrypt.hash(p.data.password,12);\n      try{\n        const tenant=await db.transaction('owner',async s=>{\n          await s.query(\"SELECT pg_advisory_xact_lock(hashtextextended('matrix-registration',0))\");\n          if(setup&&(await s.query(\"SELECT 1 FROM app_user WHERE tenant_id='owner'\")).rowCount)throw Error('管理员已创建，请直接登录');\n          const id=setup?'owner':randomUUID();\n          await s.query('INSERT INTO tenant(tenant_id,name) VALUES($1,$2) ON CONFLICT DO NOTHING',[id,p.data.username]);\n          await s.query(\"INSERT INTO app_user(tenant_id,username,password_hash,display_name,role) VALUES($1,$2,$3,$2,'admin')\",[id,p.data.username,hash]);\n          return id;\n        });\n        await issue(req,res,{username:p.data.username,workspace:tenant});return res.status(201).json({username:p.data.username,role:'admin',workspace:tenant});\n      }catch{return res.status(409).json({message:'此账号已存在，请登录或使用其他账号名'});}\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 65,
+    "handler": "async(req,res)=>{await db.pool.query('DELETE FROM login_session WHERE hash=$1',[digest(sessionId(req))]);res.clearCookie(cookieName,{httpOnly:true,sameSite:'strict',secure:publicOrigin?.startsWith('https:')||req.secure,path:'/api'});res.json({ok:true});}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/team",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 67,
+    "handler": "async(_req,res)=>{const u=res.locals.identity as Identity;const r=await db.pool.query('SELECT username,display_name AS \"displayName\",role,enabled FROM app_user WHERE tenant_id=$1 ORDER BY created_at,username',[u.workspace]);res.json({items:r.rows,currentUsername:u.username});}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/team",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 68,
+    "handler": "async(req,res)=>{\n      const u=res.locals.identity as Identity;const p=credentials.extend({role,displayName:z.string().trim().min(1).max(40)}).safeParse(req.body);if(!p.success)return res.status(400).json({message:'请填写账号、角色和至少 12 个字符的初始密码（UTF-8 不超过 72 字节）'});\n      try{await db.pool.query('INSERT INTO app_user(tenant_id,username,password_hash,display_name,role) VALUES($1,$2,$3,$4,$5)',[u.workspace,p.data.username,await bcrypt.hash(p.data.password,12),p.data.displayName,p.data.role]);await db.audit(u.workspace,u.username,'member.create',p.data.username,'success');return res.status(201).json({ok:true});}catch{return res.status(409).json({message:'该登录账号已存在，请更换账号名'});}\n    }"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/team/:username",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 72,
+    "handler": "async(req,res)=>{\n      const u=res.locals.identity as Identity,p=z.object({role:role.optional(),enabled:z.boolean().optional(),password:credentials.shape.password.optional()}).strict().safeParse(req.body);if(!p.success)return res.status(400).json({message:'成员设置不合法'});\n      const target=String(req.params.username);if(target===u.username&&(p.data.enabled===false||p.data.role&&p.data.role!=='admin'))return res.status(409).json({message:'不能停用自己或移除自己的管理员权限'});\n      const hash=p.data.password?await bcrypt.hash(p.data.password,12):null;\n      try{await db.transaction(u.workspace,async s=>{await s.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[u.workspace+':team']);const member=(await s.query('SELECT role,enabled FROM app_user WHERE tenant_id=$1 AND username=$2 FOR UPDATE',[u.workspace,target])).rows[0];if(!member)throw Error('成员不存在');if(member.role==='admin'&&member.enabled&&(p.data.enabled===false||p.data.role&&p.data.role!=='admin')&&Number((await s.query(\"SELECT count(*) FROM app_user WHERE tenant_id=$1 AND role='admin' AND enabled\",[u.workspace])).rows[0].count)<=1)throw Error('至少保留一位启用的管理员');await s.query(\"UPDATE app_user SET role=coalesce($3,role),enabled=coalesce($4,enabled),password_hash=coalesce($5,password_hash),password_salt=CASE WHEN $5::text IS NULL THEN password_salt ELSE '' END WHERE tenant_id=$1 AND username=$2\",[u.workspace,target,p.data.role??null,p.data.enabled??null,hash]);await s.query('DELETE FROM login_session WHERE tenant_id=$1 AND username=$2',[u.workspace,target]);});await db.audit(u.workspace,u.username,'member.update',target,'success');return res.json({ok:true});}catch(e){return res.status(409).json({message:e instanceof Error?e.message:'更新失败'});}\n    }"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/audit",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 78,
+    "handler": "async(req,res)=>{const u=await identity(req);if(!u||u.role!=='admin')return res.sendStatus(403);return res.json({items:await db.rows(u.workspace,'SELECT actor,action,target,result,created_at AS \"createdAt\" FROM audit_log WHERE tenant_id=$1 ORDER BY created_at DESC LIMIT 100',[u.workspace])});}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/tenants",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 80,
+    "handler": "async(_req,res)=>res.json({items:(await db.pool.query('SELECT tenant_id AS id,name,enabled,created_at AS \"createdAt\" FROM tenant ORDER BY created_at')).rows})"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/tenants/:id",
+    "file": "backend/server/tenant-auth.ts",
+    "line": 81,
+    "handler": "async(req,res)=>{const id=String(req.params.id),p=z.object({enabled:z.boolean()}).strict().safeParse(req.body);if(id==='owner'||!p.success)return res.status(400).json({message:'不能停用平台所属客户'});const r=await db.pool.query('UPDATE tenant SET enabled=$2 WHERE tenant_id=$1 RETURNING tenant_id',[id,p.data.enabled]);if(!r.rowCount)return res.sendStatus(404);await db.audit('owner',res.locals.identity.username,'tenant.status',id,p.data.enabled?'enabled':'disabled');res.json({ok:true});}"
+  }
+]

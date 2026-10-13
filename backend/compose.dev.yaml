@@ -1,0 +1,30 @@
+name: matrix-python-dev
+services:
+  backend:
+    build: .
+    environment:
+      APP_ENV: development
+      HOST: 0.0.0.0
+      PORT: 4174
+      DATA_DIR: /app/data/work/grey
+      PUBLIC_ORIGIN: http://127.0.0.1:8080
+      MATRIX_CLOUD_URL: http://127.0.0.1:8080
+      TRUSTED_PROXY_IPS: 172.30.83.10
+      MCP_REQUIRE_AUTH: "true"
+      TRUST_LOCAL_PROXY_HTTP: "1"
+    volumes:
+      - matrix-backend-dev:/app/data
+    networks: [matrix]
+  frontend:
+    build: ../frontend
+    depends_on: [backend]
+    ports: ["127.0.0.1:8080:80"]
+    networks:
+      matrix:
+        ipv4_address: 172.30.83.10
+volumes:
+  matrix-backend-dev:
+networks:
+  matrix:
+    ipam:
+      config: [{subnet: 172.30.83.0/24}]

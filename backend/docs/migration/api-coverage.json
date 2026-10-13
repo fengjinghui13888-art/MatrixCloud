@@ -1,0 +1,1516 @@
+{
+  "source_registration_count": 126,
+  "unique_source_method_path_count": 118,
+  "missing_source_registrations": [],
+  "registrations": [
+    {
+      "method": "GET",
+      "path": "/api/auth/status",
+      "source": "backend/server/account-auth.ts:32",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "source": "backend/server/account-auth.ts:33",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/profile",
+      "source": "backend/server/account-auth.ts:34",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/setup",
+      "source": "backend/server/account-auth.ts:40",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "source": "backend/server/account-auth.ts:52",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "source": "backend/server/account-auth.ts:52",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/profile",
+      "source": "backend/server/account-auth.ts:74",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "source": "backend/server/account-auth.ts:81",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/connector/downloads",
+      "source": "backend/server/connector-downloads.ts:12",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/connector/download/:platform",
+      "source": "backend/server/connector-downloads.ts:13",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/connector/capabilities",
+      "source": "backend/server/connector-pairing.ts:155",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/pairings",
+      "source": "backend/server/connector-pairing.ts:156",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/connector/pairings/:id",
+      "source": "backend/server/connector-pairing.ts:157",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/pairings/:id/cancel",
+      "source": "backend/server/connector-pairing.ts:163",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/connector/devices",
+      "source": "backend/server/connector-pairing.ts:164",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/devices/:id/revoke",
+      "source": "backend/server/connector-pairing.ts:170",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/devices/:id/select",
+      "source": "backend/server/connector-pairing.ts:171",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/devices/:id/cleanup",
+      "source": "backend/server/connector-pairing.ts:173",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/register",
+      "source": "backend/server/connector-pairing.ts:174",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/heartbeat",
+      "source": "backend/server/connector-pairing.ts:185",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "connector",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/health",
+      "source": "backend/server/grey-app.ts:173",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/event-sync",
+      "source": "backend/server/grey-app.ts:218",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/event-sync",
+      "source": "backend/server/grey-app.ts:222",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/media/:noteId/:assetId",
+      "source": "backend/server/grey-app.ts:256",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/local-connector/status",
+      "source": "backend/server/grey-app.ts:266",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/xhs/qr-login",
+      "source": "backend/server/grey-app.ts:270",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/xhs/qr-login/:id/image",
+      "source": "backend/server/grey-app.ts:274",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/xhs/qr-login",
+      "source": "backend/server/grey-app.ts:283",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/xhs/qr-login/:id",
+      "source": "backend/server/grey-app.ts:292",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/xhs/qr-login/:id/adopt",
+      "source": "backend/server/grey-app.ts:298",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/xhs/qr-login/:id/cancel",
+      "source": "backend/server/grey-app.ts:304",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/browser/profiles",
+      "source": "backend/server/grey-app.ts:310",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/sync-all",
+      "source": "backend/server/grey-app.ts:311",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/safety",
+      "source": "backend/server/grey-app.ts:335",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/:id/resume",
+      "source": "backend/server/grey-app.ts:336",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/:id/sync",
+      "source": "backend/server/grey-app.ts:337",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/sync-jobs/:id/progress",
+      "source": "backend/server/grey-app.ts:359",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/sync/latest",
+      "source": "backend/server/grey-app.ts:366",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/sync/:jobId",
+      "source": "backend/server/grey-app.ts:368",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/:id/sync/:jobId/cancel",
+      "source": "backend/server/grey-app.ts:370",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "sync",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/creation-tasks/:id/run-text",
+      "source": "backend/server/grey-app.ts:396",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "original_410_retained",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/templates/access",
+      "source": "backend/server/grey-app.ts:398",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/templates",
+      "source": "backend/server/grey-app.ts:399",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/admin/templates",
+      "source": "backend/server/grey-app.ts:414",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/templates",
+      "source": "backend/server/grey-app.ts:415",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/templates/:id",
+      "source": "backend/server/grey-app.ts:423",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts",
+      "source": "backend/server/grey-app.ts:442",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/:id/delete",
+      "source": "backend/server/grey-app.ts:473",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/bulk-delete",
+      "source": "backend/server/grey-app.ts:483",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/content/clear",
+      "source": "backend/server/grey-app.ts:495",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/accounts/:accountId/notes/:noteId/delete",
+      "source": "backend/server/grey-app.ts:507",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/notes/bulk-delete",
+      "source": "backend/server/grey-app.ts:516",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/operations",
+      "source": "backend/server/grey-app.ts:525",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/notes",
+      "source": "backend/server/grey-app.ts:542",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/comments",
+      "source": "backend/server/grey-app.ts:544",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/accounts/:id/messages",
+      "source": "backend/server/grey-app.ts:546",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/creation-tasks",
+      "source": "backend/server/grey-app.ts:548",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/creation-tasks/:id/delete",
+      "source": "backend/server/grey-app.ts:549",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/creation-tasks/bulk-delete",
+      "source": "backend/server/grey-app.ts:557",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/creation-tasks",
+      "source": "backend/server/grey-app.ts:565",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/publish-tasks",
+      "source": "backend/server/grey-app.ts:573",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/publish-tasks/:id/delete",
+      "source": "backend/server/grey-app.ts:574",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/publish-tasks/bulk-delete",
+      "source": "backend/server/grey-app.ts:582",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/publish-tasks",
+      "source": "backend/server/grey-app.ts:590",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/publish-tasks/:id/cancel",
+      "source": "backend/server/grey-app.ts:602",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/one-click/publish",
+      "source": "backend/server/grey-app.ts:610",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "original_410_retained",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/connections",
+      "source": "backend/server/grey-app.ts:611",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/models",
+      "source": "backend/server/grey-app.ts:615",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/models/discover",
+      "source": "backend/server/grey-app.ts:616",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/models/profiles",
+      "source": "backend/server/grey-app.ts:637",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/models/profiles",
+      "source": "backend/server/grey-app.ts:638",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/models/activate",
+      "source": "backend/server/grey-app.ts:646",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/models",
+      "source": "backend/server/grey-app.ts:654",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/models/chat",
+      "source": "backend/server/grey-app.ts:665",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/models/images",
+      "source": "backend/server/grey-app.ts:685",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "models",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/import",
+      "source": "backend/server/grey-app.ts:699",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/leads",
+      "source": "backend/server/grey-app.ts:716",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/leads/:id/follow-ups",
+      "source": "backend/server/grey-app.ts:723",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/leads/:id/delete",
+      "source": "backend/server/grey-app.ts:730",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/leads/bulk-delete",
+      "source": "backend/server/grey-app.ts:736",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/follow-ups/:id/delete",
+      "source": "backend/server/grey-app.ts:742",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/follow-ups/bulk-delete",
+      "source": "backend/server/grey-app.ts:748",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "business",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/maintenance/health",
+      "source": "backend/server/maintenance-app.ts:21",
+      "python_module": "app.maintenance",
+      "handler": "install_maintenance_routes",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "maintenance",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/.well-known/oauth-authorization-server",
+      "source": "backend/server/maintenance-app.ts:22",
+      "python_module": "app.maintenance",
+      "handler": "install_maintenance_routes",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "maintenance",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/maintenance/consent",
+      "source": "backend/server/maintenance-app.ts:27",
+      "python_module": "app.maintenance",
+      "handler": "install_maintenance_routes",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "maintenance",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/maintenance/consent",
+      "source": "backend/server/maintenance-app.ts:28",
+      "python_module": "app.maintenance",
+      "handler": "install_maintenance_routes",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "maintenance",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/maintenance/releases/:id/approve",
+      "source": "backend/server/maintenance-app.ts:29",
+      "python_module": "app.maintenance",
+      "handler": "install_maintenance_routes",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "maintenance",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/maintenance/releases/:id/approve",
+      "source": "backend/server/maintenance-app.ts:30",
+      "python_module": "app.maintenance",
+      "handler": "install_maintenance_routes",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "maintenance",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/templates/mine",
+      "source": "backend/server/personal-templates.ts:60",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/templates/upload",
+      "source": "backend/server/personal-templates.ts:64",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/templates/media/:key",
+      "source": "backend/server/personal-templates.ts:86",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/templates/bulk-delete",
+      "source": "backend/server/personal-templates.ts:104",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "templates",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/studio",
+      "source": "backend/server/studio-routes.ts:54",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/studio/:id/media/:key",
+      "source": "backend/server/studio-routes.ts:55",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/studio/:id/download",
+      "source": "backend/server/studio-routes.ts:56",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/bulk-delete",
+      "source": "backend/server/studio-routes.ts:72",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/delete",
+      "source": "backend/server/studio-routes.ts:74",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/studio/:id",
+      "source": "backend/server/studio-routes.ts:76",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/import-synced-cover",
+      "source": "backend/server/studio-routes.ts:77",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/generate",
+      "source": "backend/server/studio-routes.ts:130",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/images",
+      "source": "backend/server/studio-routes.ts:137",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/resume",
+      "source": "backend/server/studio-routes.ts:137",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/edit",
+      "source": "backend/server/studio-routes.ts:146",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/review",
+      "source": "backend/server/studio-routes.ts:153",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/claim",
+      "source": "backend/server/studio-routes.ts:170",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/cancel",
+      "source": "backend/server/studio-routes.ts:182",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/execute",
+      "source": "backend/server/studio-routes.ts:183",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/dispatch",
+      "source": "backend/server/studio-routes.ts:187",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/progress",
+      "source": "backend/server/studio-routes.ts:229",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/receipt",
+      "source": "backend/server/studio-routes.ts:236",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/link",
+      "source": "backend/server/studio-routes.ts:254",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/studio/:id/retry",
+      "source": "backend/server/studio-routes.ts:261",
+      "python_module": "app.api",
+      "handler": "studio_dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "studio",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/status",
+      "source": "backend/server/tenant-auth.ts:33",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "source": "backend/server/tenant-auth.ts:34",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/profile",
+      "source": "backend/server/tenant-auth.ts:35",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/profile",
+      "source": "backend/server/tenant-auth.ts:36",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/setup",
+      "source": "backend/server/tenant-auth.ts:37",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/register",
+      "source": "backend/server/tenant-auth.ts:37",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "source": "backend/server/tenant-auth.ts:37",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "source": "backend/server/tenant-auth.ts:65",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/team",
+      "source": "backend/server/tenant-auth.ts:67",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/team",
+      "source": "backend/server/tenant-auth.ts:68",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/team/:username",
+      "source": "backend/server/tenant-auth.ts:72",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/audit",
+      "source": "backend/server/tenant-auth.ts:78",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/tenants",
+      "source": "backend/server/tenant-auth.ts:80",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/tenants/:id",
+      "source": "backend/server/tenant-auth.ts:81",
+      "python_module": "app.api",
+      "handler": "dispatch",
+      "registration_verified": true,
+      "implementation": "implemented",
+      "domain": "auth",
+      "individual_live_workflow_verified": false
+    }
+  ],
+  "additional_endpoints": [
+    {
+      "method": "DELETE",
+      "path": "/mcp",
+      "registration_verified": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/mcp/workbuddy",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/.well-known/oauth-protected-resource/maintenance/mcp",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/connector/relay/:relay:path",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/workbuddy",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/workbuddy/:legacy:path",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/authorize",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/mcp",
+      "registration_verified": true
+    },
+    {
+      "method": "GET",
+      "path": "/mcp/workbuddy",
+      "registration_verified": true
+    },
+    {
+      "method": "HEAD",
+      "path": "/mcp",
+      "registration_verified": true
+    },
+    {
+      "method": "HEAD",
+      "path": "/mcp/workbuddy",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/templates/:id/publish",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/admin/templates/:id/unpublish",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/connector/relay/:relay:path",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/workbuddy",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/workbuddy/:legacy:path",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/mcp",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/mcp/workbuddy",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/revoke",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/token",
+      "registration_verified": true
+    },
+    {
+      "method": "WS",
+      "path": "/api/connector/channel",
+      "registration_verified": true
+    },
+    {
+      "method": "POST",
+      "path": "/maintenance/mcp",
+      "registration_verified": "conditional_on_private_maintenance_config",
+      "implementation": "native_sdk_scope_filtered"
+    }
+  ],
+  "validation": {
+    "api_tests": "31 API/maintenance tests passing; synthetic data/transports only",
+    "registration_only_is_not_live_acceptance": true,
+    "synthetic_only": true,
+    "live_postgresql": false,
+    "real_platform_accounts": false,
+    "production_deployment": false,
+    "full_python_suite": "124 passed (python -m pytest backend/tests -q), synthetic only; later root integration records take precedence"
+  },
+  "publication_constraint": "Legacy single-container prepare/deploy/rollback blocked; requires reviewed dual-container process and human approval"
+}

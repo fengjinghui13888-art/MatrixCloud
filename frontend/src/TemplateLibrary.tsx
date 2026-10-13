@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Upload, Trash2, Check, X, Search, RefreshCw } from 'lucide-react';
-import { templateCategories, type LibraryTemplate } from '../../shared/templates';
+import { templateCategories, type LibraryTemplate } from '../contracts/templates';
 import './styles/template-library.css';
 
 type Props = {request:(path:string,body?:unknown)=>Promise<any>;onUse:(items:LibraryTemplate[])=>void};

@@ -1,0 +1,16 @@
+[Unit]
+Description=Matrix Python maintenance MCP
+After=network.target
+[Service]
+Type=simple
+User=matrix-maintenance
+WorkingDirectory=/opt/matrix-maintenance/runtime
+Environment=MAINTENANCE_CONFIG=/etc/matrix-maintenance/config.json
+ExecStart=/opt/matrix-maintenance/venv/bin/python run.py maintenance
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+UMask=0077
+[Install]
+WantedBy=multi-user.target

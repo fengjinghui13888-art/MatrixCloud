@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+data/
+outputs/
+node_modules/
+*.log
+*.sqlite*
+.env*
+!.env.example
+access-token
+connector-token
+model-encryption-key
+integration/yingdao.local.json

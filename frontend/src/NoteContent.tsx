@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Note, Comment } from '../../shared/domain';
+import type { Note, Comment } from '../contracts/domain';
 
 const archivedUrl=(note:Note,id:string)=>`/api/accounts/${encodeURIComponent(note.accountId)}/media/${encodeURIComponent(note.id)}/${encodeURIComponent(id)}`;
 const safeMedia=(value:string|null|undefined)=>!!value&&(/^https?:\/\//i.test(value)||/^\/api\/accounts\/[^/]+\/media\/[^/]+\/[a-f0-9]+$/.test(value));

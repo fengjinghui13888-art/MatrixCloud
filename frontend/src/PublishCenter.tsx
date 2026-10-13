@@ -1,8 +1,8 @@
-import type { Account } from '../../shared/domain';
+import type { Account } from '../contracts/domain';
 import { OneClickPublish } from './OneClickPublish';
 import { TemplateLibrary } from './TemplateLibrary';
 import { useState } from 'react';
-import type { LibraryTemplate } from '../../shared/templates';
+import type { LibraryTemplate } from '../contracts/templates';
 
 export function PublishCenter({accounts,request,visible=true,onManageAccounts}:{accounts:Account[];request:(path:string,body?:unknown)=>Promise<any>;visible?:boolean;onManageAccounts?:()=>void}){
   const [tab,setTab]=useState<'create'|'library'>('create');

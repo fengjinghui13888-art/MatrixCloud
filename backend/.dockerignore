@@ -1,0 +1,13 @@
+.venv
+node_modules
+__pycache__
+.pytest_cache
+data
+outputs
+*.log
+*.sqlite*
+.env*
+integration/yingdao.local.json
+server
+package.json
+tsconfig.json

@@ -1,4 +1,4 @@
-import type { Account, Note, Comment, Lead } from '../../shared/domain';
+import type { Account, Note, Comment, Lead } from '../contracts/domain';
 
 type Props={accounts:Account[];notes:Note[];comments:Comment[];leads:Lead[];onAccount:(id:string)=>void;onNavigate:(page:string)=>void};
 export function Overview({accounts,notes,comments,leads,onAccount,onNavigate}:Props){

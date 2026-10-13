@@ -1,6 +1,6 @@
 import { render,screen,fireEvent } from '@testing-library/react';
 import { NoteDetail } from '../NoteContent';
-import type { Note } from '../../../shared/domain';
+import type { Note } from '../../contracts/domain';
 
 const base:Note={id:'n1',accountId:'a1',title:'Test note',summary:'Complete text',cover:null,url:null,publishedAt:'2026-09-07',metrics:{likes:null,collects:null,comments:null,shares:null}};
 test('video detail uses playable media instead of cover and scopes its comments',()=>{
