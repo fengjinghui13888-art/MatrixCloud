@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import time
+import httpx
 from contextlib import asynccontextmanager
 from datetime import datetime,timezone
 from pathlib import Path
@@ -179,14 +180,23 @@ class BrowserRuntime:
         if not valid_profile(profile): raise ValueError('只支持本机独立账号')
         session=self.load(profile[6:])
         if not session: raise ValueError('请先打开此账号专属浏览器并扫码登录')
-        version=await browser_version(session); engine=await self.engine()
+        if guard:ExecutionGuard(self.root,profile).check()
+        reopened=False
+        try:version=await browser_version(session)
+        except httpx.ConnectError:
+            session=await self.ensure(profile[6:])
+            version=await browser_version(session)
+            reopened=True
+        engine=await self.engine()
         browser=await engine.chromium.connect_over_cdp(version['webSocketDebuggerUrl'],timeout=30000)
         if not browser.contexts: await browser.close(); raise ValueError('专属浏览器没有可用上下文')
         context=browser.contexts[0]; context.set_default_timeout(8000); context.set_default_navigation_timeout(15000)
         page=next((p for p in context.pages if p.url.startswith(CREATOR+'/')),None)
-        if page is None and open_creator:
+        if page is None and (open_creator or reopened):
             ExecutionGuard(self.root,profile).check(); page=await context.new_page(); await page.goto(CREATOR+'/new/home',wait_until='domcontentloaded')
         if page is None: await browser.close(); raise ValueError('专属浏览器没有创作平台页面')
+        if reopened and not any(re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url) for p in context.pages):
+            web=await context.new_page(); await web.goto(WEB+'/explore',wait_until='domcontentloaded')
         return BrowserConnection(browser,context,page,ExecutionGuard(self.root,profile) if guard else None,self.pace_factory())
     def executable(self):
         for path in chrome_candidates():

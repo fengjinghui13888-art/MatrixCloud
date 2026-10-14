@@ -102,5 +102,5 @@ test('saved task uses one action to synchronize every connected account',async()
  expect(screen.getByText('同步范围：全部已连接账号（2）')).toBeInTheDocument();
  expect(action).toBeEnabled();
  fireEvent.click(action);fireEvent.click(action);
- await waitFor(()=>expect(requests).toEqual([{path:'studio/saved/dispatch',body:{accountIds:['a','b']}}]));
+ await waitFor(()=>expect(requests).toEqual([{path:'studio/saved/dispatch',body:{accountIds:['a','b'],revision:8}}]));
 });

@@ -1044,16 +1044,22 @@ async def studio_dispatch(request, runtime, scope, execution, body):
         next_task = studio.update(task['id'], positive_revision(body), dict(status='approved', executionStartedAt=None, executionRunId=None, message='正在重新检查已有草稿并保存到目标账号'))
         return JSONResponse(await runtime.start_studio(next_task, request))
     if action == 'dispatch':
-        strict(body, ('accountIds',), ('accountIds',))
+        strict(body, ('accountIds','revision'), ('accountIds',))
+        if 'revision' in body and positive_revision(body)!=task['revision']:
+            raise ConnectorError(409,'内容已更新，请重新核对当前版本后再保存草稿')
         targets = id_list(body['accountIds'], '账号 ID', 50)
-        if task['status'] not in ('approved', 'filled') or len(task['images']) != task['imageCount']:
+        if task['status'] not in ('review','approved', 'filled') or len(task['images']) != task['imageCount']:
             raise ConnectorError(409, '请先完成完整内容审核')
+        if task['status']=='review' and 'revision' not in body:
+            raise ConnectorError(409,'请刷新页面并核对当前图文后再保存草稿')
         accounts = [execution.account(identifier) for identifier in targets]
         if any(not account for account in accounts) or len({a['profile'] for a in accounts}) != len(accounts):
             raise ConnectorError(409, '批量目标中存在无效或共用浏览器会话的账号')
         device = await runtime.execution_device(request)
         if any(runtime.channel.binding(scope.workspace, a['profile']) != device for a in accounts):
             raise ConnectorError(409, '目标账号尚未在所选电脑登录')
+        if task['status']=='review':
+            task=studio.update(task['id'],task['revision'],dict(status='approved',approvedRevision=task['revision'],executionStartedAt=None,message='已核对图文，正在打开执行电脑的小红书并保存草稿'))
         tasks = []
         for account in accounts:
             if account['id'] == task['accountId']:
