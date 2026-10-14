@@ -28,7 +28,7 @@ class ModelRequestError(ServiceError):
 def validate_settings(raw):
     keys=('label','protocol','baseUrl','model','imageModel','imageBaseUrl','imageApiKey','apiKey')
     value=object_input(raw,keys,('label','protocol','baseUrl','model','apiKey'))
-    for key,lo,hi in [('label',1,80),('model',1,200),('imageModel',0,200),('apiKey',1,4096),('imageApiKey',1,4096)]:
+    for key,lo,hi in [('label',1,80),('model',0,200),('imageModel',0,200),('apiKey',1,4096),('imageApiKey',1,4096)]:
         if key in value:value[key]=text(value[key],key,lo,hi)
     if value['protocol'] not in ('chat-completions','anthropic-messages'):raise ServiceError('模型协议不合法')
     for key in ('baseUrl','imageBaseUrl'):
@@ -174,6 +174,7 @@ async def download_model_image(url):
 
 async def call_model(input,prompt,transport=None,max_tokens=512):
     settings=validate_settings(input);prompt=text(prompt,'prompt',1,8000);base=settings['baseUrl'].rstrip('/')
+    if not settings['model']:raise ServiceError('配置已保存，但尚未发现可用文案模型。请先获取模型列表或确认服务商的模型名称。',409)
     anthropic=settings['protocol']=='anthropic-messages'
     url=(base if base.endswith('/messages') else base+('/messages' if base.endswith('/v1') else '/v1/messages')) if anthropic else (base if base.endswith('/chat/completions') else base+'/chat/completions')
     headers={'x-api-key':settings['apiKey'],'anthropic-version':'2023-06-01'} if anthropic else {'Authorization':'Bearer '+settings['apiKey']}

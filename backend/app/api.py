@@ -809,7 +809,7 @@ async def dispatch(request, runtime, body):
                 if body['kind'] not in ('text', 'image') or body['protocol'] not in ('chat-completions', 'anthropic-messages'):
                     raise ValueError('无效模型类型或协议')
                 saved = models.read() or {}
-                normalize = lambda url: re.sub(r'/(chat/completions|images/generations|messages)$', '', url.rstrip('/'))
+                normalize = lambda url: re.sub(r'/(chat/completions|images/generations|images/edits|messages|responses|models)$', '', url.rstrip('/'))
                 base = normalize(body['baseUrl'])
                 saved_base = normalize(saved.get('imageBaseUrl', saved.get('baseUrl', '')) if body['kind'] == 'image' else saved.get('baseUrl', ''))
                 key = body.get('apiKey') or (saved.get('imageApiKey') or saved.get('apiKey') if body['kind'] == 'image' else saved.get('apiKey')) if base == saved_base or body.get('apiKey') else None
@@ -819,10 +819,11 @@ async def dispatch(request, runtime, body):
                 headers = {'x-api-key': key, 'anthropic-version': '2023-06-01'} if anthropic else {'Authorization': 'Bearer ' + key}
                 from .models import public_https_json
                 result = await (runtime.model_transport or public_https_json)(base + ('/v1/models' if anthropic and not base.endswith('/v1') else '/models'), headers, None)
-                if not isinstance(result.get('data'), list) or len(result['data']) > 5000 or any(not isinstance(item.get('id'), str) or not 1 <= len(item['id']) <= 200 for item in result['data']):
+                if not isinstance(result,dict) or not isinstance(result.get('data'), list) or len(result['data']) > 5000 or any(not isinstance(item,dict) or not isinstance(item.get('id'), str) or not 1 <= len(item['id']) <= 200 for item in result['data']):
                     raise ValueError('模型列表无效')
                 image_pattern = r'gpt-image|dall-e|cogview|agnes-image|seedream|flux|stable-diffusion|sdxl|kolors|wanx'
                 values = sorted({item['id'] for item in result['data'] if bool(re.search(image_pattern, item['id'], re.I)) == (body['kind'] == 'image')})
+                if not values:values=sorted({item['id'] for item in result['data']})
                 return JSONResponse({'models': values})
             except (ValueError, TypeError, KeyError):
                 return message('无法获取模型列表。请检查 URL 和密钥；该服务没有返回列表时，请在自定义设置中填写模型名称。', 400)
