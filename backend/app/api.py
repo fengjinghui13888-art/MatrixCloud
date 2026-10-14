@@ -404,6 +404,7 @@ def create_app(settings=None, services=None):
     for path in ('/api/workbuddy', '/api/workbuddy/{legacy:path}'):
         app.add_api_route(path, endpoint, methods=['GET', 'POST'])
     app.add_api_route('/api/connector/relay/{relay:path}', endpoint, methods=['GET', 'POST'])
+    app.add_api_route('/api/leads/notifications',endpoint,methods=['GET'])
     release_directory=settings.connector_client_releases_dir or settings.backend_dir/'outputs'/'client-releases'
     def release_file(relative,media_type):
         path=(release_directory/relative).resolve()
@@ -682,6 +683,7 @@ async def dispatch(request, runtime, body):
         if grant and grant.get('taskId'):
             return JSONResponse({'accounts': [a for a in store.list_accounts() if a['id'] == grant['accountId']]})
         identity = request.state.identity
+        store.collect_leads()
         role = identity_value(identity, 'role')
         account_id = request.query_params.get('accountId')
         filtered = {'accountId': account_id} if account_id and account_id != 'all' else None
@@ -694,11 +696,13 @@ async def dispatch(request, runtime, body):
         comments = store.list_comments(filtered)
         if role == 'lead_viewer':
             account_ids, comment_ids = {l['accountId'] for l in leads}, {l['sourceCommentId'] for l in leads}
-            return JSONResponse(dict(role=role, accounts=[a | {'profile': ''} for a in accounts if a['id'] in account_ids], notes=[], messages=[], comments=[c for c in comments if c['id'] in comment_ids], leads=leads))
+            return JSONResponse(dict(role=role, accounts=[a | {'profile': ''} for a in accounts if a['id'] in account_ids], notes=[], messages=[m for m in store.list_messages(filtered) if any(l.get('sourceKind')=='direct' and l['accountId']==m['accountId'] and l['sourceCommentId']==m['id'] for l in leads)], comments=[c for c in comments if c['id'] in comment_ids], leads=leads))
         result = dict(accounts=accounts, notes=store.list_notes(filtered), comments=comments, messages=store.list_messages(filtered), leads=leads)
         if role:
             result['role'] = role
         return JSONResponse(result)
+    if path == '/api/leads/notifications':
+        return JSONResponse(store.lead_notifications())
     if path == '/api/accounts/bulk-delete' or re.fullmatch('/api/accounts/[^/]+/delete', path):
         identifiers = id_list(body.get('ids'), '账号 ID') if path.endswith('bulk-delete') else [params['id']]
         plans = []

@@ -31,7 +31,7 @@ export function EventSync({request,onDataChanged,accounts=[],readOnly=false}:Pro
  return <section className="grey-panel event-sync-panel" aria-label="事件自动同步">
   <div className="library-heading"><div><h2>发现变化后自动同步</h2><p className="media-caption">只在检测到新笔记、评论或私信变化时采集，不按固定时间抓取。</p></div><label><input type="checkbox" aria-label="发现变化后自动同步" checked={enabled} disabled={saving||readOnly||!state} onChange={()=>void toggle()}/> {saving?'正在保存…':enabled?'已开启':'未开启'}</label></div>
   {enabled&&<p className="media-caption">小红书专属浏览器窗口需保持登录；页面休眠或平台没有变化事件时不会主动刷新。</p>}
-  {state?.accounts?.length?<div className="event-sync-accounts">{state.accounts.filter(a=>a.accountId).map(account=><p key={account.accountId} role="status"><strong>{accounts.find(a=>a.id===account.accountId)?.name??'小红书账号'}</strong>：{account.message||'等待页面变化'} · 最近发现 {time(account.lastEventAt)} · 最近完成 {time(account.lastSyncedAt)}</p>)}</div>:<p className="media-caption">还没有绑定小红书账号。</p>}
+  {state?.accounts?.length?<div className="event-sync-accounts">{state.accounts.filter(a=>a.accountId).map(account=><p key={account.accountId} role="status"><strong>{accounts.find(a=>a.id===account.accountId)?.name??'小红书账号'}</strong>：{enabled&&account.message==='事件同步已关闭'?'等待浏览器变化':account.message||'等待页面变化'} · 最近发现 {time(account.lastEventAt)} · 最近完成 {time(account.lastSyncedAt)}</p>)}</div>:<p className="media-caption">还没有绑定小红书账号。</p>}
   {error&&<p role="alert" className="warning">{error}</p>}
  </section>;
 }

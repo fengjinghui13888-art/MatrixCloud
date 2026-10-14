@@ -85,6 +85,7 @@ psql -h /tmp -p 5433 -U "$(whoami)" -d postgres
 ```bash
 pg_restore --list transfer/matrix-local.dump > /tmp/matrix-dump-list.txt
 pg_restore -h /tmp -p 5433 -U "$(whoami)" -d matrix --role=matrix_owner --no-owner --no-acl --exit-on-error --single-transaction transfer/matrix-local.dump
+psql -h /tmp -p 5433 -U "$(whoami)" -d matrix -v ON_ERROR_STOP=1 -f sql/003-interaction-leads.sql
 psql -h /tmp -p 5433 -U "$(whoami)" -d matrix -v ON_ERROR_STOP=1 -f sql/mac-app-permissions.sql
 ```
 

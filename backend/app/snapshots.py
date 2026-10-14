@@ -107,6 +107,7 @@ class Comment(Record):
     createdAt: StrictStr
     status: Literal['pending']
     tags: list[StrictStr]
+    direction: Literal['incoming', 'outgoing'] | None = None
 
 
 class Message(Record):

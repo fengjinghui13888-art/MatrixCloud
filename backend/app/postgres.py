@@ -23,6 +23,7 @@ class Postgres:
             try:row=c.execute('SELECT version FROM schema_migration WHERE version=2').fetchone()
             except psycopg.errors.UndefinedTable as error:raise ServiceError('请先完成数据库迁移，再启动新版本',503) from error
             if not row:raise ServiceError('请先完成数据库迁移，再启动新版本',503)
+            if not c.execute('SELECT version FROM schema_migration WHERE version=3').fetchone():raise ServiceError('请先执行线索数据库升级 003-interaction-leads.sql，再启动新版本',503)
             required=('tenant','app_user','login_session','login_limit','xiaohongshu_account','note','asset','message','clue','follow_up','team_member','sync_run','model_config','generation','template','job','job_attempt','device','device_pairing','device_binding','device_selection','device_run','connector_limit','audit_log','legacy_migration')
             missing=[name for name in required if not c.execute('SELECT to_regclass(%s) AS relation',(name,)).fetchone()['relation']]
             if missing:raise ServiceError('数据库迁移不完整，缺少表：'+', '.join(missing),503)
@@ -48,8 +49,8 @@ class Postgres:
 
 _ACCOUNT='id,name,handle,avatar,profile,state,followers,last_synced_at AS "lastSyncedAt"'
 _NOTE='id,account_id AS "accountId",title,summary,cover,url,published_at AS "publishedAt",metrics,media_type AS "mediaType",images,video_url AS "videoUrl",has_video_url,has_media_assets'
-_COMMENT='id,account_id AS "accountId",note_id AS "noteId",author,avatar,body,created_at AS "createdAt",status,tags'
-_LEAD='id,account_id AS "accountId",source_note_id AS "sourceNoteId",source_comment_id AS "sourceCommentId",status,level,owner_id AS "ownerId",created_at AS "createdAt"'
+_COMMENT='id,account_id AS "accountId",note_id AS "noteId",author,avatar,body,created_at AS "createdAt",status,tags,direction,lead_dismissed AS "leadDismissed"'
+_LEAD='id,account_id AS "accountId",source_note_id AS "sourceNoteId",source_comment_id AS "sourceCommentId",source_kind AS "sourceKind",status,level,owner_id AS "ownerId",created_at AS "createdAt"'
 _FOLLOW='id,lead_id AS "leadId",body,author,created_at AS "createdAt"'
 
 
@@ -65,6 +66,10 @@ class PostgresStore(Store):
     enforce_snapshot_account = True
     require_lead_source = True
     preserve_note_fields = True
+    def lead_notifications(self):
+        rows=self.db.rows(self.tenant,'SELECT id FROM clue WHERE tenant_id=%s ORDER BY created_at DESC,id LIMIT 1000',(self.tenant,))
+        waiting=self.db.rows(self.tenant,"SELECT count(*) AS total FROM clue WHERE tenant_id=%s AND status='new'",(self.tenant,))[0]['total']
+        return dict(ids=[r['id'] for r in rows],waiting=waiting)
     def __init__(self,db,tenant):self.db,self.tenant=db,tenant
 
     def _load(self,c):
@@ -81,8 +86,8 @@ class PostgresStore(Store):
             if has_video:value['videoUrl']=note['videoUrl']
             if has_assets or owned:value['mediaAssets']=owned
             data['notes'].append(value)
-        data['comments']=rows('message',_COMMENT,'ORDER BY created_at DESC,id',"AND kind='comment'")
-        data['messages']=rows('message','id,account_id AS "accountId",conversation_id AS "conversationId",author,body,created_at AS "createdAt",direction','ORDER BY created_at,id',"AND kind='direct'")
+        data['comments']=[{k:v for k,v in row.items() if (k!='direction' or v is not None) and (k!='leadDismissed' or v)} for row in rows('message',_COMMENT,'ORDER BY created_at DESC,id',"AND kind='comment'")]
+        data['messages']=[{k:v for k,v in row.items() if k!='leadDismissed' or v} for row in rows('message','id,account_id AS "accountId",conversation_id AS "conversationId",author,body,created_at AS "createdAt",direction,lead_dismissed AS "leadDismissed"','ORDER BY created_at,id',"AND kind='direct'")]
         data['leads']=[compact(r) for r in rows('clue',_LEAD,'ORDER BY created_at DESC,id')]
         data['followUps']=rows('follow_up',_FOLLOW,'ORDER BY created_at,id')
         data['members']=rows('team_member','id,name,role,avatar')
@@ -128,12 +133,12 @@ class PostgresStore(Store):
                 c.execute('DELETE FROM asset WHERE tenant_id=%s AND account_id=%s AND note_id=%s',(tenant,r['accountId'],r['id']))
                 for ordinal,a in enumerate(r['mediaAssets']):c.execute('INSERT INTO asset(tenant_id,account_id,note_id,id,kind,position,source_url,path,bytes,sha256,ordinal) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(tenant,r['accountId'],r['id'],a['id'],a['kind'],a['index'],a['sourceUrl'],a['path'],a['bytes'],a['sha256'],ordinal))
         elif key=='comments':
-            c.execute("INSERT INTO message(tenant_id,id,account_id,kind,note_id,author,avatar,body,created_at,status,tags) VALUES(%s,%s,%s,'comment',%s,%s,%s,%s,%s,%s,%s::jsonb) ON CONFLICT(tenant_id,account_id,kind,id) DO UPDATE SET note_id=excluded.note_id,author=excluded.author,avatar=excluded.avatar,body=excluded.body,created_at=excluded.created_at,status=excluded.status,tags=excluded.tags",(tenant,r['id'],r['accountId'],r['noteId'],r['author'],r.get('avatar'),r['body'],r['createdAt'],r['status'],dumps(r['tags'])))
+            c.execute("INSERT INTO message(tenant_id,id,account_id,kind,note_id,author,avatar,body,created_at,status,tags,direction,lead_dismissed) VALUES(%s,%s,%s,'comment',%s,%s,%s,%s,%s,%s,%s::jsonb,%s,%s) ON CONFLICT(tenant_id,account_id,kind,id) DO UPDATE SET note_id=excluded.note_id,author=excluded.author,avatar=excluded.avatar,body=excluded.body,created_at=excluded.created_at,status=excluded.status,tags=excluded.tags,direction=excluded.direction,lead_dismissed=excluded.lead_dismissed",(tenant,r['id'],r['accountId'],r['noteId'],r['author'],r.get('avatar'),r['body'],r['createdAt'],r['status'],dumps(r['tags']),r.get('direction'),r.get('leadDismissed',False)))
         elif key=='messages':
-            c.execute("INSERT INTO message(tenant_id,id,account_id,kind,conversation_id,author,body,created_at,direction) VALUES(%s,%s,%s,'direct',%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,account_id,kind,id) DO UPDATE SET conversation_id=excluded.conversation_id,author=excluded.author,body=excluded.body,created_at=excluded.created_at,direction=excluded.direction",(tenant,r['id'],r['accountId'],r['conversationId'],r['author'],r['body'],r['createdAt'],r['direction']))
+            c.execute("INSERT INTO message(tenant_id,id,account_id,kind,conversation_id,author,body,created_at,direction,lead_dismissed) VALUES(%s,%s,%s,'direct',%s,%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,account_id,kind,id) DO UPDATE SET conversation_id=excluded.conversation_id,author=excluded.author,body=excluded.body,created_at=excluded.created_at,direction=excluded.direction,lead_dismissed=excluded.lead_dismissed",(tenant,r['id'],r['accountId'],r['conversationId'],r['author'],r['body'],r['createdAt'],r['direction'],r.get('leadDismissed',False)))
         elif key=='leads':
             if validate_owners and r.get('ownerId') and not c.execute('SELECT 1 FROM app_user WHERE tenant_id=%s AND username=%s AND enabled',(tenant,r['ownerId'])).fetchone():raise ServiceError('跟进人不属于当前客户')
-            c.execute('INSERT INTO clue(tenant_id,id,account_id,source_note_id,source_comment_id,status,level,owner_id,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,id) DO UPDATE SET status=excluded.status,level=excluded.level,owner_id=excluded.owner_id',(tenant,r['id'],r['accountId'],r['sourceNoteId'],r['sourceCommentId'],r['status'],r['level'],r.get('ownerId'),r['createdAt']))
+            c.execute('INSERT INTO clue(tenant_id,id,account_id,source_note_id,source_comment_id,source_kind,status,level,owner_id,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,id) DO UPDATE SET status=excluded.status,level=excluded.level,owner_id=excluded.owner_id',(tenant,r['id'],r['accountId'],r['sourceNoteId'],r['sourceCommentId'],r.get('sourceKind','comment'),r['status'],r['level'],r.get('ownerId'),r['createdAt']))
         elif key=='members':c.execute('INSERT INTO team_member(tenant_id,id,name,role,avatar) VALUES(%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,id) DO UPDATE SET name=excluded.name,role=excluded.role,avatar=excluded.avatar',(tenant,r['id'],r['name'],r['role'],r['avatar']))
         elif key=='followUps':c.execute('INSERT INTO follow_up(tenant_id,id,lead_id,body,author,created_at) VALUES(%s,%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,id) DO UPDATE SET body=excluded.body,author=excluded.author,created_at=excluded.created_at',(tenant,r['id'],r['leadId'],r['body'],r['author'],r['createdAt']))
         elif key=='syncRuns':c.execute('INSERT INTO sync_run(tenant_id,id,account_id,status,message,created_at,count) VALUES(%s,%s,%s,%s,%s,%s,%s) ON CONFLICT(tenant_id,id) DO NOTHING',(tenant,r['id'],r['accountId'],r['status'],r['message'],r['createdAt'],r.get('count')))

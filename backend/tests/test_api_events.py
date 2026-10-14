@@ -50,6 +50,7 @@ async def test_event_restart_reconciles_success_without_relaunch(tmp_path):
 @pytest.mark.asyncio
 async def test_disabled_event_ack_and_old_device_hints_never_move(tmp_path):
     queue, execution, jobs, calls, state = fixture(tmp_path)
+    await queue.set_enabled(False)
     incoming = dict(workspace='owner', deviceId='d', event=event(2))
     assert await queue.receive(incoming)
     await queue.set_enabled(True)

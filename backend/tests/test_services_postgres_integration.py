@@ -47,10 +47,11 @@ def database(control):
     suffix=uuid.uuid4().hex
     name='matrix_test_'+suffix
     role='matrix_test_role_'+suffix
-    connection.execute(sql.SQL('CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS').format(sql.Identifier(role)))
+    test_password=secrets.token_urlsafe(32)
+    connection.execute(sql.SQL('CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD {}').format(sql.Identifier(role),sql.Literal(test_password)))
     connection.execute(sql.SQL('CREATE DATABASE {} TEMPLATE template0 ENCODING UTF8').format(sql.Identifier(name)))
     admin=make_conninfo(**{**params,'dbname':name})
-    app=make_conninfo(**{**params,'dbname':name,'user':role})
+    app=make_conninfo(**{**params,'dbname':name,'user':role,'password':test_password})
     try:
         with psycopg.connect(admin,autocommit=True) as db:
             db.execute((BACKEND/'sql'/'postgres-schema.sql').read_text(encoding='utf-8'))
@@ -79,6 +80,23 @@ def account(id='a'):
 
 def snapshot(id='a',note_id='n',comment_id='c'):
     return dict(account=account(id),notes=[dict(id=note_id,accountId=id,title='合成笔记',summary='正文',cover='https://example.com/image.png',url=None,publishedAt='2026-10-13',metrics=dict(likes=1,collects=2,comments=3,shares=4),mediaType='image',images=['https://example.com/image.png'],videoUrl=None,mediaAssets=[dict(id='asset-z',kind='image',index=1,sourceUrl='https://example.com/b.png',path=id+'/x/y/'+note_id+'/b.png',bytes=20,sha256='b'*64),dict(id='asset-a',kind='cover',index=0,sourceUrl='https://example.com/a.png',path=id+'/x/y/'+note_id+'/a.png',bytes=10,sha256='a'*64)])],comments=[dict(id=comment_id,accountId=id,noteId=note_id,author='合成客户',avatar='',body='咨询',status='pending',tags=[],createdAt='2026-10-13')],messages=[dict(id='message',accountId=id,conversationId='thread',author='合成客户',body='私信',createdAt='2026-10-13',direction='incoming')])
+
+
+def test_real_comment_and_direct_id_collision_dismissal_and_sync_dedup(live):
+    srv,identity,_=live
+    scope=srv.for_workspace(identity['workspace'])
+    value=snapshot();value['messages'][0]['id']='c'
+    scope.store.add_account(value['account'])
+    scope.store.import_snapshot(value)
+    leads=scope.store.list_leads();assert len(leads)==2
+    direct=next(l for l in leads if l['sourceKind']=='direct')
+    scope.store.add_follow_up(direct['id'],'已联系','platform')
+    assert scope.store.lead_notifications()['waiting']==1
+    scope.store.delete_lead(direct['id'])
+    scope.store.import_snapshot(value)
+    assert scope.store.collect_leads()==0
+    assert len(scope.store.list_leads())==1
+    assert scope.store.get_comment('c')['status']=='lead_created'
 
 
 def template():
@@ -142,7 +160,7 @@ def test_real_store_members_media_order_cascade_and_late_snapshot(live):
     assert store.delete_lead(lead['id'])['followUps']==1 and store.get_comment('c')['status']=='pending'
     lead=store.create_lead_from_comment('c',dict(level='medium'));store.add_follow_up(lead['id'],'再跟进','platform')
     result=store.delete_account('a')
-    assert {k:result[k] for k in ('notes','comments','messages','leads','followUps')}==dict(notes=1,comments=1,messages=1,leads=1,followUps=1)
+    assert {k:result[k] for k in ('notes','comments','messages','leads','followUps')}==dict(notes=1,comments=1,messages=1,leads=2,followUps=1)
     with pytest.raises(ServiceError,match='账号已删除'):store.import_snapshot(value)
     assert srv.db.rows('owner','SELECT id FROM asset WHERE tenant_id=%s',('owner',))==[]
 
@@ -292,7 +310,7 @@ def test_real_offline_migration_preserves_auth_tasks_media_templates_and_cipher(
     assert migrated.auth.identity('zhixu_session='+login['token'])['workspace']=='owner'
     assert migrated.auth.identity('zhixu_session='+registered['token']) is None
     migrated_scope=migrated.for_workspace('owner')
-    assert migrated_scope.store.list_leads()[0]['ownerId']=='member-legacy'
+    assert next(l for l in migrated_scope.store.list_leads() if l['sourceCommentId']=='c')['ownerId']=='member-legacy'
     assert migrated_scope.store.list_notes()[0]['mediaAssets']==snapshot()['notes'][0]['mediaAssets']
     assert migrated_scope.models.read()==model()
     assert migrated.db.rows('owner','SELECT payload FROM job WHERE tenant_id=%s AND id=%s',('owner',sync_id))==[{'payload':sync_record}]

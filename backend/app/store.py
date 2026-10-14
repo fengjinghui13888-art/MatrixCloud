@@ -142,6 +142,10 @@ class Store:
     def list_comments(self, filter=None): return self._list('comments', filter)
     def list_messages(self, filter=None): return self._list('messages', filter)
     def list_leads(self, filter=None): return self._list('leads', filter)
+
+    def lead_notifications(self):
+        leads=self.list_leads()
+        return dict(ids=[l['id'] for l in sorted(leads,key=lambda l:l.get('createdAt',''),reverse=True)[:1000]],waiting=sum(l['status']=='new' for l in leads))
     def list_members(self): return self._list('members')
     def list_sync_runs(self): return self._list('syncRuns')
 
@@ -208,8 +212,11 @@ class Store:
         count = sum(f['leadId'] == lead['id'] for f in data['followUps'])
         data['followUps'] = [f for f in data['followUps'] if f['leadId'] != lead['id']]
         data['leads'].remove(lead)
+        key='messages' if lead.get('sourceKind')=='direct' else 'comments'
+        for row in data[key]:
+            if row['id']==lead['sourceCommentId'] and row['accountId']==lead['accountId']:row['leadDismissed']=True
         for comment in data['comments']:
-            if comment['id'] == lead['sourceCommentId'] and comment.get('status') == 'lead_created': comment['status'] = 'pending'
+            if lead.get('sourceKind','comment')=='comment' and comment['id'] == lead['sourceCommentId'] and comment.get('status') == 'lead_created': comment['status'] = 'pending'
         return count
 
     def delete_lead(self, id):
@@ -261,8 +268,32 @@ class Store:
                 n['metrics'] = {k: n.get('metrics', {}).get(k) if n.get('metrics', {}).get(k) is not None else old.get('metrics', {}).get(k) for k in ('likes','collects','comments','shares')}
                 return n
             for n in notes: upsert('notes', n, merge_note)
-            for c in comments: upsert('comments', c, lambda n, old: {**n, 'status':old['status'], 'tags':old['tags']})
-            for m in messages: upsert('messages', m)
+            for c in comments: upsert('comments', c, lambda n, old: {**n, 'status':old['status'], 'tags':old['tags'],**({'leadDismissed':True} if old.get('leadDismissed') else {})})
+            for m in messages: upsert('messages', m,lambda n,old:{**n,**({'leadDismissed':True} if old.get('leadDismissed') else {})})
+            self._collect_leads(data)
+
+    @staticmethod
+    def _collect_leads(data):
+        sources={(l['accountId'],l.get('sourceKind','comment'),l['sourceCommentId']) for l in data['leads']}
+        accounts={a['id']:a for a in data['accounts']}
+        count=0
+        for kind,key in [('comment','comments'),('direct','messages')]:
+            for row in data[key]:
+                account=accounts.get(row['accountId'],{})
+                if row.get('leadDismissed'):continue
+                if row.get('direction')=='outgoing':continue
+                if kind=='direct' and row.get('direction')!='incoming':continue
+                if kind=='comment' and not row.get('direction') and row.get('author') in (account.get('name'),account.get('handle')):continue
+                source=(row['accountId'],kind,row['id'])
+                if source not in sources:
+                    data['leads'].append(dict(id=identifier(),accountId=row['accountId'],sourceKind=kind,sourceNoteId=row.get('noteId') if kind=='comment' else None,sourceCommentId=row['id'],status='new',level='medium',createdAt=now()))
+                    sources.add(source);count+=1
+                if kind=='comment':row['status']='lead_created'
+        return count
+
+    def collect_leads(self):
+        """Backfill existing synchronized interactions in one tenant transaction."""
+        with self.state(True) as data:return self._collect_leads(data)
 
     def upsert_notes(self, notes):
         with self.state(True) as data:
@@ -292,7 +323,8 @@ class Store:
     def create_lead_from_comment(self, comment_id, input):
         with self.state(True) as data:
             comment = self.require(data, 'comments', comment_id, 'Comment not found')
-            lead = next((l for l in data['leads'] if l['sourceCommentId'] == comment_id), None)
+            comment.pop('leadDismissed',None)
+            lead = next((l for l in data['leads'] if l['accountId']==comment['accountId'] and l.get('sourceKind','comment')=='comment' and l['sourceCommentId'] == comment_id), None)
             if lead is None:
                 lead = dict(id=identifier(), accountId=comment['accountId'], sourceNoteId=comment['noteId'], sourceCommentId=comment_id, status='new', createdAt=now())
                 data['leads'].append(lead)
@@ -309,7 +341,8 @@ class Store:
 
     def add_follow_up(self, lead_id, body, author):
         with self.state(True) as data:
-            self.require(data,'leads',lead_id,'Lead not found')
+            lead=self.require(data,'leads',lead_id,'Lead not found')
+            if lead['status']=='new':lead['status']='following'
             item=dict(id=identifier(),leadId=lead_id,body=body,author=author,createdAt=now())
             data['followUps'].append(item); return copy.deepcopy(item)
 

@@ -110,6 +110,7 @@ def migrate(source, url, *, initialize=False, app_role='matrix_app'):
                 root = source if tenant == 'owner' else source / 'workspaces' / tenant
                 saved = read_rows(root / 'operations.sqlite', 'operations_state')
                 state = json.loads(saved[0]['payload']) if saved else json.loads(json.dumps(EMPTY))
+                for lead in state['leads']:lead.setdefault('sourceKind','comment')
                 state.setdefault('messages', [])
                 if state.get('templates'):
                     raise ValueError('旧业务模板未关联模板库，需核对后迁移')
@@ -134,8 +135,8 @@ def migrate(source, url, *, initialize=False, app_role='matrix_app'):
                 without_leads = {**state, 'leads': [], 'followUps': []}
                 target._persist(connection, before, without_leads)
                 for lead in state['leads']:
-                    connection.execute('INSERT INTO clue(tenant_id,id,account_id,source_note_id,source_comment_id,status,level,owner_id,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                                       (tenant, lead['id'], lead['accountId'], lead['sourceNoteId'], lead['sourceCommentId'], lead['status'], lead['level'], lead.get('ownerId'), lead['createdAt']))
+                    connection.execute('INSERT INTO clue(tenant_id,id,account_id,source_note_id,source_comment_id,source_kind,status,level,owner_id,created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+                                       (tenant, lead['id'], lead['accountId'], lead['sourceNoteId'], lead['sourceCommentId'], lead.get('sourceKind','comment'), lead['status'], lead['level'], lead.get('ownerId'), lead['createdAt']))
                 for follow in state['followUps']:
                     connection.execute('INSERT INTO follow_up VALUES(%s,%s,%s,%s,%s,%s)', (tenant, follow['id'], follow['leadId'], follow['body'], follow['author'], follow['createdAt']))
                 actual = target._load(connection)

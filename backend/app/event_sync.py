@@ -12,7 +12,7 @@ class EventSync:
         self.scope, self.channel = execution.scope, execution.channel
         self.file = self.scope.root / 'event-sync.json'
         self.lock = asyncio.Lock()
-        self.state = json.loads(self.file.read_text(encoding='utf-8')) if self.file.exists() else dict(enabled=False, accounts={})
+        self.state = json.loads(self.file.read_text(encoding='utf-8')) if self.file.exists() else dict(enabled=True, accounts={})
         if type(self.state.get('enabled')) is not bool or not isinstance(self.state.get('accounts'), dict):
             raise ValueError('事件队列损坏，请先核对记录')
         for record in self.state['accounts'].values():
@@ -49,6 +49,8 @@ class EventSync:
                         row['pending'] = row['inflight']['events'] + row['pending']
                         row.pop('inflight', None)
                         row.update(status='pending', recoveryPending=False)
+                elif row['status']=='idle' and not row.get('inflight'):
+                    row['message']='等待浏览器变化，收到新互动后自动收录'
             self.save()
         if enabled:
             await self.drain()

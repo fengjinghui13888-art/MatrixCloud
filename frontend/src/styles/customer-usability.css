@@ -1,0 +1,39 @@
+/* Customer-facing controls use the same neutral palette throughout. */
+.customer-shell .publish-tabs button{background:#fff;color:#4f5660;border:1px solid #dce0e5;box-shadow:none}
+.customer-shell .publish-tabs button[aria-selected=true]{background:#17191c;color:#fff;border-color:#17191c}
+.customer-shell .studio-shell .studio-brief,.customer-shell .studio-shell>section:first-child{background:#fff;border:1px solid #dce0e5;border-radius:20px;padding:24px;margin:0}
+.customer-shell .studio-shell input[type=range]{accent-color:#252a30;background:transparent;border:0;padding:0;height:28px;cursor:pointer}
+.customer-shell .studio-workspace{align-items:stretch}
+.customer-shell .studio-shell .studio-task-list{position:static;display:flex;flex-direction:column;height:560px;max-height:560px;padding:24px;overflow:hidden}
+.customer-shell .studio-history-items{flex:1;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;align-content:start;grid-template-columns:minmax(0,1fr);margin-top:16px}
+.customer-shell .studio-shell .studio-editor{height:560px;min-height:560px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.customer-shell .studio-task-row.active{background:#f0f1f3;border-color:#8a929c}
+.customer-shell .creation-badge{background:#eef0f3;color:#414955}
+.customer-shell form.model-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.customer-shell form.model-settings>details,.customer-shell form.model-settings>h2,.customer-shell form.model-settings>p,.customer-shell form.model-settings>button{grid-column:1/-1;margin:0}
+.customer-shell .model-service-card{min-width:0;border:1px solid #dfe3e8;background:#fff;border-radius:16px;padding:20px}
+.customer-shell .model-service-card .active-model-banner{display:flex;flex-direction:column;gap:5px;padding:14px;background:#f3f4f6;border-radius:12px;color:#292e35;margin:0 0 16px}
+.customer-shell .model-service-card .active-model-banner small{color:#67707b}
+.customer-shell .model-service-card .active-model-banner{text-align:left;align-items:flex-start}
+.customer-shell .model-service-card .provider-picker>label{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.customer-shell .model-service-card .model-fields{display:flex;flex-direction:column;gap:16px}
+.customer-shell .model-service-card .model-fields>label{display:grid;gap:8px;width:100%}
+.customer-shell .model-service-card .provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.customer-shell .model-service-card .provider-grid button{min-height:44px;min-width:0;text-align:left;white-space:normal;background:#fafbfc;border:1px solid #dce1e7;color:#353c45}
+.customer-shell .model-service-card .provider-grid button.selected{background:#eceff2;border-color:#252a30;color:#17191c}
+.customer-shell .model-advanced{width:100%;margin:12px 0}
+.customer-shell .model-advanced summary{color:#67717d;font-size:13px;cursor:pointer;min-height:30px}
+.customer-shell .model-advanced label{display:grid;gap:8px;margin-top:10px}
+.customer-shell .model-settings input,.customer-shell .model-settings select{width:100%;min-width:0}
+.customer-shell .model-settings input:focus-visible,.customer-shell .model-settings select:focus-visible{outline:2px solid #464d56;outline-offset:2px}
+.customer-shell .event-sync{padding:18px 20px!important}.customer-shell .event-sync h2{font-size:17px;margin:0}.customer-shell .event-sync .library-heading{align-items:center;margin-bottom:6px}.customer-shell .event-sync .media-caption{margin:5px 0;font-size:13px}.customer-shell .event-sync-accounts p{font-size:12px;margin:5px 0}
+.customer-shell .lead-source-body{max-height:100px;overflow:auto}
+.customer-shell .service-help a{color:#3b4655;font-size:13px;text-decoration:underline}
+.lead-toast{position:fixed;right:28px;bottom:24px;width:min(380px,calc(100vw - 32px));z-index:90;background:#fff;border:1px solid #cdd3da;border-radius:18px;padding:22px;box-shadow:0 12px 40px #17212e20;line-height:1.6}
+.lead-toast strong{font-size:18px;color:#20252b}.lead-toast p{color:#596472}.lead-toast>div{display:flex;gap:10px}
+.customer-shell .lead-inbox{display:block;margin:0 0 16px;border:1px solid #d8dee5;border-radius:12px;background:#fff;color:#252b33;padding:12px 16px}
+.customer-shell .lead-card h3{margin:12px 0 6px}.customer-shell .lead-card .lead-source-body{padding:14px;background:#f3f5f7;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.customer-shell .lead-card small{display:block;color:#697480;margin-bottom:14px}.customer-shell .lead-card>label:has(input:not([type=checkbox])){display:grid;gap:8px;margin:16px 0}
+@media(max-width:1000px){.customer-shell form.model-settings{grid-template-columns:minmax(0,1fr)}}
+@container(max-width:1050px){.customer-shell .studio-shell .studio-task-list{height:320px;max-height:320px}.customer-shell .studio-shell .studio-editor{height:auto;min-height:0;overflow:visible}}
+@media(max-width:600px){.customer-shell .model-service-card{padding:16px}.lead-toast{right:16px;bottom:16px}.customer-shell .studio-shell .studio-brief{padding:20px}}

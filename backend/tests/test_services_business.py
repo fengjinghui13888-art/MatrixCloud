@@ -79,7 +79,7 @@ def test_account_delete_cascades_without_deleting_unrelated_scope(srv):
     lead=store.create_lead_from_comment('c',dict(level='high'));store.add_follow_up(lead['id'],'回访','业务员')
     scope=srv.for_workspace('22222222-2222-4222-8222-222222222222');scope.store.import_snapshot(snapshot())
     result=store.delete_account('a')
-    assert {k:result[k] for k in ('notes','comments','messages','leads','followUps')}==dict(notes=1,comments=1,messages=1,leads=1,followUps=1)
+    assert {k:result[k] for k in ('notes','comments','messages','leads','followUps')}==dict(notes=1,comments=1,messages=1,leads=2,followUps=1)
     assert scope.store.list_accounts()[0]['id']=='a'
     assert store.list_accounts()==[]
 
