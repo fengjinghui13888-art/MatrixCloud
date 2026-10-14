@@ -20,6 +20,7 @@ class JobManager:
         self.login_owner=None; self.login_released=asyncio.Event(); self.login_released.set()
     def busy(self): return bool(self.active or self.pending or self.login_owner)
     def reserve_login(self,id):
+        if self.closed:raise ValueError('连接器正在停止或切换版本，请稍后重试')
         if self.busy(): raise ValueError('此电脑正在执行其他浏览器任务，请先完成或停止后再打开登录')
         self.login_owner=id; self.login_released.clear()
     def release_login(self,id):

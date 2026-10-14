@@ -51,7 +51,7 @@ class ConnectorRuntime:
         self.browser=BrowserRuntime(self.root); self.jobs=JobManager(self.root,sync_executor=SyncExecutor(self.root,self.browser),studio_executor=DraftExecutor(self.root,self.browser))
         self.cleanup=ConnectorCleanup(self.root,self.jobs); self.channel=None; self.watcher=None; self.cloud_tasks=[]; self.cloud_lock=asyncio.Lock()
         self.reconnect_lock=asyncio.Lock(); self.account_locks={}; self.login_tasks={}; self.login_timers={}; self.needs_pairing=False
-        self.onboarding=None
+        self.onboarding=None; self.shutting_down=False; self.release_revision=0; self.request_shutdown=None
     async def start(self):
         persisted=load_cloud_device(self.root); resolved=resolve_cloud_target(persisted,self.cloud_url)
         if resolved['requiresPairing']:self.needs_pairing=True
@@ -106,12 +106,24 @@ def create_connector_app(root:Path,cloud_url:str='',port:int=47821)->FastAPI:
         if not public:
             candidate=request.headers.get('authorization','').removeprefix('Bearer ')
             if not hmac.compare_digest(candidate.encode(),runtime.token.encode()):return JSONResponse({'message':'本机连接器未授权'},401)
+        if runtime.shutting_down and request.url.path not in ('/health','/client-state'):
+            return JSONResponse({'message':'连接器正在切换版本，请稍后重试'},503)
         response=await call_next(request); response.headers['Cache-Control']='no-store'; return response
     @app.exception_handler(ValueError)
     async def invalid(request,exc):return JSONResponse({'message':str(exc)},400)
     @app.get('/health')
     @app.get('/verify')
     async def status():return health()
+    @app.get('/client-state')
+    async def client_state():
+        return dict(revision=runtime.release_revision,busy=runtime.jobs.busy() or bool(runtime.login_tasks) or any(lock.locked() for lock in runtime.account_locks.values()),stopping=runtime.shutting_down)
+    @app.post('/client-stop')
+    async def client_stop():
+        if runtime.request_shutdown is None:return JSONResponse({'message':'此连接器未由客户端管理'},409)
+        if runtime.jobs.busy() or runtime.login_tasks or any(lock.locked() for lock in runtime.account_locks.values()):
+            return JSONResponse({'message':'浏览器任务尚未结束，暂不切换版本'},409)
+        runtime.shutting_down=True;runtime.jobs.closed=True;runtime.request_shutdown()
+        return dict(ok=True)
     @app.get('/')
     async def landing():
         origin=runtime.cloud_url or (load_cloud_device(runtime.root) or {}).get('cloudUrl','')

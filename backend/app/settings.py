@@ -54,6 +54,7 @@ class Settings:
     trust_loopback_proxy: bool = False
     require_auth: bool = True
     connector_packages_dir: Path | None = None
+    connector_client_releases_dir: Path | None = None
     deployment_hold_file: Path | None = None
     maintenance_config: Path | None = None
     tls_cert: Path | None = None
@@ -108,6 +109,7 @@ class Settings:
             trust_loopback_proxy=_bool(os.getenv("TRUST_LOOPBACK_PROXY")),
             require_auth=_bool(os.getenv("MCP_REQUIRE_AUTH"), True),
             connector_packages_dir=optional("CONNECTOR_PACKAGES_DIR"),
+            connector_client_releases_dir=optional("CONNECTOR_CLIENT_RELEASES_DIR"),
             deployment_hold_file=optional("DEPLOYMENT_HOLD_FILE"),
             maintenance_config=optional("MAINTENANCE_CONFIG"),
             tls_cert=optional("TLS_CERT"), tls_key=optional("TLS_KEY"),

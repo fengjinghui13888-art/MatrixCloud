@@ -89,7 +89,11 @@ class CloudChannel:
         self.active[id]=asyncio.current_task()
         try:
             async with asyncio.timeout(120 if '/media/' in path else 55):
-                args=dict(headers={'Authorization':'Bearer '+self.token,'Content-Type':'application/json'},follow_redirects=False)
+                # Browser startup/QR discovery takes longer than HTTPX's 5 s
+                # default. Keep transport waits within the existing RPC deadline.
+                deadline=120 if '/media/' in path else 55
+                args=dict(headers={'Authorization':'Bearer '+self.token,'Content-Type':'application/json'},follow_redirects=False,
+                          timeout=httpx.Timeout(deadline,connect=5))
                 if 'body' in message: args['json']=message['body']
                 async with self.client.stream(method,f'http://127.0.0.1:{self.port}'+path,**args) as response:
                     content_type='application/octet-stream' if 'application/octet-stream' in response.headers.get('content-type','') else 'application/json'

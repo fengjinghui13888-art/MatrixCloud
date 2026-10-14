@@ -2,6 +2,13 @@ import {act,fireEvent,render,screen,waitFor} from '@testing-library/react';
 import {ConnectorPairingPanel} from '../ConnectorPairingPanel';
 
 const device={id:'mac',name:'我的 Mac',platform:'darwin',version:'4.0.0',online:true,executionReady:true,revoked:false};
+
+test('offers a first-install client without describing it as a ZIP',async()=>{
+ render(<ConnectorPairingPanel request={async path=>path==='connector/downloads'?{downloads:[{id:'windows',label:'Windows 客户端',filename:'windows.exe',bytes:1024,url:'/api/connector/client/installers/windows.exe',kind:'client'}]}:path==='connector/devices'?{devices:[]}:{secure:true}}/>);
+ const link=await screen.findByRole('link',{name:/Windows 客户端 安装客户端/});
+ expect(link).toHaveAttribute('href','/api/connector/client/installers/windows.exe');
+ expect(screen.getByText(/普通网页更新无需重装客户端/)).toBeInTheDocument();
+});
 test('removes a revoked device immediately and ignores a stale in-flight device response',async()=>{
  const confirm=vi.spyOn(window,'confirm').mockReturnValue(true);
  let reads=0,finish:((v:any)=>void)|undefined;

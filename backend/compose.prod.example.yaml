@@ -14,6 +14,7 @@ services:
       LOCAL_POSTGRES: "false"
     volumes:
       - matrix-backend:/app/data
+      - ./outputs/client-releases:/app/outputs/client-releases:ro
     expose: ["4174"]
     networks: [matrix, database]
     depends_on:

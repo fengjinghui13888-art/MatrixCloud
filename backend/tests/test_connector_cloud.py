@@ -9,6 +9,32 @@ from fastapi.testclient import TestClient
 
 def run(coro):return asyncio.run(coro)
 
+
+def test_browser_login_rpc_waits_for_browser_readiness_beyond_five_seconds(tmp_path):
+    async def scenario():
+        frames = []
+        class WS:
+            async def send(self, value): frames.append(json.loads(value))
+        async def browser_endpoint(reader, writer):
+            try:
+                await reader.readuntil(b'\r\n\r\n')
+                await asyncio.sleep(5.2)
+                body = b'{"profile":"local:test","message":"ready"}'
+                writer.write(b'HTTP/1.1 201 Created\r\nContent-Type: application/json\r\nContent-Length: ' + str(len(body)).encode() + b'\r\nConnection: close\r\n\r\n' + body)
+                await writer.drain()
+            finally:
+                writer.close()
+        server = await asyncio.start_server(browser_endpoint, '127.0.0.1', 0)
+        port = server.sockets[0].getsockname()[1]
+        channel = CloudChannel(dict(cloudUrl='https://cloud.example', deviceToken='a'*64),root=tmp_path,port=port,token='b'*64)
+        try:
+            await channel.run_request(WS(),dict(type='request',id='slow-login',method='POST',path='/accounts/test/login'))
+            assert [f['type'] for f in frames] == ['head','chunk','end'], frames
+            assert frames[0]['status'] == 201
+        finally:
+            server.close(); await server.wait_closed(); await channel.close()
+    run(scenario())
+
 def test_cloud_origin_canonicalization_preserves_existing_url_contract():
     from connector.cloud import normalize_cloud_url
     assert normalize_cloud_url('https://CLOUD.example:443/')=='https://cloud.example'

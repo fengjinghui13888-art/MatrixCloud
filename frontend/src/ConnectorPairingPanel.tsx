@@ -5,7 +5,7 @@ import {readSessionValue,removeSessionValue} from './safe-storage';
 import {copyText} from './safe-clipboard';
 type Device={id:string;name:string;platform:string;version:string;online:boolean;executionReady:boolean;revoked:boolean};
 type Pairing={id:string;code?:string;status:'pending'|'claimed'|'expired'|'cancelled';expiresAt:number};
-type Download={id:string;label:string;filename:string;bytes:number;url:string};
+type Download={id:string;label:string;filename:string;bytes:number;url:string;kind?:'client'};
 type Props={request:(path:string,body?:unknown)=>Promise<any>;onChanged?:()=>void;manageDevices?:boolean};
 export function ConnectorPairingPanel({request,onChanged,manageDevices=true}:Props){
  const requester=useRef(request);requester.current=request;
@@ -40,9 +40,9 @@ export function ConnectorPairingPanel({request,onChanged,manageDevices=true}:Pro
  async function copy(){if(await copyText(pairing?.code??'')){setMessage('配对码已复制');}else setError('复制失败，请选中配对码手动复制');}
  return <section className="grey-panel connector-pairing-panel" aria-label="本机连接器">
   <div className="creation-heading"><div><h2>连接你的电脑</h2><p>在每位团队成员的电脑启动连接器并授权连接，再在下方选择执行电脑。登录窗口、账号同步和草稿执行都在所选电脑完成。</p></div></div>
-  <ol className="connector-setup-steps"><li>下载与你的电脑匹配的 ZIP 包，完整解压后打开启动文件。</li><li>启动后会自动打开工作台，登录你的团队账号并点击“授权连接这台电脑”。</li><li>等待下方显示电脑已连接，再进入账号矩阵扫码添加小红书账号。</li></ol>
-  {downloads.length>0&&<div className="pairing-actions connector-downloads">{downloads.map(item=><a className="ghost" key={item.id} href={item.url} download={item.filename}>{item.label} 下载 ZIP · {Math.ceil(item.bytes/1024/1024)} MB</a>)}</div>}
-  <p className="muted">工作台支持 Safari、Chrome、Edge 和 Firefox。Windows 双击 START-CONNECTOR.bat；Mac 双击“启动连接器.command”。连接器窗口需保持运行；它会在电脑上自动打开 Chrome 或 Edge 的登录窗口，用于扫码、同步和草稿操作。换电脑后选择新电脑，点击同步时会引导重新登录，登录完成后自动继续同步。</p>
+  <ol className="connector-setup-steps"><li>首次下载并安装与你的电脑匹配的矩阵云客户端。</li><li>启动后打开工作台，登录你的团队账号并点击“授权连接这台电脑”。</li><li>等待下方显示电脑已连接，再扫码添加小红书账号。</li></ol>
+  {downloads.length>0&&<div className="pairing-actions connector-downloads">{downloads.map(item=><a className="ghost" key={item.id} href={item.url} download={item.filename}>{item.label} {item.kind==='client'?'安装客户端':'下载 ZIP'} · {Math.ceil(item.bytes/1024/1024)} MB</a>)}</div>}
+  <p className="muted">普通网页更新无需重装客户端。客户端会自动检查更新，正在扫码、同步或保存草稿时等待任务结束再切换，启动失败会回退已验证版本。请保持客户端运行；执行任务时会自动打开 Chrome 或 Edge。工作台可用 Safari、Chrome、Edge 和 Firefox。换电脑后选择新电脑并重新登录平台。</p>
   {secure===false&&<p className="pairing-warning" role="status">当前地址尚未启用 HTTPS，暂不能配对新设备。请使用管理员提供的 HTTPS 地址。</p>}
   <div className="pairing-actions"><button className="ghost" disabled={busy} onClick={()=>void action(refresh)}>刷新连接状态</button><button className="primary" disabled={busy||secure!==true} onClick={()=>void action(async()=>{setPairing(await requester.current('connector/pairings',{}));})}>{busy?'处理中…':pairing?.status==='pending'?'重新生成配对码':'备用：生成一次性配对码'}</button></div>
   {pairing?.status==='pending'&&<div className="pairing-code"><label>在本机连接器中输入<input aria-label="一次性配对码" value={pairing.code??''} readOnly onFocus={e=>e.target.select()}/></label><p>5 分钟内有效，只能使用一次。</p><div className="pairing-actions"><button className="ghost" onClick={()=>void copy()}>复制配对码</button><button className="ghost" disabled={busy} onClick={()=>void action(async()=>{setPairing(await requester.current('connector/pairings/'+pairing.id+'/cancel',{}));})}>取消配对</button></div></div>}
