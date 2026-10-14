@@ -409,13 +409,13 @@ def create_app(settings=None, services=None):
         path=(release_directory/relative).resolve()
         if not path.is_relative_to(release_directory.resolve()) or not path.is_file():return message('客户端文件尚未发布',404)
         return FileResponse(path,media_type=media_type,filename=path.name)
-    @app.get('/api/connector/client/manifest')
+    @app.api_route('/api/connector/client/manifest',methods=['GET','HEAD'])
     async def client_manifest():return release_file('manifest.json','application/json')
-    @app.get('/api/connector/client/packages/{revision}.zip')
+    @app.api_route('/api/connector/client/packages/{revision}.zip',methods=['GET','HEAD'])
     async def client_package(revision:str):
         if not re.fullmatch('[1-9][0-9]{0,9}',revision):return message('无效版本',404)
         return release_file('packages/'+revision+'.zip','application/zip')
-    @app.get('/api/connector/client/installers/{filename}')
+    @app.api_route('/api/connector/client/installers/{filename}',methods=['GET','HEAD'])
     async def client_installer(filename:str):
         if filename not in ('windows.exe','mac-intel.dmg','mac-arm64.dmg'):return message('无效客户端平台',404)
         if client_installer_info(settings,filename) is None:return message('此客户端尚未通过正式发行验收',404)

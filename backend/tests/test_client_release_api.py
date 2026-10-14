@@ -10,6 +10,8 @@ def test_release_endpoints_are_public_but_only_serve_fixed_release_files(tmp_pat
     settings=Settings(data_dir=tmp_path/'data',connector_client_releases_dir=releases)
     with TestClient(create_app(settings=settings),base_url='http://127.0.0.1') as c:
         assert c.get('/api/connector/client/manifest').status_code==200
+        head=c.head('/api/connector/client/packages/1.zip')
+        assert head.status_code==200 and head.content==b'' and head.headers['content-length']=='7'
         assert c.get('/api/connector/client/packages/1.zip').content==b'package'
         assert c.get('/api/connector/client/private-key').status_code!=200
         assert c.get('/api/connector/client/packages/../private-key').status_code!=200
