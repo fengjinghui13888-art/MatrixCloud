@@ -22,7 +22,7 @@ export function StudioPublishActions({task,accounts,busy,dirty,onAction,onDispat
  const hints:Record<string,string>={
   generating:'图文生成完成后，即可核对并保存草稿。',
   generation_failed:'请先完成图文生成，再保存草稿。',
-  filled:'此任务已保存草稿；再次点击会打开原账号的草稿箱，其他尚未保存的账号会继续同步。',
+  filled:'此内容已上传过；再次点击会重新上传并保存一份新草稿，上次记录保留。',
   published:'此任务已核实发布，不再重复保存草稿。',
   pending_confirmation:'人工发布结果待核实，核实前不会重复上传。',
   blocked:canRetryStudio(task)?'上次未完成保存，点击后继续自动同步。':'上次草稿结果待核对，请在原执行电脑检查；确认前不会重复上传。',

@@ -43,6 +43,14 @@ async def upload_with_preview(native,fallback,read,*,expected,on_phase=None):
 
 READ_ACCOUNT = r"""(()=>document.querySelector('#header-area, .header-area, header, [class*=header-area]')?.innerText?.split('\n').map(s=>s.trim()).filter(s=>s&&s!=='创作服务平台').join(' ')||'')()"""
 
+def exclude_previous_drafts(snapshot,ids):
+    if not ids:return snapshot
+    excluded=set(ids)
+    result={**snapshot,'draftIds':[id for id in snapshot.get('draftIds',[]) if id not in excluded]}
+    if 'records' in snapshot:result['records']=[row for row in snapshot['records'] if row.get('draftId') not in excluded]
+    result['matches']=len(result.get('records',result['draftIds']))
+    return result
+
 class DraftExecutor:
     def __init__(self,root:Path,runtime,*,client=None):
         self.root=Path(root); self.runtime=runtime; self.client=client
@@ -103,16 +111,21 @@ class DraftExecutor:
                 if not actual.get('input'):raise ValueError('当前页面缺少图片上传控件')
                 manifest=read_json(manifest_path); stamp=fingerprint(dict(profile=profile,title=task['title'],body=task['body'],tags=task['tags'],images=task['images']))
                 stored=await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,task['title']))
+                if task.get('repeatUpload') and manifest is None:
+                    manifest=dict(fingerprint=stamp,baselineDraftIds=stored.get('draftIds',[]))
+                    atomic_json(manifest_path,manifest)
+                baseline=(manifest or {}).get('baselineDraftIds',[])
+                stored=exclude_previous_drafts(stored,baseline)
                 if stored.get('matches'):
                     if not manifest or manifest.get('fingerprint')!=stamp:raise ValueError('已有同名草稿缺少本次审核的图片回读凭据，请检查现有草稿，不会重复上传')
                     readback=verify_persisted_draft(stored,task,manifest.get('fileIds'),True)
                     if not readback:raise ValueError('已有同名草稿无法唯一确认，已停止重复上传')
-                    visible=await self.confirm_visible(connection,task['title'])
+                    visible=await self.confirm_visible(connection,task['title'],baseline)
                     if not visible.get('drawer') or visible.get('matches')!=1 or readback['draftId'] not in visible.get('draftIds',[]):raise ValueError('草稿已存储，但平台列表未能显示，请人工核对')
                     evidence.update(persisted=readback,draft={**visible,'saved':True,'recovered':True},readback=readback)
                 else:
                     if previous.get('uploadAttempted') and previous.get('status')!='filled':raise ResultUnknown('上次上传结果尚未确认，已保留原稿，禁止重复上传；请人工核对原电脑草稿')
-                    await self.inspect_before_upload(connection,task['title'])
+                    await self.inspect_before_upload(connection,task['title'],baseline)
                     await phase('download','正在下载审核稿原始图片')
                     prefix=base+'/api/studio/'+task_id+'/media/'
                     urls=[prefix+url.rsplit('/',1)[-1] if re.fullmatch(r'/api/templates/media/[a-f0-9]{64}\.(png|jpg|webp)',url) else url for url in task['images']]
@@ -138,16 +151,17 @@ class DraftExecutor:
                     await connection.insert_text(task['title'])
                     if not await until(lambda:connection.evaluate(dom.expression(dom.READTITLEPREVIEW,task['title'])),bool,5):raise ValueError('标题尚未同步到小红书预览，未保存空标题草稿')
                     readback=verify_editor(await connection.evaluate(dom.expression(dom.READEDITOR)),task); evidence['readback']=readback
-                    file_ids=await connection.evaluate(dom.expression(dom.UPLOADEDDRAFTFILEIDS)); manifest=dict(fingerprint=stamp,fileIds=file_ids); atomic_json(manifest_path,manifest)
+                    file_ids=await connection.evaluate(dom.expression(dom.UPLOADEDDRAFTFILEIDS)); manifest=dict(fingerprint=stamp,fileIds=file_ids,baselineDraftIds=baseline); atomic_json(manifest_path,manifest)
                     await phase('save','内容回读一致，正在保存并核对草稿箱')
-                    before=await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,task['title']))
+                    before=exclude_previous_drafts(await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,task['title'])),baseline)
                     if before.get('matches') and not verify_persisted_draft(before,task,file_ids,True):raise ValueError('草稿箱已有同名内容，已停止重复保存')
                     await self.click_save(connection) # exactly one visible draft action
-                    persisted=await until(lambda:connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,task['title'])),lambda v:v.get('available') and v.get('matches')==1,12)
+                    async def read_persisted():return exclude_previous_drafts(await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,task['title'])),baseline)
+                    persisted=await until(read_persisted,lambda v:v.get('available') and v.get('matches')==1,12)
                     proof=verify_persisted_draft(persisted,task,file_ids,True)
                     if not proof:raise ResultUnknown('未确认草稿持久化内容，请人工核对，勿重复上传')
                     if (await connection.evaluate(dom.expression(dom.READEDITOR))).get('editor'):await connection.new_page(CREATOR+'/publish/publish?target=image')
-                    visible=await self.confirm_visible(connection,task['title'])
+                    visible=await self.confirm_visible(connection,task['title'],baseline)
                     if not visible.get('drawer') or visible.get('matches')!=1 or proof['draftId'] not in visible.get('draftIds',[]):raise ResultUnknown('未得到草稿箱唯一条目确认；请人工核对，勿重复上传')
                     evidence.update(persisted=proof,draft={**visible,'saved':True,'persisted':persisted})
                 if await connection.evaluate(READ_ACCOUNT)!=name or not connection.page.url.startswith(CREATOR+'/publish/publish'):raise ResultUnknown('保存后账号或创作页发生变化，请检查草稿箱')
@@ -188,20 +202,20 @@ class DraftExecutor:
             finally:
                 if connection:await connection.close()
 
-    async def inspect_before_upload(self,connection,title):
+    async def inspect_before_upload(self,connection,title,baseline=()):
         await connection.evaluate(dom.expression(dom.REFRESHPLATFORMDRAFTLIST))
-        stored=await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,title))
+        stored=exclude_previous_drafts(await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,title)),baseline)
         if stored.get('matches'):raise ValueError('草稿箱已有同名内容，已停止重复上传')
         async def read():
-            await connection.evaluate(dom.expression(dom.OPENIMAGEDRAFTS)); return await connection.evaluate(dom.expression(dom.INSPECTDRAFTLIST,title))
+            await connection.evaluate(dom.expression(dom.OPENIMAGEDRAFTS)); return exclude_previous_drafts(await connection.evaluate(dom.expression(dom.INSPECTDRAFTLIST,title)),baseline)
         visible=await until(read,lambda v:v.get('drawer'),5)
         if not visible.get('drawer'):raise ValueError('未能检查图文草稿箱，已停止重复上传')
         if visible.get('matches'):raise ValueError('草稿箱已有同名内容，已停止重复上传')
         await connection.evaluate("document.querySelector('.draft-drawer .d-drawer-close')?.click()")
-    async def confirm_visible(self,connection,title):
+    async def confirm_visible(self,connection,title,baseline=()):
         await connection.evaluate(dom.expression(dom.REFRESHPLATFORMDRAFTLIST))
         async def read():
-            await connection.evaluate(dom.expression(dom.OPENIMAGEDRAFTS)); return await connection.evaluate(dom.expression(dom.INSPECTDRAFTLIST,title))
+            await connection.evaluate(dom.expression(dom.OPENIMAGEDRAFTS)); return exclude_previous_drafts(await connection.evaluate(dom.expression(dom.INSPECTDRAFTLIST,title)),baseline)
         return await until(read,lambda v:v.get('drawer') and v.get('matches')==1,6)
     async def click_save(self,connection):
         result=await connection.cdp('Accessibility.getFullAXTree')

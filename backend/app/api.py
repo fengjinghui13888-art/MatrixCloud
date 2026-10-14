@@ -1044,7 +1044,7 @@ async def studio_dispatch(request, runtime, scope, execution, body):
         next_task = studio.update(task['id'], positive_revision(body), dict(status='approved', executionStartedAt=None, executionRunId=None, message='正在重新检查已有草稿并保存到目标账号'))
         return JSONResponse(await runtime.start_studio(next_task, request))
     if action == 'dispatch':
-        strict(body, ('accountIds','revision'), ('accountIds',))
+        strict(body, ('accountIds','revision','requestId'), ('accountIds',))
         if 'revision' in body and positive_revision(body)!=task['revision']:
             raise ConnectorError(409,'内容已更新，请重新核对当前版本后再保存草稿')
         targets = id_list(body['accountIds'], '账号 ID', 50)
@@ -1061,22 +1061,25 @@ async def studio_dispatch(request, runtime, scope, execution, body):
         if task['status']=='review':
             task=studio.update(task['id'],task['revision'],dict(status='approved',approvedRevision=task['revision'],executionStartedAt=None,message='已核对图文，正在打开执行电脑的小红书并保存草稿'))
         tasks = []
-        opened_drafts = []
+        repeated = task['status']=='filled'
+        if repeated and (not isinstance(body.get('requestId'),str) or not re.fullmatch(r'[a-zA-Z0-9_-]{8,100}',body['requestId'])):
+            raise ConnectorError(409,'请刷新页面后再次上传草稿')
+        if repeated:
+            root_id=task.get('sourceTaskId',task['id'])
+            for previous in studio.list():
+                if previous.get('sourceTaskId',previous['id'])!=root_id or previous['accountId'] not in targets:continue
+                own_request='repeat-'+body['requestId']+'-'+hashlib.sha256(previous['accountId'].encode()).hexdigest()[:12]
+                if previous['requestId']==own_request:continue
+                if previous['status'] in ('approved','filling','pending_confirmation') or previous['status']=='blocked' and previous.get('executionStartedAt'):
+                    raise ConnectorError(409,'此内容上一次上传仍在执行或结果待核对，请先完成该次任务后再次上传')
         for account in accounts:
-            if account['id'] == task['accountId']:
+            if account['id'] == task['accountId'] and not repeated:
                 current = task
             else:
-                request_id = 'dispatch-' + hashlib.sha256(json.dumps([task['id'], account['id'], task['title'], task['body'], task['tags'], task['images']], ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+                request_id = ('repeat-'+body['requestId']+'-'+hashlib.sha256(account['id'].encode()).hexdigest()[:12]) if repeated else 'dispatch-' + hashlib.sha256(json.dumps([task['id'], account['id'], task['title'], task['body'], task['tags'], task['images']], ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
                 current = studio.create({key: task[key] for key in ('topic', 'persona', 'style', 'imageCount', 'size')} | dict(accountId=account['id'], requestId=request_id, confirmCharge=True))['task']
                 if current['status'] in ('generating', 'generation_failed', 'review'):
-                    current = studio.update(current['id'], current['revision'], {key: task[key] for key in ('title', 'body', 'tags', 'images')} | dict(status='approved', approvedRevision=current['revision'], message='已创建批量草稿，目标账号：' + account['name']))
-            if current['status']=='filled':
-                if not current.get('draftId'):
-                    raise ConnectorError(409,'历史草稿缺少平台编号，请在原电脑核对，勿重复上传')
-                opened=await runtime.channel.json(scope.workspace,device,'POST','/accounts/'+account['profile'][6:]+'/drafts',dict(title=current['title'],draftId=current['draftId'],handle=account['handle']))
-                if opened.get('opened') is not True or opened.get('draftId')!=current['draftId']:
-                    raise ConnectorError(409,'未能确认草稿箱已打开，请检查执行电脑的小红书窗口')
-                opened_drafts.append(account['id'])
+                    current = studio.update(current['id'], current['revision'], {key: task[key] for key in ('title', 'body', 'tags', 'images')} | dict(status='approved', approvedRevision=current['revision'],repeatUpload=repeated,uploadNumber=1+max([int(t.get('uploadNumber',1)) for t in studio.list() if t['accountId']==account['id'] and t['status']=='filled' and t.get('sourceTaskId',t['id'])==task.get('sourceTaskId',task['id'])] or [0]) if repeated else 1,sourceTaskId=task.get('sourceTaskId',task['id']),message='已创建新的草稿上传任务，目标账号：' + account['name']))
             tasks.append(await runtime.start_studio(current, request) if current['status'] == 'approved' else current)
-        return JSONResponse(dict(sourceId=task['id'], tasks=tasks,openedDrafts=opened_drafts), 201)
+        return JSONResponse(dict(sourceId=task['id'], tasks=tasks,repeatedUpload=repeated), 201)
     raise ConnectorError(404, '接口不存在')

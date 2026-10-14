@@ -18,7 +18,7 @@ class DraftPage:
 class DraftConnection:
     def __init__(self,root,task,unknown_save=False):
         self.task=task; self.page=DraftPage(); self.context=SimpleNamespace(pages=[self.page]); self.guard=ExecutionGuard(root,'local:a'); self.pace=no_wait
-        self.uploads=0;self.saves=0;self.images=0;self.filled=False;self.persisted=False;self.drawer=False;self.unknown_save=unknown_save
+        self.uploads=0;self.saves=0;self.images=0;self.filled=False;self.persisted=False;self.drawer=False;self.unknown_save=unknown_save;self.old_drafts=[]
     async def check(self):self.guard.check()
     async def select(self,page):self.page=page
     async def foreground(self):pass
@@ -27,9 +27,12 @@ class DraftConnection:
     async def evaluate(self,source):
         if 'name:' in source and 'visible:!document.hidden' in source:return dict(name='Account',visible=True,input=True,**self.editor())
         if 'function readPersistedImageDraft' in source:
-            return dict(available=True,matches=1 if self.persisted else 0,records=[dict(draftId='draft-1',title=self.task['title'],body=self.task['body'],tags=[],images=[dict(fileId='f'+str(i),status=2) for i in range(self.images)])] if self.persisted else [])
+            records=self.old_drafts+([dict(draftId='draft-1',title=self.task['title'],body=self.task['body'],tags=[],images=[dict(fileId='f'+str(i),status=2) for i in range(self.images)])] if self.persisted else [])
+            return dict(available=True,matches=len(records),records=records,draftIds=[r['draftId'] for r in records])
         if 'function readEditor' in source:return self.editor()
-        if 'function inspectDraftList' in source:return dict(drawer=self.drawer,matches=1 if self.persisted else 0,draftIds=['draft-1'] if self.persisted else [])
+        if 'function inspectDraftList' in source:
+            ids=[r['draftId'] for r in self.old_drafts]+(['draft-1'] if self.persisted else [])
+            return dict(drawer=self.drawer,matches=len(ids),draftIds=ids)
         if 'function openImageDrafts' in source:self.drawer=True;return True
         if 'function refreshPlatformDraftList' in source:return dict(refreshed=True)
         if 'function fillEditor' in source:self.filled=True;return True
@@ -79,6 +82,20 @@ def test_full_twelve_image_draft_returns_only_persisted_unique_receipt(tmp_path)
         assert result['status']=='filled' and result['persisted']['imageCount']==12
         assert receipts[-1]['status']=='filled' and receipts[-1]['draftId']=='draft-1' and receipts[-1]['imageCount']==12
         assert read_json(tmp_path.parent/'studio-executions'/(input['taskId']+'.json'))['status']=='filled'
+        await client.aclose()
+    run(scenario())
+
+def test_explicit_repeat_upload_ignores_old_draft_and_verifies_new_id(tmp_path):
+    async def scenario():
+        execute,client,connection,input,receipts=draft_case(tmp_path/'connector')
+        connection.task['repeatUpload']=True
+        connection.old_drafts=[dict(draftId='old-id',title=connection.task['title'])]
+        async def progress(p):pass
+        result=await execute(input,progress)
+        assert connection.uploads==1 and connection.saves==1
+        assert result['persisted']['draftId']=='draft-1'
+        manifest=read_json(tmp_path/'studio-executions'/(input['taskId']+'.approved.json'))
+        assert manifest['baselineDraftIds']==['old-id']
         await client.aclose()
     run(scenario())
 
