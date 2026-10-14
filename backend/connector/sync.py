@@ -106,7 +106,8 @@ class SyncExecutor:
         async def report(stage,message):await progress(dict(stage=stage,message=message,counts=dict(notes=len(collector.notes),comments=len(collector.comments),messages=len(collector.messages))))
         try:
             async with profile_lock(self.root.parent/'studio-locks',profile,job_id):
-                connection=await self.runtime.connect(profile,guard=True); context=connection.context
+                connection=await self.runtime.connect(profile,guard=True,open_creator=True); context=connection.context
+                await connection.foreground()
                 network=NetworkCapture(context,collector.record,connection.guard)
                 async def route_guard(route):
                     try:network.check(); await route.continue_()

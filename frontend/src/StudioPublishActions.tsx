@@ -22,12 +22,12 @@ export function StudioPublishActions({task,accounts,busy,dirty,onAction,onDispat
  const hints:Record<string,string>={
   generating:'图文生成完成后，即可核对并保存草稿。',
   generation_failed:'请先完成图文生成，再保存草稿。',
-  filled:'此任务已保存草稿，不会重复上传；点击后只为其他尚未保存的账号建立草稿任务。',
+  filled:'此任务已保存草稿；再次点击会打开原账号的草稿箱，其他尚未保存的账号会继续同步。',
   published:'此任务已核实发布，不再重复保存草稿。',
   pending_confirmation:'人工发布结果待核实，核实前不会重复上传。',
   blocked:canRetryStudio(task)?'上次未完成保存，点击后继续自动同步。':'上次草稿结果待核对，请在原执行电脑检查；确认前不会重复上传。',
  };
- const hint=running?'正在自动保存草稿，请保持执行电脑在线。需要中止时点击停止。':dirty?'文案有未保存的修改，请先保存文案修改。':batch?(accounts.length?'核对文案和图片后点击保存，将同步到当前工作区全部已连接账号；每个账号会建立独立任务。':'正在确认可用账号，点击保存后由系统核对连接状态。'):review?'核对文案和图片后点击保存，将同步到当前工作区全部已连接账号。':hints[task.status]??(action?'点击后继续安全同步原任务。':'当前任务状态需要核对，暂不能保存草稿。');
+ const hint=running?'正在自动保存草稿，请保持执行电脑在线。需要中止时点击停止。':dirty?'文案有未保存的修改，请先保存文案修改。':task.status==='filled'?hints.filled:batch?(accounts.length?'核对文案和图片后点击保存，将同步到当前工作区全部已连接账号；每个账号会建立独立任务。':'正在确认可用账号，点击保存后由系统核对连接状态。'):review?'核对文案和图片后点击保存，将同步到当前工作区全部已连接账号。':hints[task.status]??(action?'点击后继续安全同步原任务。':'当前任务状态需要核对，暂不能保存草稿。');
  async function save(){
   if(busy||dirty||running)return;
   if(batch){if(allAccountIds.length)await onDispatch(allAccountIds);else await onAction('review',{decision:'approve'});return;}

@@ -96,11 +96,12 @@ test('saved task uses one action to synchronize every connected account',async()
  const saved={id:'saved',accountId:'a',revision:8,status:'filled',title:'已保存任务',body:'正文',tags:[],images:[],imageCount:1,message:'已保存'};
  const accounts=['a','b'].map(id=>({id,name:`账号${id}`,handle:id,profile:`local:${id}`,avatar:'',state:'connected' as const,followers:0,lastSyncedAt:''}));
  const requests: {path:string;body:any}[]=[];
- render(<OneClickPublish accounts={accounts} request={async(path,body)=>{if(body)requests.push({path,body});return path==='studio'?[saved]:path==='models'?{}:{tasks:[saved]};}}/>);
+ render(<OneClickPublish accounts={accounts} request={async(path,body)=>{if(body)requests.push({path,body});return path==='studio'?[saved]:path==='models'?{}:{tasks:[saved],openedDrafts:['a']};}}/>);
  fireEvent.click(await screen.findByRole('button',{name:saved.title}));
  const action=screen.getByRole('button',{name:'保存到小红书草稿'});
  expect(screen.getByText('同步范围：全部已连接账号（2）')).toBeInTheDocument();
  expect(action).toBeEnabled();
  fireEvent.click(action);fireEvent.click(action);
  await waitFor(()=>expect(requests).toEqual([{path:'studio/saved/dispatch',body:{accountIds:['a','b'],revision:8}}]));
+ expect(await screen.findByText('已打开 1 个账号的原草稿箱；未保存的账号继续同步，请查看任务进度。')).toBeInTheDocument();
 });

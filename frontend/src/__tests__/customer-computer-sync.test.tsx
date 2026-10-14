@@ -4,7 +4,7 @@ test('continues sync once on the same Windows computer after login verification'
  const account={id:'xhs-123',name:'我的账号',handle:'123',profile:'local:old-mac',avatar:'',followers:2,lastSyncedAt:'',state:'connected',executionDevice:{id:'mac',name:'管理 Mac',online:true}};
  const operations={accounts:[account],notes:[],comments:[],leads:[]};
  let syncCount=0;const syncBodies:any[]=[];
- const original=globalThis.fetch;const confirm=vi.spyOn(window,'confirm').mockReturnValue(true);
+ const original=globalThis.fetch;const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);
  globalThis.fetch=vi.fn(async(url,options)=>{
   const path=String(url);let value:any=null;
   if(path==='/api/auth/status')value={configured:true};
@@ -26,6 +26,7 @@ test('continues sync once on the same Windows computer after login verification'
   await screen.findByText('请在客户 Windows 登录');
   await waitFor(()=>expect(syncCount).toBe(2));
   expect(syncBodies[1]).toEqual({deviceId:'windows'});
+  expect(confirm).not.toHaveBeenCalled();
   expect(await screen.findAllByText(/同步完成.*内容 1/)).not.toHaveLength(0);
  }finally{globalThis.fetch=original;confirm.mockRestore();}
 });

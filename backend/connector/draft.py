@@ -79,7 +79,7 @@ class DraftExecutor:
                 await phase('page','正在连接当前 Chrome 并核对账号')
                 operations=await api('operations'); target=next((a for a in operations.get('accounts',[]) if a.get('id')==task.get('accountId')),None)
                 if not target or target.get('profile')!=profile:raise ValueError('目标账号未绑定到当前执行设备')
-                connection=await self.runtime.connect(profile,guard=True)
+                connection=await self.runtime.connect(profile,guard=True,open_creator=True)
                 info=await self.runtime.state(profile[6:])
                 if not info.get('loggedIn') or str(info.get('handle'))!=str(target.get('handle')):raise ValueError('本机实际账号与任务目标不一致，请先扫码连接此账号')
                 evidence['handle']=info['handle']
@@ -168,6 +168,26 @@ class DraftExecutor:
                 # Only the execution's created cache directory is removed.
                 if download_dir.resolve().is_relative_to((self.root/'generated-cache').resolve()):shutil.rmtree(download_dir)
             if own:await client.aclose()
+    async def open_saved(self,profile,body):
+        """Show an existing platform draft, never upload or save on this path."""
+        connection=None
+        async with profile_lock(self.root.parent/'studio-locks',profile,'view-'+body['draftId']):
+            try:
+                connection=await self.runtime.connect(profile,guard=True,open_creator=True)
+                await connection.foreground()
+                info=await self.runtime.state(profile[6:])
+                if not info.get('loggedIn') or str(info.get('handle'))!=body['handle']:
+                    raise ValueError('小红书登录已过期或账号不一致，已打开专属窗口，请重新扫码后再查看草稿')
+                # A fresh empty composer preserves any unsaved work in other tabs.
+                await connection.new_page(CREATOR+'/publish/publish?from=menu_left&target=image')
+                await connection.foreground()
+                visible=await self.confirm_visible(connection,body['title'])
+                if visible.get('matches')!=1 or body['draftId'] not in visible.get('draftIds',[]):
+                    raise ValueError('已打开草稿箱，但未找到原草稿；请检查是否已发布或删除，不会重复上传')
+                return dict(opened=True,draftId=body['draftId'])
+            finally:
+                if connection:await connection.close()
+
     async def inspect_before_upload(self,connection,title):
         await connection.evaluate(dom.expression(dom.REFRESHPLATFORMDRAFTLIST))
         stored=await connection.evaluate(dom.expression(dom.READPERSISTEDIMAGEDRAFT,title))

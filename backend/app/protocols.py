@@ -34,9 +34,11 @@ def valid_connector_command(method: str, path: str, body: Any = _MISSING) -> boo
     if method == 'GET' and path == '/verify': return True
     if method == 'POST' and path == '/cleanup':
         return isinstance(body, dict) and set(body) <= {'manifestId'} and ('manifestId' not in body or _match(r'[a-f0-9-]{36}', body['manifestId']))
-    account = re.fullmatch(r'/accounts/([a-zA-Z0-9_-]{1,100})/(login|state|image|remove|cancel|resume|safety)', path)
+    account = re.fullmatch(r'/accounts/([a-zA-Z0-9_-]{1,100})/(login|state|image|remove|cancel|resume|safety|drafts)', path)
     if account:
         action = account[2]
+        if action == 'drafts':
+            return method=='POST' and isinstance(body,dict) and set(body)=={'title','draftId','handle'} and valid_uuid(body.get('draftId')) and all(isinstance(body.get(k),str) and 0<len(body[k])<=256 for k in ('title','handle'))
         if action == 'resume': return method == 'POST' and isinstance(body, dict) and body.get('confirmed') is True
         return method == ('GET' if action in ('state','image','safety') else 'POST') and body is _MISSING
     if method == 'POST' and path == '/studio':

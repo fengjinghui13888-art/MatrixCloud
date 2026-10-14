@@ -146,7 +146,7 @@ function Workspace({username,logout,switchAccount}:{username:string;logout:()=>P
     return()=>{cancelled=true;};
   },[]);
   async function syncAccount(accountId:string){
-    try{const selection=await request('connector/devices');if(!selection.selectedDeviceId)throw Error('请先选择执行电脑');const account=data?.accounts.find(a=>a.id===accountId),device=selection.devices?.find((d:any)=>d.id===selection.selectedDeviceId);if(!window.confirm(`将同步 ${account?.name??'所选账号'} 的内容、评论与私信。执行电脑：${device?.name??'当前所选电脑'}。如需登录，完成后将自动继续同步。是否继续？`))return;syncRemaining.current=[];await syncSequence([accountId],selection.selectedDeviceId);}catch(e){setError(customerMessage(e));}
+    try{const selection=await request('connector/devices');if(!selection.selectedDeviceId)throw Error('请先选择执行电脑');syncRemaining.current=[];await syncSequence([accountId],selection.selectedDeviceId);}catch(e){setError(customerMessage(e));}
 
   }
   async function deleteAccount(account:Account){

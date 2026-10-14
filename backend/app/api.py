@@ -1061,6 +1061,7 @@ async def studio_dispatch(request, runtime, scope, execution, body):
         if task['status']=='review':
             task=studio.update(task['id'],task['revision'],dict(status='approved',approvedRevision=task['revision'],executionStartedAt=None,message='已核对图文，正在打开执行电脑的小红书并保存草稿'))
         tasks = []
+        opened_drafts = []
         for account in accounts:
             if account['id'] == task['accountId']:
                 current = task
@@ -1069,6 +1070,13 @@ async def studio_dispatch(request, runtime, scope, execution, body):
                 current = studio.create({key: task[key] for key in ('topic', 'persona', 'style', 'imageCount', 'size')} | dict(accountId=account['id'], requestId=request_id, confirmCharge=True))['task']
                 if current['status'] in ('generating', 'generation_failed', 'review'):
                     current = studio.update(current['id'], current['revision'], {key: task[key] for key in ('title', 'body', 'tags', 'images')} | dict(status='approved', approvedRevision=current['revision'], message='已创建批量草稿，目标账号：' + account['name']))
+            if current['status']=='filled':
+                if not current.get('draftId'):
+                    raise ConnectorError(409,'历史草稿缺少平台编号，请在原电脑核对，勿重复上传')
+                opened=await runtime.channel.json(scope.workspace,device,'POST','/accounts/'+account['profile'][6:]+'/drafts',dict(title=current['title'],draftId=current['draftId'],handle=account['handle']))
+                if opened.get('opened') is not True or opened.get('draftId')!=current['draftId']:
+                    raise ConnectorError(409,'未能确认草稿箱已打开，请检查执行电脑的小红书窗口')
+                opened_drafts.append(account['id'])
             tasks.append(await runtime.start_studio(current, request) if current['status'] == 'approved' else current)
-        return JSONResponse(dict(sourceId=task['id'], tasks=tasks), 201)
+        return JSONResponse(dict(sourceId=task['id'], tasks=tasks,openedDrafts=opened_drafts), 201)
     raise ConnectorError(404, '接口不存在')

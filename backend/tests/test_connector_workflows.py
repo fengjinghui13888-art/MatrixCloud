@@ -64,7 +64,9 @@ def draft_case(tmp_path,unknown_save=False):
         return httpx.Response(200,json=dict(revision=2))
     client=httpx.AsyncClient(transport=httpx.MockTransport(handler));connection=DraftConnection(tmp_path,task,unknown_save)
     class Runtime:
-        async def connect(self,profile,guard=False):return connection
+        async def connect(self,profile,guard=False,open_creator=False):
+            assert open_creator is True
+            return connection
         async def state(self,id):return dict(loggedIn=True,handle='42')
     return DraftExecutor(tmp_path,Runtime(),client=client),client,connection,input,receipts
 
@@ -126,11 +128,14 @@ def test_full_incremental_sync_preserves_known_images_and_checkpoints(tmp_path):
         context=FakeContext();creator=SyncPage(context,'https://creator.xiaohongshu.com/new/home');web=SyncPage(context,'https://www.xiaohongshu.com/chat');context.pages=[creator,web]
         class Connection:
             def __init__(self):self.page=creator;self.context=context;self.guard=ExecutionGuard(tmp_path,'local:a');self.pace=no_wait
+            async def foreground(self):await self.page.bring_to_front()
             async def check(self):self.guard.check()
             async def evaluate(self,source):return dict(loggedIn=True,handle='42',userId='u',followers=12)
             async def close(self):pass
         class Runtime:
-            async def connect(self,profile,guard=False):return Connection()
+            async def connect(self,profile,guard=False,open_creator=False):
+                assert open_creator is True
+                return Connection()
         old=dict(id='n',accountId='a',title='Owned',summary='body',images=['https://a.xhscdn.com/a'],mediaType='image',mediaAssets=[dict(id='b'*32,kind='image',index=0,sourceUrl='https://a.xhscdn.com/a')])
         input=dict(_jobId='c9014397-9dd5-4daa-8f84-4918408414fd',target=dict(id='a',handle='42',name='Account',profile='local:a'),knownNotes=[old],knownComments=[],knownMessages=[],mode='incremental',availableAssets=['n:'+'b'*32])
         patches=[]

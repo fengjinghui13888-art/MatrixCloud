@@ -195,7 +195,7 @@ class BrowserRuntime:
         if page is None and (open_creator or reopened):
             ExecutionGuard(self.root,profile).check(); page=await context.new_page(); await page.goto(CREATOR+'/new/home',wait_until='domcontentloaded')
         if page is None: await browser.close(); raise ValueError('专属浏览器没有创作平台页面')
-        if reopened and not any(re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url) for p in context.pages):
+        if (reopened or open_creator) and not any(re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url) for p in context.pages):
             web=await context.new_page(); await web.goto(WEB+'/explore',wait_until='domcontentloaded')
         return BrowserConnection(browser,context,page,ExecutionGuard(self.root,profile) if guard else None,self.pace_factory())
     def executable(self):

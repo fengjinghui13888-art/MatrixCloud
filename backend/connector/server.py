@@ -216,7 +216,7 @@ def create_connector_app(root:Path,cloud_url:str='',port:int=47821)->FastAPI:
     @app.api_route('/accounts/{id}/{action}',methods=['GET','POST'])
     async def account(id:str,action:str,request:Request):
         if not valid_id(id):raise ValueError('无效会话编号')
-        methods={'login':'POST','state':'GET','connect':'POST','image':'GET','remove':'POST','cancel':'POST','resume':'POST','safety':'GET'}
+        methods={'login':'POST','state':'GET','connect':'POST','image':'GET','remove':'POST','cancel':'POST','resume':'POST','safety':'GET','drafts':'POST'}
         if action not in methods:return JSONResponse({'message':'接口不存在'},404)
         if methods[action]!=request.method:return JSONResponse({'message':'请求方式不支持'},405)
         if action=='cancel':
@@ -227,6 +227,15 @@ def create_connector_app(root:Path,cloud_url:str='',port:int=47821)->FastAPI:
             guard=ExecutionGuard(runtime.root,'local:'+id)
             if action=='safety':return guard.status()
             if action=='resume':guard.resume((await read_json(request,1024)).get('confirmed')); return dict(state='normal')
+            if action=='drafts':
+                from app.protocols import valid_connector_command
+                body=await read_json(request,2048)
+                if not valid_connector_command('POST',request.url.path,body):raise ValueError('草稿查看请求无效')
+                guard.check()
+                try:runtime.jobs.reserve_login(id)
+                except ValueError as exc:return JSONResponse({'message':str(exc)},409)
+                try:return await runtime.jobs.studio_executor.open_saved('local:'+id,body)
+                finally:runtime.jobs.release_login(id)
             if action=='login':
                 guard.check()
                 try:runtime.jobs.reserve_login(id)
