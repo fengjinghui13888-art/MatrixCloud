@@ -1,0 +1,2 @@
+/* Shared customer-workspace and platform-admin visual tokens. */
+:root{--matrix-canvas:linear-gradient(155deg,#e4e4e3 0%,#e0e4e9 53%,#cdd8eb 100%);--matrix-panel:rgba(249,250,252,.72);--matrix-panel-border:1px solid #ffffff55;--matrix-ink:#151719;--matrix-muted:#606770;--matrix-radius:30px;--matrix-control-radius:28px;--matrix-primary:#101112;--matrix-field:#fbfcfcbf}

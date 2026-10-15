@@ -18,6 +18,7 @@
   },
   "include": [
     "src",
+    "admin",
     "contracts",
     "vite.config.ts",
     "vitest.config.ts"

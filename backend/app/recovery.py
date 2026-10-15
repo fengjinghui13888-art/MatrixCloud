@@ -9,7 +9,7 @@ from .store import ServiceError,identifier
 
 ERROR='恢复码无效或已过期，请联系管理员重新获取'
 
-def issue_recovery(auth,username,*,now_ms=None):
+def issue_recovery(auth,username,*,now_ms=None,actor='server-administrator'):
     """Only call from trusted server administration or an authenticated admin."""
     username=username.strip().lower()
     with auth.transaction() as c:user=next((u for u in auth._users(c) if u['username']==username and u['enabled'] and u['tenant_enabled']),None)
@@ -24,7 +24,7 @@ def issue_recovery(auth,username,*,now_ms=None):
         else:
             c.execute("UPDATE auth_recovery SET status='revoked' WHERE workspace=? AND json_extract(payload,'$.username')=? AND status='pending'",(user['workspace'],username))
             c.execute('INSERT INTO auth_recovery VALUES(?,?,?,?)',(id,user['workspace'],json.dumps(payload),'pending'))
-    auth._audit({**user,'username':'server-administrator'},'password.recovery.issue',username,'success')
+    auth._audit({**user,'username':actor},'password.recovery.issue',username,'success')
     return dict(code=id+'.'+token,expiresAt=expires,username=username)
 
 def reset_password(auth,body,*,ip,now_ms=None):

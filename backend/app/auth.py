@@ -305,4 +305,11 @@ CREATE TABLE IF NOT EXISTS auth_recovery(id TEXT PRIMARY KEY,workspace TEXT NOT 
         with self.transaction() as c:
             result=self.query(c,'UPDATE auth_tenants SET enabled=? WHERE id=?',(input['enabled'] if self.db else int(input['enabled']),id),'UPDATE tenant SET enabled=? WHERE tenant_id=?')
             if result.rowcount!=1:raise ServiceError('客户不存在',404)
+            if not input['enabled']:
+                if self.db:c.execute('DELETE FROM login_session WHERE tenant_id=%s',(id,))
+                else:
+                    names=[u['username'] for u in self._users(c) if u['workspace']==id]
+                    for username in names:
+                        c.execute('DELETE FROM sessions WHERE hash IN (SELECT session_hash FROM session_users WHERE username=?)',(username,))
+                        c.execute('DELETE FROM session_users WHERE username=?',(username,))
         self._audit(user,'tenant.status',id,'enabled' if input['enabled'] else 'disabled');return {'ok':True}

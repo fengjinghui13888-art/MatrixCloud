@@ -92,6 +92,26 @@ def test_recovery_postgres_is_atomic_and_preserves_account_data(live):
     assert scope.store.list_accounts()[0]['id']=='a'
     assert srv.auth.authenticate(dict(username=identity['username'],password='synthetic-new-password'),ip='verify')['workspace']==identity['workspace']
 
+def test_platform_admin_postgres_lists_scoped_counts_and_separate_session(live):
+    from fastapi.testclient import TestClient
+    from app.api import create_app
+    srv,identity,_=live
+    customer=srv.auth.register(dict(username='customer',password='synthetic-password'),ip='customer')
+    srv.for_workspace(customer['workspace']).store.add_account(account())
+    app=create_app(srv.settings,services=srv)
+    with TestClient(app,base_url='https://test.example') as c:
+        h={'Origin':'https://test.example'}
+        assert c.post('/api/platform-admin/login',headers=h,json=dict(username='platform',password='synthetic-password')).status_code==200
+        response=c.get('/api/platform-admin/customers')
+        assert response.status_code==200
+        target=next(t for t in response.json()['items'] if t['id']==customer['workspace'])
+        assert target['counts']['accounts']==1
+        assert c.post('/api/platform-admin/customers/'+customer['workspace']+'/status',headers=h,json={'enabled':False}).status_code==200
+        assert srv.auth.identity('zhixu_session='+customer['token']) is None
+        assert c.get('/api/platform-admin/customers').status_code==200
+        assert c.post('/api/platform-admin/customers/owner/status',headers=h,json={'enabled':False}).status_code==400
+        assert c.get('/api/platform-admin/session').json()['username']=='platform'
+
 
 def snapshot(id='a',note_id='n',comment_id='c'):
     return dict(account=account(id),notes=[dict(id=note_id,accountId=id,title='合成笔记',summary='正文',cover='https://example.com/image.png',url=None,publishedAt='2026-10-13',metrics=dict(likes=1,collects=2,comments=3,shares=4),mediaType='image',images=['https://example.com/image.png'],videoUrl=None,mediaAssets=[dict(id='asset-z',kind='image',index=1,sourceUrl='https://example.com/b.png',path=id+'/x/y/'+note_id+'/b.png',bytes=20,sha256='b'*64),dict(id='asset-a',kind='cover',index=0,sourceUrl='https://example.com/a.png',path=id+'/x/y/'+note_id+'/a.png',bytes=10,sha256='a'*64)])],comments=[dict(id=comment_id,accountId=id,noteId=note_id,author='合成客户',avatar='',body='咨询',status='pending',tags=[],createdAt='2026-10-13')],messages=[dict(id='message',accountId=id,conversationId='thread',author='合成客户',body='私信',createdAt='2026-10-13',direction='incoming')])

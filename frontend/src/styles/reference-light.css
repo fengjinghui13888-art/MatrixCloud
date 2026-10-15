@@ -1,9 +1,10 @@
+@import './product-tokens.css';
 /* Reference palette: mist-blue canvas, porcelain panels, ink-black controls. */
 :root{color-scheme:light;--glass-bg:#dce1e9;--glass-surface:rgba(248,249,251,.78);--glass-edge:rgba(255,255,255,.58);--glass-text:#151719;--glass-muted:#606770;--glass-accent:#587cba;--glass-shadow:inset 0 1px 0 #ffffffb3,0 8px 28px #35486605}
 body{background:#dce1e9;color:#151719}
 .template-library{padding:24px;border:1px solid #ffffff6b;border-radius:30px;background:#f6f8fc55;margin-bottom:24px}.template-filters{display:flex;align-items:center;gap:12px;margin:20px 0}.template-filters input{flex:1}.template-filters span{white-space:nowrap;font-size:13px;color:#667181}.template-pagination{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:22px}.template-library a{color:#42679f}.template-library .creation-images{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 @media(max-width:620px){.template-library{padding:14px}.template-filters{flex-wrap:wrap}.template-filters input{flex-basis:100%}}
-.customer-shell,.account-login{background:linear-gradient(155deg,#e4e4e3 0%,#e0e4e9 53%,#cdd8eb 100%);color:#151719}
+.customer-shell,.account-login{background:var(--matrix-canvas);color:var(--matrix-ink)}
 .customer-shell .sidebar{background:#ffffff16;border-right:1px solid #ffffff2e;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 .customer-shell .brand{color:#131718;font-weight:700}
 .customer-shell .nav-item{color:#50555d;border-radius:28px;padding-left:22px}

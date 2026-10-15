@@ -310,7 +310,7 @@ def create_app(settings=None, services=None):
         if path.startswith('/api/') or path.startswith('/mcp'):
             request.state.identity, request.state.grant = None, None
             public_release = method in ('GET','HEAD') and re.fullmatch(r'/api/connector/client/(manifest|packages/[1-9][0-9]{0,9}\.zip|installers/(windows\.exe|mac-intel\.dmg|mac-arm64\.dmg))',path)
-            exempt = bool(public_release) or path.startswith('/api/auth/') or path == '/api/health' or path in ('/api/connector/register', '/api/connector/heartbeat')
+            exempt = bool(public_release) or path.startswith(('/api/auth/','/api/platform-admin/')) or path == '/api/health' or path in ('/api/connector/register', '/api/connector/heartbeat')
             if not exempt:
                 token = request.headers.get('authorization', '').removeprefix('Bearer ')
                 if token and hmac.compare_digest(token, runtime.token):
@@ -424,6 +424,8 @@ def create_app(settings=None, services=None):
         return release_file('installers/'+filename,'application/octet-stream')
     from .maintenance import install_maintenance_routes
     install_maintenance_routes(app, settings)
+    from .platform_admin import install_admin_routes
+    install_admin_routes(app,runtime)
     from .mcp_server import install_mcp
     install_mcp(app, runtime)
     return app
