@@ -742,7 +742,9 @@ async def dispatch(request, runtime, body):
             accounts = [a for a in accounts if a['id'] == account_id]
             if not accounts:
                 return message('账号不存在，请重新选择', 404)
-        leads = [lead | {'followUps': store.list_follow_ups(lead['id'])} for lead in store.list_leads(filtered)]
+        leads = store.list_leads(filtered)
+        follow_ups=store.follow_ups_by_lead(lead['id'] for lead in leads)
+        leads = [lead | {'followUps': follow_ups[lead['id']]} for lead in leads]
         comments = store.list_comments(filtered)
         if role == 'lead_viewer':
             account_ids, comment_ids = {l['accountId'] for l in leads}, {l['sourceCommentId'] for l in leads}

@@ -152,6 +152,13 @@ class Store:
     def list_follow_ups(self, lead_id):
         return [row for row in self._list('followUps') if row['leadId'] == lead_id]
 
+    def follow_ups_by_lead(self, lead_ids):
+        grouped={identifier:[] for identifier in lead_ids}
+        if grouped:
+            for row in self._list('followUps'):
+                if row['leadId'] in grouped:grouped[row['leadId']].append(row)
+        return grouped
+
     def get_comment(self, id):
         return next((row for row in self.list_comments() if row['id'] == id), None)
 
