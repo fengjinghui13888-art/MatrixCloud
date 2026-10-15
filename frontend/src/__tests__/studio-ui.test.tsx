@@ -14,7 +14,7 @@ test('retains original reference controls and submits a twelve image creation wi
  expect(calls.some(c=>c.path==='costs')).toBe(false);
 });
 test('failed text offers continuation on the same task and asynchronous copy populates the editor',async()=>{
- let task={id:'failed',revision:2,status:'generation_failed',topic:'实拍素材',title:'',body:'',tags:[],images:[],message:'文案生成失败',imageCount:1};
+ let task={id:'failed',accountId:'a',revision:2,status:'generation_failed',topic:'实拍素材',title:'',body:'',tags:[],images:[],message:'文案生成失败',imageCount:1};
  const calls:string[]=[];
  const request=async(path:string)=>{calls.push(path);if(path==='studio')return [task];if(path==='models')return {};if(path==='studio/failed/resume?async=1'){task={...task,revision:3,status:'generating'};return task;}return null;};
  render(<OneClickPublish accounts={[{id:'a',name:'账号',handle:'a',profile:'local:a',avatar:'',state:'connected' as const,followers:0,lastSyncedAt:''}]} request={request}/>);
@@ -92,14 +92,16 @@ test.each([
  else {expect(action).toBeDisabled();fireEvent.click(action);expect(requests).toHaveLength(0);}
  if(executionStartedAt||['filled','published','pending_confirmation'].includes(status))expect(screen.getByLabelText('正文')).toBeDisabled();
 });
-test('saved task uses one action to synchronize every connected account',async()=>{
+test('saved task synchronizes multiple accounts only after explicitly selecting them',async()=>{
  const saved={id:'saved',accountId:'a',revision:8,status:'filled',title:'已保存任务',body:'正文',tags:[],images:[],imageCount:1,message:'已保存'};
  const accounts=['a','b'].map(id=>({id,name:`账号${id}`,handle:id,profile:`local:${id}`,avatar:'',state:'connected' as const,followers:0,lastSyncedAt:''}));
  const requests: {path:string;body:any}[]=[];
  render(<OneClickPublish accounts={accounts} request={async(path,body)=>{if(body)requests.push({path,body});return path==='studio'?[saved]:path==='models'?{}:{tasks:[saved],repeatedUpload:true};}}/>);
  fireEvent.click(await screen.findByRole('button',{name:saved.title}));
  const action=screen.getByRole('button',{name:'保存到小红书草稿'});
- expect(screen.getByText('同步范围：全部已连接账号（2）')).toBeInTheDocument();
+ expect(screen.getByText('同步范围：已选择 1 个账号')).toBeInTheDocument();
+ fireEvent.click(screen.getByRole('checkbox',{name:'保存到 账号b'}));
+ expect(screen.getByText('同步范围：已选择 2 个账号')).toBeInTheDocument();
  expect(action).toBeEnabled();
  fireEvent.click(action);fireEvent.click(action);
  await waitFor(()=>expect(requests).toMatchObject([{path:'studio/saved/dispatch',body:{accountIds:['a','b'],revision:8,requestId:expect.any(String)}}]));

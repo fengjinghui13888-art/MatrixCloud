@@ -6,7 +6,34 @@ from connector.sync import SyncExecutor
 from connector.jobs import JobManager
 from app.sync import WorkspaceExecution
 from app.gateway import ExecutionGrants
+from app.gateway import ConnectorError
 from connector.files import atomic_json
+
+
+@pytest.mark.asyncio
+async def test_orphan_sync_lease_requires_device_confirmed_stop_and_never_releases_studio(tmp_path):
+    account=dict(id='a',name='Synthetic',handle='42',profile='local:a')
+    confirmed=False;calls=[]
+    class Channel:
+        def binding(self,*args):return 'device'
+        async def json(self,workspace,device,method,path):
+            calls.append(path)
+            if path.endswith('/result'):raise ConnectorError(404,'no checkpoint')
+            return dict(status='blocked',stopConfirmed=confirmed)
+    scope=SimpleNamespace(root=tmp_path,workspace='fixture',store=SimpleNamespace(list_accounts=lambda:[account]))
+    execution=WorkspaceExecution(scope,Channel(),ExecutionGrants(),'')
+    id='c9014397-9dd5-4daa-8f84-4918408414fd'
+    execution.jobs[id]=dict(id=id,accountId='a',profile='local:a',status='blocked',startedAt='2026-10-15T00:00:00Z')
+    execution.lease('42',id,'local:a')
+    assert not await execution.reconcile_stopped_sync(account)
+    assert execution.busy(account)
+    confirmed=True
+    assert await execution.reconcile_stopped_sync(account)
+    assert not execution.busy(account)
+    execution.lease('42','unknown-studio-task','local:a')
+    before=len(calls)
+    assert not await execution.reconcile_stopped_sync(account)
+    assert execution.busy(account) and len(calls)==before
 
 
 @pytest.mark.asyncio

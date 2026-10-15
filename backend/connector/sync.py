@@ -10,6 +10,7 @@ from .browser import CREATOR,WEB,until,profile_lock
 from .content import extract_content,needs_note_detail,verified_incremental_note_ownership
 from .files import atomic_json
 from .media import archive_media
+from .note_listing import collect_note_pages,LIST_STATE,ADVANCE_LIST
 
 def relevant(path):
     return bool(re.match(r'^/api/galaxy/(user/info|.*note/user/posted)',path) or re.match(r'^/api/sns/web/v\d+/(user/(?:me|selfinfo)|feed|comment/|you/mentions)',path) or re.match(r'^/api/im/web/(v3/chats$|chats/group$|messages/history$)',path))
@@ -48,7 +49,7 @@ class SyncCollector:
     """Ownership filtering is independent of navigation and never trusts public feeds."""
     def __init__(self,target,known_notes=None,known_comments=None,known_messages=None,mode=None):
         self.target=target; self.known_notes=known_notes or []; self.known_comments=set(known_comments or []); self.known_messages=set(known_messages or []); self.mode=mode
-        self.records=[]; self.owned={}; self.notes={}; self.comments={}; self.messages={}; self.peers={}; self.chats={}; self.creator=None; self.web=None; self.stored_ownership=set(); self.stored_ready=False
+        self.records=[]; self.consumed=0; self.owned={}; self.notes={}; self.comments={}; self.messages={}; self.peers={}; self.chats={}; self.creator=None; self.web=None; self.stored_ownership=set(); self.stored_ready=False
         self.previous={n['id']:n for n in self.known_notes}; self.known={n['id'] for n in self.known_notes if not needs_note_detail(n)}
     def record(self,r):
         self.records.append(r); path=r['path']; data=r['body'].get('data',{})
@@ -82,17 +83,19 @@ class SyncCollector:
         if not self.assert_web():return
         if not self.stored_ready:
             self.stored_ownership=verified_incremental_note_ownership(self.mode,self.target,self.known_notes,self.creator,self.web); self.stored_ready=True
-        for r in self.records:
+        incoming=self.records[self.consumed:]
+        for r in incoming:
             if r['path'].endswith('/chats'):
                 for chat in r['body'].get('data',{}).get('chats',[]):
                     if str(chat.get('user_id'))!=str(self.creator['userId']):continue
                     peer=chat.get('chat_user_id')
                     if not peer:continue
                     self.chats[peer]=chat; info=chat.get('info',{}); self.peers[peer]=info.get('nickname') or info.get('user_name') or peer
-        for r in self.records:
+        for r in incoming:
             if not re.search(r'/comment/|/you/mentions$|/messages/history$',r['path']):continue
             query=parse_qs(urlsplit(r['url']).query); context=dict(noteId=(query.get('note_id') or [None])[0],selfId=self.creator['userId'],selfName=self.target['name'],peers=self.peers)
             self.merge(extract_content(r['body'],self.target['id'],context))
+        self.consumed=len(self.records)
     def snapshot(self):
         return dict(account=self.target,notes=list(self.notes.values()),comments=list(self.comments.values()),messages=sorted(self.messages.values(),key=lambda m:m['createdAt']))
 
@@ -137,10 +140,16 @@ class SyncExecutor:
                     connection.page=page; await connection.check(); network.check(); await connection.pace(); network.check()
                 async def navigate(page,url):
                     await step(page); await page.bring_to_front(); await page.goto(url,wait_until='domcontentloaded')
-                async def drain():await network.flush(); collector.consume()
+                async def drain():
+                    await network.flush(); collector.consume()
+                    # Persist comments/messages as each page arrives, including
+                    # before cancellation or a later conversation times out.
+                    await checkpoint()
                 def records(pattern,note_id=None):
                     return [r for r in collector.records if re.search(pattern,r['path']) and (note_id is None or (parse_qs(urlsplit(r['url']).query).get('note_id') or [None])[0]==note_id)]
                 async def wait_more(pattern,before,timeout=3.5,note_id=None):
+                    # Navigation or a click may already have delivered the
+                    # response; never wait the full timeout for a second copy.
                     async def read():await network.flush(); return len(records(pattern,note_id))
                     return await until(read,lambda n:n>before,timeout)
                 creator=connection.page
@@ -155,17 +164,25 @@ class SyncExecutor:
                 visible_identity=await connection.evaluate(dom.expression(dom.READIDENTITY)); followers=visible_identity.get('followers') if isinstance(visible_identity,dict) else None
                 await report('notes','账号已核对，正在读取完整笔记列表'); await navigate(creator,CREATOR+'/new/note-manager')
                 await wait_more(r'/note/user/posted$',0,12); await drain()
-                for page_index in range(50):
-                    batches=records(r'/note/user/posted$'); last=batches[-1]['body'].get('data',{}) if batches else {}; page_notes=last.get('notes',[])
-                    if collector.known and page_notes and all(n.get('id') in collector.known for n in page_notes):coverage['notes']=f'已检查到已有内容，共 {len(collector.owned)} 篇'; break
-                    total=next((t.get('notes_count') for t in last.get('tags',[]) if t.get('id')=='special.note_time_desc'),None)
-                    if last and (last.get('page')==-1 or last.get('has_more') is False or isinstance(total,(int,float)) and len(collector.owned)>=total):coverage['notes']=f'已核对笔记列表末尾，共 {len(collector.owned)} 篇'; break
-                    await step(creator); next_button=creator.get_by_role('button',name=re.compile('下一页|Next',re.I))
-                    if await next_button.count()==1 and await next_button.is_enabled():await next_button.click()
-                    else:await creator.mouse.wheel(0,1600)
-                    before=len(batches); after=await wait_more(r'/note/user/posted$',before); await drain()
-                    if after==before:coverage['notes']=f'读取 {len(collector.owned)} 篇，尚未核对分页末尾'; break
-                else:coverage['notes']=f'读取 {len(collector.owned)} 篇，达到本次分页上限，尚未核对末尾'
+                async def listing_state():
+                    state=await creator.evaluate(LIST_STATE)
+                    batches=records(r'/note/user/posted$')
+                    totals=[]
+                    for batch in batches:
+                        data=batch['body'].get('data',{})
+                        totals.extend(v for k,v in data.items() if k in ('total','total_count','notes_count') and type(v) is int)
+                        totals.extend(t['notes_count'] for t in data.get('tags',[]) if t.get('id')=='special.note_time_desc' and type(t.get('notes_count')) is int)
+                    if totals:state['total']=max([state.get('total') or 0,*totals])
+                    state['batches']=[dict(count=len(b['body'].get('data',{}).get('notes',[])),page=b['body'].get('data',{}).get('page'),hasMore=b['body'].get('data',{}).get('has_more')) for b in batches]
+                    return state
+                async def advance_listing():
+                    before=len(records(r'/note/user/posted$'))
+                    await step(creator);await creator.evaluate(ADVANCE_LIST)
+                    await wait_more(r'/note/user/posted$',before,6)
+                async def listing_report(message):await report('notes',message)
+                listing=await collect_note_pages(collector.owned,listing_state,advance_listing,drain,listing_report)
+                atomic_json(self.root/'sync-jobs'/job_id/'listing.json',listing)
+                coverage['notes']=f'已读取笔记列表 {len(collector.owned)}'+(f'/{listing["total"]}' if listing.get('total') else '')+' 篇；'+('已核对列表末尾' if listing['complete'] else '尚未核对列表末尾，可继续补全')
                 await checkpoint()
                 web=next((p for p in context.pages if p.url.startswith(WEB+'/')),None)
                 if web is None:web=await context.new_page()
@@ -180,13 +197,6 @@ class SyncExecutor:
                 if not logged_in:coverage['comments']=coverage['messages']='网页版尚未登录，请在已打开的该账号窗口扫码后重新同步'
                 else:
                     await wait_more(r'/you/mentions$',0,6); await drain()
-                    for i in range(50):
-                        batches=records(r'/you/mentions$'); last=batches[-1]['body'].get('data',{}) if batches else {}
-                        if last.get('has_more') is False:break
-                        before=len(batches); await step(web); await web.mouse.wheel(0,1600); after=await wait_more(r'/you/mentions$',before,2.5); await drain()
-                        latest=records(r'/you/mentions$')
-                        if input.get('mode')=='incremental' and latest and any(c['id'] in collector.known_comments for c in extract_content(latest[-1]['body'],target['id'])['comments']):break
-                        if after==before:break
                     complete=0
                     for id,n in list(collector.owned.items()):
                         if id in collector.known:continue
@@ -199,6 +209,8 @@ class SyncExecutor:
                             if str(detail.get('user',{}).get('userId'))!=str(collector.creator['userId']):raise ValueError('详情作者不匹配')
                             collector.merge(extract_content(detail,target['id'])); complete+=1; await checkpoint()
                             await wait_more(r'/comment/',0,2,id); await drain()
+                            comment_count=detail.get('interactInfo',{}).get('commentCount')
+                            if str(comment_count)=='0':continue
                             for i in range(30):
                                 batches=records(r'/comment/',id); last=batches[-1]['body'].get('data',{}) if batches else {}
                                 if last.get('has_more') is False:break
@@ -210,6 +222,17 @@ class SyncExecutor:
                         except Exception as exc:
                             network.check(); detail_errors.append(dict(noteId=id,error=re.sub(r'https?://\S+','[地址省略]',str(exc).split('\n')[0])))
                     coverage['notes']+=f'；已读取 {complete}/{len(collector.owned)} 篇正文与媒体详情'
+                    # Finish note bodies before spending time paging through
+                    # historical notifications and long message conversations.
+                    await report('comments','正文已读取，正在补全评论通知历史')
+                    await navigate(web,WEB+'/notification'); await drain()
+                    for i in range(50):
+                        batches=records(r'/you/mentions$'); last=batches[-1]['body'].get('data',{}) if batches else {}
+                        if last.get('has_more') is False:break
+                        before=len(batches); await step(web); await web.mouse.wheel(0,1600); after=await wait_more(r'/you/mentions$',before,2.5); await drain()
+                        latest=records(r'/you/mentions$')
+                        if input.get('mode')=='incremental' and latest and any(c['id'] in collector.known_comments for c in extract_content(latest[-1]['body'],target['id'])['comments']):break
+                        if after==before:break
                     mentions=records(r'/you/mentions$'); reached=bool(mentions and mentions[-1]['body'].get('data',{}).get('has_more') is False)
                     coverage['comments']=f'已收录 {len(collector.comments)} 条评论；'+('通知到达末尾' if reached else '通知历史未到末尾')+'；评论回复完整性仍需逐笔核验'
                     await report('messages','正在逐个打开私信会话并读取历史消息'); before=len(records(r'/v3/chats$')); await navigate(web,WEB+'/chat'); await wait_more(r'/v3/chats$',before,6); await drain()

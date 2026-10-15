@@ -8,6 +8,7 @@ test('reviewed content stays editable and never presents an automatic publish ac
   fireEvent.click(await screen.findByRole('button',{name:'轻装通勤'}));
   expect(screen.getByLabelText('正文')).toHaveValue('生成正文');
   expect(screen.getByAltText('生成配图 1')).toHaveAttribute('src','https://example.com/generated.png');
-  expect(screen.getByRole('button',{name:'保存到小红书草稿'})).toBeEnabled();
+  expect(screen.getByRole('button',{name:'保存到小红书草稿'})).toBeDisabled();
+  expect(screen.getByText('请勾选至少一个要保存草稿的账号。')).toBeInTheDocument();
   expect(screen.queryByRole('button',{name:'发布到小红书'})).not.toBeInTheDocument();
 });

@@ -1,4 +1,4 @@
-"""One desktop queue shared by login, synchronization and draft execution."""
+"""Bounded desktop workers, isolated by browser profile; one writer per account."""
 from __future__ import annotations
 import asyncio
 import time
@@ -15,7 +15,7 @@ class JobManager:
     def __init__(self,root:Path,*,sync_executor=None,studio_executor=None,allowed_base='',max_pending=10):
         self.root=Path(root); self.sync_executor=sync_executor; self.studio_executor=studio_executor
         self.allowed_base=allowed_base; self.max_pending=max_pending; self.now=time.time
-        self.pending=deque(); self.active=None; self.worker=None; self.active_task=None
+        self.pending=deque(); self.active={}; self.worker=None; self.changed=asyncio.Event()
         self.profile_jobs={}; self.state_lock=asyncio.Lock(); self.closed=False
         self.login_owner=None; self.login_released=asyncio.Event(); self.login_released.set()
     def busy(self): return bool(self.active or self.pending or self.login_owner)
@@ -31,7 +31,7 @@ class JobManager:
     def get(self,kind,id):
         state=read_json(self.path(kind,id))
         if state is None: return None
-        owned=self.active and self.active[0:2]==(kind,id) or any(item[0:2]==(kind,id) for item in self.pending)
+        owned=(kind,id) in self.active or any(item[0:2]==(kind,id) for item in self.pending)
         if state.get('status') in ('queued','running','stopping') and not owned:
             state.update(status='blocked',stopConfirmed=True,retrySafe=False,message='执行设备重启，原稿已保留；请在原电脑核对草稿，勿重复上传')
             atomic_json(self.path(kind,id),state)
@@ -61,6 +61,7 @@ class JobManager:
             if kind=='studio': state.update({k:input[k] for k in ('runId','taskId','startedAt')})
             else: atomic_json(self.root/'sync-jobs'/id/'input.json',input)
             atomic_json(self.path(kind,id),state); self.pending.append((kind,id,profile,input)); self.profile_jobs[profile]=id
+            self.changed.set()
             if self.worker is None or self.worker.done(): self.worker=asyncio.create_task(self._pump())
             return state
     async def progress(self,kind,id,patch):
@@ -72,7 +73,7 @@ class JobManager:
         executor=self.sync_executor if kind=='sync' else self.studio_executor
         if executor is None: raise ValueError('浏览器执行环境未配置')
         async def progress(patch): return await self.progress(kind,id,patch)
-        timeout=8*60 if kind=='sync' else 11*60-(self.now()-datetime.fromisoformat(input['startedAt'].replace('Z','+00:00')).timestamp())
+        timeout=17*60 if kind=='sync' else 11*60-(self.now()-datetime.fromisoformat(input['startedAt'].replace('Z','+00:00')).timestamp())
         if timeout<=0: raise ValueError('草稿排队超时，未开始上传，请稍后重试')
         guard=ExecutionGuard(self.root,profile)
         async def watch_lease():
@@ -81,7 +82,9 @@ class JobManager:
         watchdog=asyncio.create_task(watch_lease()); execution=asyncio.create_task(executor({**input,'_jobId':id} if kind=='sync' else input,progress))
         try:
             done,_=await asyncio.wait((execution,watchdog),timeout=timeout,return_when=asyncio.FIRST_COMPLETED)
-            if not done: raise ResultUnknown('执行超时，原稿已保留，请核对草稿，勿重复上传')
+            if not done:
+                if kind=='sync':raise ValueError('同步达到本次时间上限，已读取内容保留，请再次同步继续补全')
+                raise ResultUnknown('执行超时，原稿已保留，请核对草稿，勿重复上传')
             if watchdog in done: await watchdog
             result=await execution
             if kind=='sync' and result is not None: await self.checkpoint(id,result)
@@ -89,31 +92,39 @@ class JobManager:
         finally:
             execution.cancel(); watchdog.cancel(); await asyncio.gather(execution,watchdog,return_exceptions=True)
     async def _pump(self):
-        while self.pending and not self.closed:
-            await self.login_released.wait()
-            if self.closed: break
-            kind,id,profile,input=self.pending.popleft(); self.active=(kind,id,profile,input)
+        while self.pending or self.active:
+            self.changed.clear()
+            if self.pending and not self.closed:
+                await self.login_released.wait()
+                while self.pending and len(self.active)<2 and not self.closed:
+                    item=self.pending.popleft();kind,id,profile,input=item
+                    task=asyncio.create_task(self._run_one(kind,id,profile,input))
+                    self.active[(kind,id)]=(item,task)
+            if self.pending or self.active:await self.changed.wait()
+
+    async def _run_one(self,kind,id,profile,input):
+        try:
             await self.progress(kind,id,dict(status='running',message='执行设备正在核对账号',queuePosition=0))
-            try:
-                self.active_task=asyncio.create_task(self._execute(kind,id,profile,input)); result=await self.active_task
-                await self.progress(kind,id,dict(status='complete',stage='finished',stopConfirmed=True,finishedAt=timestamp(),message='执行设备任务已完成',retrySafe=False))
-            except asyncio.CancelledError:
-                await self.progress(kind,id,dict(status='cancelled',stage='blocked',stopConfirmed=True,retrySafe=False,finishedAt=timestamp(),message='停止已确认；原页面已保留，请核对草稿，勿重复上传'))
-            except Exception as exc:
-                state=read_json(self.path(kind,id),{})
-                await self.progress(kind,id,dict(status='blocked',stage='blocked',stopConfirmed=True,retrySafe=not state.get('uploadAttempted',False) and not isinstance(exc,ResultUnknown),finishedAt=timestamp(),message=safe_execution_error(exc).split('\n')[0][:500]))
-            finally:
-                self.profile_jobs.pop(profile,None); self.active=None; self.active_task=None
+            await self._execute(kind,id,profile,input)
+            await self.progress(kind,id,dict(status='complete',stage='finished',stopConfirmed=True,finishedAt=timestamp(),message='执行设备任务已完成',retrySafe=False))
+        except asyncio.CancelledError:
+            await self.progress(kind,id,dict(status='cancelled',stage='blocked',stopConfirmed=True,retrySafe=False,finishedAt=timestamp(),message='停止已确认；原页面已保留，请核对草稿，勿重复上传'))
+        except Exception as exc:
+            state=read_json(self.path(kind,id),{})
+            await self.progress(kind,id,dict(status='blocked',stage='blocked',stopConfirmed=True,retrySafe=not state.get('uploadAttempted',False) and not isinstance(exc,ResultUnknown),finishedAt=timestamp(),message=safe_execution_error(exc).split('\n')[0][:500]))
+        finally:
+            self.profile_jobs.pop(profile,None); self.active.pop((kind,id),None); self.changed.set()
     async def cancel(self,kind,id):
         state=self.get(kind,id)
         if state is None: return None
         for item in list(self.pending):
             if item[:2]==(kind,id):
                 self.pending.remove(item); self.profile_jobs.pop(item[2],None)
+                self.changed.set()
                 return await self.progress(kind,id,dict(status='cancelled',message='排队任务已移除',stopConfirmed=True))
-        if self.active and self.active[:2]==(kind,id):
+        if (kind,id) in self.active:
             state=await self.progress(kind,id,dict(status='stopping',message='停止尚未确认，请勿重复保存草稿',stopConfirmed=False))
-            if self.active_task: self.active_task.cancel()
+            self.active[(kind,id)][1].cancel()
         return state
     async def wait_idle(self):
         if self.worker: await asyncio.gather(self.worker,return_exceptions=True)
@@ -121,7 +132,8 @@ class JobManager:
         self.closed=True
         if self.login_owner: self.release_login(self.login_owner)
         for item in list(self.pending): await self.cancel(item[0],item[1])
-        if self.active: await self.cancel(self.active[0],self.active[1])
+        for kind,id in list(self.active):await self.cancel(kind,id)
+        self.changed.set()
         await self.wait_idle()
     def media_path(self,id,asset_id):
         snapshot=read_json(self.root/'sync-jobs'/id/'result.json',{})

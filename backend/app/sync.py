@@ -134,6 +134,29 @@ class WorkspaceExecution:
             return self.durable.running(account_id)
         return any(j['accountId'] == account_id and j['status'] == 'running' for j in self.jobs.values())
 
+    async def reconcile_stopped_sync(self, account):
+        lease = self.leases.get(account['handle'].lower())
+        if not lease or lease['id'] in self.workers:
+            return False
+        job = self.status(lease['id'])
+        # Studio/unknown leases can contain an unconfirmed upload. Never
+        # release those through read-only synchronization recovery.
+        if not job or job['accountId'] != account['id'] or job['profile'] != account['profile']:
+            return False
+        device = self.channel.binding(self.workspace, account['profile'])
+        state = await self.channel.json(self.workspace, device, 'GET', '/sync/' + job['id'])
+        if state.get('status') not in ('complete','blocked','cancelled') or state.get('stopConfirmed') is not True:
+            return False
+        try:
+            result = await self.channel.json(self.workspace, device, 'GET', '/sync/' + job['id'] + '/result')
+            self.save_snapshot(result.get('snapshot',result),account,device,strip_media=True)
+        except ConnectorError as error:
+            if error.status != 404:
+                raise
+        await self.update(job['id'],dict(status='blocked',stopConfirmed=True,stage='blocked',message='上次同步已停止，已读取记录已保留，可以重新同步。',finishedAt=stamp()))
+        self.release(job['id'])
+        return True
+
     def status(self, identifier):
         if self.durable:
             return self.durable.read(identifier)
@@ -179,6 +202,8 @@ class WorkspaceExecution:
                 raise ConnectorError(409, '该账号尚未完成连接，请先扫码登录')
             if options.get('source') == 'event' and account['handle'] != options.get('expectedHandle'):
                 raise ConnectorError(409, '事件的原账号绑定已改变')
+            if self.busy(account):
+                await self.reconcile_stopped_sync(account)
             active = next((j for j in self.jobs.values() if j['accountId'] == account_id and j['status'] == 'running'), None)
             if active:
                 return active
@@ -345,6 +370,8 @@ class WorkspaceExecution:
             account = self.account(account_id) if account_id else None
             if account_id and not account:
                 raise ConnectorError(400, '目标账号不存在')
+            if account and self.busy(account):
+                await self.reconcile_stopped_sync(account)
             if account and (self.busy(account) or self.running(account_id)):
                 raise ConnectorError(409, '此账号正在执行任务，请先停止同步，再换电脑登录')
             for path in (self.scope.root / 'local-logins').glob('*.json'):

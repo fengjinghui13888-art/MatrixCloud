@@ -59,3 +59,10 @@
 
 .studio-publish-account-list{margin:10px 0;color:#172033;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
 .studio-publish-targets span{font-size:13px;color:#687587}
+.studio-account-choices{border:0;padding:0;margin:18px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;min-width:0}
+.studio-account-choices legend{font-size:13px;font-weight:600;margin-bottom:10px;color:#465264}
+.studio-shell .studio-account-choices label{display:flex;align-items:center;gap:12px;border:1px solid #dce2e9;border-radius:12px;background:#fff;padding:14px;margin:0;cursor:pointer;min-width:0}
+.studio-account-choices label:has(input:checked){border-color:#111;background:#f1f3f5}
+.studio-account-choices input{width:18px!important;height:18px!important;margin:0;flex:0 0 18px;accent-color:#111}
+.studio-account-choices label span{display:grid;gap:4px;overflow-wrap:anywhere;min-width:0}
+.studio-account-choices small{color:#687587;font-size:12px}

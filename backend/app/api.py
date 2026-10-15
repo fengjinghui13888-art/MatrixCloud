@@ -76,6 +76,9 @@ class ApiRuntime:
     def workspace(self, name):
         if name not in self.workspaces:
             scope = self.services.for_workspace(name)
+            for task in scope.studio.list():
+                if task.get('waitingForSync') and not task.get('executionRunId'):
+                    scope.studio.update(task['id'],task['revision'],dict(status='blocked',waitingForSync=False,message='服务重启中断了草稿排队，尚未上传；请重新点击保存。'))
             execution = WorkspaceExecution(scope, self.channel, self.grants, self.settings.public_origin, self.settings.data_dir / 'browser-runs.sqlite')
             events = EventSync(execution)
             self.workspaces[name] = (scope, execution, events)
@@ -157,15 +160,50 @@ class ApiRuntime:
         callback = self.settings.public_origin
         if not callback.startswith('https://') and urlsplit(callback).hostname not in ('127.0.0.1', 'localhost', '::1'):
             raise ConnectorError(409, '客户执行通道尚未配置安全访问地址')
+        if execution.busy(account):
+            await execution.reconcile_stopped_sync(account)
+        if execution.running(account['id']):
+            task = scope.studio.update(task['id'], task['revision'], dict(waitingForSync=True, message='此账号正在同步内容，草稿已排队；同步结束后将自动打开窗口保存。'))
+            worker = asyncio.create_task(self._studio_after_sync(scope, execution, task, request))
+            self.studio_workers[task['id']] = worker
+            worker.add_done_callback(lambda done: self.studio_workers.pop(task['id'], None) if self.studio_workers.get(task['id']) is done else None)
+            return task
         execution.lease(account['handle'], task['id'], account['profile'])
         run = str(uuid.uuid4())
-        task = scope.studio.update(task['id'], task['revision'], dict(executionRunId=run, executionStartedAt=stamp(), message='正在自动同步到小红书草稿'))
+        task = scope.studio.update(task['id'], task['revision'], dict(waitingForSync=False, executionRunId=run, executionStartedAt=stamp(), message='正在自动同步到小红书草稿'))
         validate = lambda: self.services.auth.active(scope.workspace) and self.pairing.device_by_id(device, scope.workspace)['revokedAt'] is None and execution.account(account['id']) is not None and execution.account(account['id'])['profile'] == account['profile'] and self.channel.binding(scope.workspace, account['profile']) == device
         token = self.grants.issue(scope.workspace, task_id=task['id'], account_id=account['id'], profile=account['profile'], device_id=device, run_id=run, validate=validate)
         worker = asyncio.create_task(self._studio_monitor(scope, execution, task, device, token))
         self.studio_workers[task['id']] = worker
-        worker.add_done_callback(lambda _: self.studio_workers.pop(task['id'], None))
+        worker.add_done_callback(lambda done: self.studio_workers.pop(task['id'], None) if self.studio_workers.get(task['id']) is done else None)
         return task
+
+    async def _studio_after_sync(self, scope, execution, task, request):
+        try:
+            deadline = time.monotonic() + 19 * 60
+            while time.monotonic() < deadline:
+                current = scope.studio.get(task['id'])
+                if current['status'] != 'approved' or not current.get('waitingForSync'):
+                    return
+                account = execution.account(task['accountId'])
+                if not account:
+                    raise ConnectorError(409, '目标账号已移除，未执行草稿上传')
+                if execution.busy(account):
+                    await execution.reconcile_stopped_sync(account)
+                if not execution.running(account['id']) and not execution.busy(account):
+                    if not self.services.auth.active(scope.workspace):
+                        raise ConnectorError(403, '工作区已停用，未执行草稿上传')
+                    self.studio_workers.pop(task['id'], None)
+                    await self.start_studio(current, request)
+                    return
+                await asyncio.sleep(1)
+            raise ConnectorError(409, '此账号同步尚未结束，草稿排队已结束；内容保留，请稍后重新保存。')
+        except asyncio.CancelledError:
+            return
+        except Exception as error:
+            current = scope.studio.get(task['id'])
+            if current.get('waitingForSync') and not current.get('executionRunId'):
+                scope.studio.update(task['id'], current['revision'], dict(status='blocked', waitingForSync=False, message=str(error)))
 
     async def _studio_monitor(self, scope, execution, task, device, token):
         started, failures = time.monotonic(), 0
@@ -960,7 +998,7 @@ async def studio_dispatch(request, runtime, scope, execution, body):
     if action == 'edit':
         strict(body, ('revision', 'title', 'body', 'tags'), ('revision', 'title', 'body', 'tags'))
         check_copy(body)
-        if task['status'] not in ('review', 'approved', 'rejected', 'generation_failed') or task.get('executionStartedAt'):
+        if task['status'] not in ('review', 'approved', 'rejected', 'generation_failed') or task.get('executionStartedAt') or task.get('waitingForSync'):
             raise ConnectorError(409, '当前任务不可修改，请先核对执行结果')
         return JSONResponse(studio.update(task['id'], positive_revision(body), {key: body[key] for key in ('title', 'body', 'tags')} | dict(status='review' if len(task['images']) == task['imageCount'] else 'generation_failed', approvedRevision=None, message='修改已保存，需重新审核')))
     if action == 'review':
@@ -1022,6 +1060,11 @@ async def studio_dispatch(request, runtime, scope, execution, body):
             execution.release(task['id'])
         return JSONResponse(result)
     if action == 'cancel':
+        if task.get('waitingForSync') and not task.get('executionRunId'):
+            worker = runtime.studio_workers.get(task['id'])
+            if worker:
+                worker.cancel()
+            return JSONResponse(studio.update(task['id'],task['revision'],dict(status='blocked',waitingForSync=False,message='草稿排队已取消，尚未上传；账号内容同步继续运行。')))
         if task['status'] in ('generating', 'generation_failed') and not task.get('executionRunId'):
             result = studio.update(task['id'], task['revision'], dict(status='blocked', message='图文生成已取消，已保存内容保留；尚未执行平台草稿操作。'))
             generation = getattr(runtime, 'generation_tasks', {}).get((scope.workspace, task['id']))
@@ -1068,7 +1111,7 @@ async def studio_dispatch(request, runtime, scope, execution, body):
         device = await runtime.execution_device(request)
         if any(runtime.channel.binding(scope.workspace, a['profile']) != device for a in accounts):
             raise ConnectorError(409, '目标账号尚未在所选电脑登录')
-        if task['status']=='review':
+        if task['status']=='review' and task['accountId'] in targets:
             task=studio.update(task['id'],task['revision'],dict(status='approved',approvedRevision=task['revision'],executionStartedAt=None,message='已核对图文，正在打开执行电脑的小红书并保存草稿'))
         tasks = []
         repeated = task['status']=='filled'
