@@ -22,6 +22,16 @@ async function openAccounts(){render(<GreyApp/>);await screen.findByText('已同
 const card=(name:string)=>within(screen.getByRole('heading',{name,level:3}).closest('section')!);
 afterEach(()=>{cleanup();vi.useRealTimers();vi.unstubAllGlobals();vi.restoreAllMocks();});
 
+test('closing the account window reports failure and enables start sync again',async()=>{
+ let finish:((value:Response)=>void)|undefined;
+ fixture(path=>path==='/api/accounts/j/sync/latest'?response({id:'job-j',accountId:'j',status:'running',stage:'notes'}):path==='/api/accounts/j/sync/job-j'?new Promise<Response>(resolve=>{finish=resolve;}):undefined);
+ await openAccounts();
+ await waitFor(()=>expect(card('JINGHUI').getByRole('button',{name:'同步中…'})).toBeDisabled());
+ await act(async()=>finish?.(response({id:'job-j',accountId:'j',status:'blocked',stopConfirmed:true,message:'同步失败：小红书窗口已关闭，请点击开始同步重试'})));
+ expect(card('JINGHUI').getByRole('status')).toHaveTextContent('同步失败：小红书窗口已关闭');
+ expect(card('JINGHUI').getByRole('button',{name:'开始同步'})).toBeEnabled();
+});
+
 test('binds a second-account submission failure to that account while preserving the first result',async()=>{
  fixture(path=>path==='/api/accounts/j/sync'?response({id:'job-j',accountId:'j',status:'complete',counts:{notes:2}}):path==='/api/accounts/f/sync'?response({message:'执行电脑拒绝本次同步请求'},409):undefined);
  await openAccounts();fireEvent.click(screen.getByRole('button',{name:'同步全部账号'}));

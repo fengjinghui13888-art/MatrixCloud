@@ -99,6 +99,25 @@ class SyncCollector:
 class SyncExecutor:
     def __init__(self,root:Path,runtime):self.root=Path(root); self.runtime=runtime
     async def __call__(self,input,progress):
+        ready=asyncio.get_running_loop().create_future();monitor=None
+        worker=asyncio.create_task(self._run(input,progress,ready))
+        try:
+            done,_=await asyncio.wait((worker,ready),return_when=asyncio.FIRST_COMPLETED)
+            if worker in done:return await worker
+            monitor=asyncio.create_task(ready.result().wait_until_window_closed())
+            done,_=await asyncio.wait((worker,monitor),return_when=asyncio.FIRST_COMPLETED)
+            if worker in done:return await worker
+            await monitor
+        except Exception as error:
+            if re.search(r'Target (?:page, context or browser has been closed|closed)|browser has been closed',str(error),re.I):
+                raise ValueError('同步失败：小红书窗口已关闭，请点击开始同步重试；已保存的内容保留。') from error
+            raise
+        finally:
+            worker.cancel()
+            if monitor:monitor.cancel()
+            await asyncio.gather(worker,*([monitor] if monitor else []),return_exceptions=True)
+
+    async def _run(self,input,progress,ready):
         target=input['target']; profile=target['profile']; job_id=input['_jobId']; connection=None; network=None
         collector=SyncCollector(target,input.get('knownNotes'),input.get('knownComments'),input.get('knownMessages'),input.get('mode')); coverage=dict(notes='未读取',comments='未读取',messages='未读取'); detail_errors=[]
         async def checkpoint():
@@ -107,6 +126,7 @@ class SyncExecutor:
         try:
             async with profile_lock(self.root.parent/'studio-locks',profile,job_id):
                 connection=await self.runtime.connect(profile,guard=True,open_creator=True); context=connection.context
+                ready.set_result(connection)
                 await connection.foreground()
                 network=NetworkCapture(context,collector.record,connection.guard)
                 async def route_guard(route):

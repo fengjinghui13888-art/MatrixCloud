@@ -129,6 +129,15 @@ class BrowserConnection:
         try: return await asyncio.wait_for(self.sessions[self.page].send(method,params or {}),15)
         except asyncio.TimeoutError as exc: raise ResultUnknown(method+' 超时，执行结果未知') from exc
     async def foreground(self): await self.page.bring_to_front()
+    async def wait_until_window_closed(self):
+        # Monitor the actual account pages, even while the collector is waiting
+        # for network responses or a pacing timer rather than touching the DOM.
+        watched=[p for p in self.context.pages if p.url.startswith(CREATOR+'/') or re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url)]
+        while not self.closed:
+            if not self.browser.is_connected() or any(p.is_closed() for p in watched):
+                raise ValueError('同步失败：小红书窗口已关闭，请点击开始同步重试；已保存的内容保留。')
+            await asyncio.sleep(.2)
+        await asyncio.Future()  # Normal collector cleanup is not a user closure.
     async def select(self,page): self.page=page; await self.cdp('Network.enable')
     async def new_page(self,url):
         await self.check(); await self.pace()
@@ -220,7 +229,10 @@ class BrowserRuntime:
     async def state(self,id):
         session=self.load(id)
         if not await self.live(session): return dict(connected=False,loggedIn=False,creatorLoggedIn=False,webLoggedIn=False,message='请点击打开小红书，并在执行电脑完成登录')
-        connection=await self.connect('local:'+id)
+        try:connection=await self.connect('local:'+id)
+        except ValueError as error:
+            if str(error)!='专属浏览器没有创作平台页面':raise
+            return dict(connected=True,loggedIn=False,creatorLoggedIn=False,webLoggedIn=False,message='账号窗口缺少创作平台页面，请点击同步恢复原窗口')
         try:
             creator=await connection.evaluate(dom.expression(dom.READCREATORIDENTITY))
             web_page=next((p for p in connection.context.pages if re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url)),None)

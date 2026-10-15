@@ -44,3 +44,18 @@ async def test_sync_connect_restores_missing_platform_tabs(tmp_path,monkeypatch)
     runtime.engine=engine
     await runtime.connect('local:qa-profile',guard=True,open_creator=True)
     assert visits==[CREATOR+'/new/home',WEB+'/explore']
+
+
+@pytest.mark.asyncio
+async def test_existing_account_window_is_reused_without_launch_or_new_tabs(tmp_path,monkeypatch):
+    runtime=BrowserRuntime(tmp_path);runtime.load=lambda _:dict(debugPort=1111)
+    async def version(_):return dict(webSocketDebuggerUrl='ws://127.0.0.1:1111/devtools/browser/a')
+    monkeypatch.setattr('connector.browser.browser_version',version)
+    def forbidden(*a):raise AssertionError('must reuse existing account window')
+    runtime.browser_launcher=forbidden
+    context=SimpleNamespace(pages=[SimpleNamespace(url=CREATOR+'/new/home'),SimpleNamespace(url=WEB+'/chat')],set_default_timeout=lambda _:None,set_default_navigation_timeout=lambda _:None,on=lambda *a:None,new_page=forbidden)
+    async def connect(url,**kwargs):return SimpleNamespace(contexts=[context])
+    async def engine():return SimpleNamespace(chromium=SimpleNamespace(connect_over_cdp=connect))
+    runtime.engine=engine
+    result=await runtime.connect('local:qa-profile',guard=True,open_creator=True)
+    assert result.page is context.pages[0]

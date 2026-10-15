@@ -145,6 +145,7 @@ def test_full_incremental_sync_preserves_known_images_and_checkpoints(tmp_path):
         context=FakeContext();creator=SyncPage(context,'https://creator.xiaohongshu.com/new/home');web=SyncPage(context,'https://www.xiaohongshu.com/chat');context.pages=[creator,web]
         class Connection:
             def __init__(self):self.page=creator;self.context=context;self.guard=ExecutionGuard(tmp_path,'local:a');self.pace=no_wait
+            async def wait_until_window_closed(self):await asyncio.Future()
             async def foreground(self):await self.page.bring_to_front()
             async def check(self):self.guard.check()
             async def evaluate(self,source):return dict(loggedIn=True,handle='42',userId='u',followers=12)

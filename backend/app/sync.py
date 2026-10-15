@@ -360,6 +360,8 @@ class WorkspaceExecution:
                     atomic_json(path, old)
             identifier = str(uuid.uuid4())
             session = hashlib.sha256((str(self.scope.root) + ':' + identifier).encode()).hexdigest()[:48]
+            if account and account['profile'].startswith('local:') and self.channel.binding(self.workspace,account['profile'])==device:
+                session=account['profile'][6:]
             name = self.channel.pairing.device_by_id(device, self.workspace)['name']
             job = dict(id=identifier, sessionId=session, accountId=account_id, expectedHandle=account['handle'] if account else None, deviceId=device, deviceName=name, status='starting', message='正在打开账号专属登录窗口', createdAt=stamp())
             atomic_json(self._login_path(identifier), job)
@@ -391,7 +393,10 @@ class WorkspaceExecution:
                 job.update(status='cancelled', message='目标账号已删除，扫码已取消')
             else:
                 handle, web_handle = str(info.get('handle', info.get('creatorHandle', ''))).strip(), str(info.get('webHandle', '')).strip()
-                if not info.get('creatorLoggedIn'):
+                if info.get('connected') is False:
+                    await self.channel.json(self.workspace,job['deviceId'],'POST','/accounts/'+job['sessionId']+'/cancel')
+                    job.update(status='failed',message='同步失败：小红书窗口已关闭，请重新点击开始同步。已保存的内容保留。')
+                elif not info.get('creatorLoggedIn'):
                     job.update(stage='creator', message='第 1 步：请在弹出的浏览器中扫码登录创作服务平台')
                 elif not info.get('webLoggedIn') or not handle or not web_handle:
                     job.update(stage='web', message='第 2 步：请在小红书网页版继续扫码并确认账号编号')
