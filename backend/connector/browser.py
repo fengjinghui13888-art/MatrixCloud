@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 from app.protocols import valid_id,valid_profile
 from .cdp import browser_version,PassiveObserver,RawCDP
 from .files import read_json,atomic_json
+from .execution_browser import bundled_browser_roots,packaged_browser
 from .safety import ExecutionGuard,ActionPacer,ResultUnknown,request_rejected
 from . import expressions as dom
 
@@ -210,7 +211,9 @@ class BrowserRuntime:
     def executable(self):
         for path in chrome_candidates():
             if path and Path(path).is_file(): return path
-        raise ValueError('未找到 Google Chrome 或 Microsoft Edge，请先安装其中一个浏览器；连接器不会自动安装')
+        for root in bundled_browser_roots():
+            if path:=packaged_browser(root):return path
+        raise ValueError('未找到执行浏览器，请安装包含执行浏览器的完整客户端，或安装 Chrome/Edge 后重试；登录时不会自动下载')
     async def ensure(self,id):
         if not valid_id(id): raise ValueError('无效会话编号')
         async with self.locks.setdefault(id,asyncio.Lock()):

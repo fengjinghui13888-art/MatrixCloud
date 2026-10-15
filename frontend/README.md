@@ -15,7 +15,7 @@ Windows 可双击 START-FRONTEND.bat。要同时启动前后端，双击 backend
 
 当前本机后端使用 PostgreSQL；数据库仅由 Python 后端访问。前端启动与构建不需要数据库凭证，禁止把 DATABASE_URL、供应商密钥或后端 .env 放入本目录。后端独立启动和数据库管理见 [数据库与启动](../backend/docs/数据库与启动.md)。
 
-浏览器适配以 Chrome 为主要验收环境，兼顾 Edge、Firefox，以及 Mac/iPhone/iPad 上的 Safari。生产 JavaScript 构建目标明确为 Chrome/Edge 109、Firefox 121、Safari 16 及更新版本；这些是编译与所用浏览器 API 的目标范围，不代表每个历史版本都做过真机测试。工作台浏览器与平台执行浏览器各自独立：可用 Safari 打开工作台，本机连接器优先打开 Chrome，其次 Edge。
+浏览器适配以 Chrome 为主要验收环境，兼顾 Edge、Firefox，以及 Mac/iPhone/iPad 上的 Safari。生产 JavaScript 构建目标明确为 Chrome/Edge 109、Firefox 121、Safari 16 及更新版本；这些是编译与所用浏览器 API 的目标范围，不代表每个历史版本都做过真机测试。工作台浏览器与平台执行浏览器各自独立：可用 Safari 打开工作台，本机连接器优先复用 Chrome/Edge；完整客户端还附带独立 Chromium，电脑未安装 Chrome/Edge 时使用它。Safari 本身不承担连接器任务。
 
 本地实测覆盖登录/退出、7 个页面、内容搜索和详情弹窗、线索跟进、PNG 与约 10 MB JPEG 上传、资料写入 PostgreSQL、390px 手机与 820px 平板布局。已打开工作台时再次进入连接器授权链接也会显示授权入口。Windows 上的 WebKit 测试不能替代苹果设备的 Safari 真机验收。
 

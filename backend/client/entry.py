@@ -67,7 +67,7 @@ def main():
         icon=tk.PhotoImage(file=str(brand_file('app-icon.png')));window.iconphoto(True,icon)
         display_icon=icon.subsample(8,8);tk.Label(window,image=display_icon,pady=12).pack()
         tk.Label(window,text='HUAKE FUTURE · MatrixCloud',font=('',18),pady=8).pack()
-        tk.Label(window,text='安装一次，后续自动更新。\n扫码、同步和草稿任务在本机 Chrome 中执行。',pady=12).pack()
+        tk.Label(window,text='安装一次，后续自动更新。\n扫码、同步和草稿在本机独立浏览器中执行。\n完整客户端已附带执行浏览器，无需另装 Chrome。',pady=12).pack()
         automatic=tk.BooleanVar(value=True);tk.Checkbutton(window,text='登录电脑后自动启动客户端',variable=automatic).pack()
         accepted=[]
         def accept():accepted.append(automatic.get());window.destroy()
