@@ -2,13 +2,12 @@
 setlocal
 chcp 65001 >nul
 cd /d "%~dp0"
-if not exist ".venv\Scripts\python.exe" (
-  call SETUP.bat
-  if errorlevel 1 (pause & exit /b 1)
+set "MATRIX_PY=%~dp0.venv\Scripts\python.exe"
+if not exist "%MATRIX_PY%" set "MATRIX_PY=%~dp0..\.venv\Scripts\python.exe"
+if not exist "%MATRIX_PY%" (
+  echo 请先运行 backend\SETUP.bat 配置 Python 环境。
+  pause
+  exit /b 1
 )
-if not exist "..\frontend\node_modules\vite\bin\vite.js" (
-  call SETUP.bat
-  if errorlevel 1 (pause & exit /b 1)
-)
-".venv\Scripts\python.exe" -X utf8 run.py all %*
+"%MATRIX_PY%" -X utf8 tools\local_workbench.py %*
 if errorlevel 1 pause
