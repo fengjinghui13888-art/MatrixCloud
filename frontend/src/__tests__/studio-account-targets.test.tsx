@@ -2,6 +2,16 @@ import {render,screen,fireEvent,waitFor} from '@testing-library/react';
 import {test,expect,vi} from 'vitest';
 import {StudioPublishActions} from '../StudioPublishActions';
 
+test('stopped unknown draft offers stop confirmation without enabling another upload',async()=>{
+ const action=vi.fn().mockResolvedValue(undefined),dispatch=vi.fn();
+ render(<StudioPublishActions task={{status:'blocked',accountId:'moya',message:'草稿结果未知',executionStartedAt:'2026-10-15T00:00:00Z',executionRunId:'original-run'}} accounts={[]} busy={false} dirty={false} onAction={action} onDispatch={dispatch}/>);
+ expect(screen.getByRole('button',{name:'保存到小红书草稿'})).toBeDisabled();
+ fireEvent.click(screen.getByRole('button',{name:'确认停止旧任务'}));
+ await waitFor(()=>expect(action).toHaveBeenCalledWith('cancel',{}));
+ expect(dispatch).not.toHaveBeenCalled();
+ expect(screen.getByRole('button',{name:'保存到小红书草稿'})).toBeDisabled();
+});
+
 test('defaults only to content owner and lets customer choose another account or none',async()=>{
  const accounts=['moya','h'].map(id=>({id,name:id,handle:id,profile:`local:${id}`,avatar:'',state:'connected' as const,followers:0,lastSyncedAt:''}));
  const dispatch=vi.fn().mockResolvedValue(undefined);

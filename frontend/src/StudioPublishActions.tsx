@@ -44,6 +44,7 @@ export function StudioPublishActions({task,accounts,busy,dirty,onAction,onDispat
   <div className="studio-publish-buttons">
    <button className="primary" aria-describedby="studio-publish-hint" disabled={busy||dirty||running||(!batch&&!action)} onClick={()=>void save()}>保存到小红书草稿</button>
    {running&&<button className="ghost" disabled={busy} onClick={()=>void onAction('cancel',{})}>停止保存草稿</button>}
+   {task.status==='blocked'&&task.executionRunId&&task.executionStartedAt&&<button className="ghost" disabled={busy} title="确认设备已停止后解除账号占用；旧草稿记录保留，不会重新上传" onClick={()=>void onAction('cancel',{})}>确认停止旧任务</button>}
    {review&&<button className="ghost" disabled={busy||dirty} onClick={()=>void onAction('review',{decision:'reject'})}>驳回</button>}
   </div>
  </section>;
