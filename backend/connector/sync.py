@@ -11,6 +11,7 @@ from .content import extract_content,needs_note_detail,verified_incremental_note
 from .files import atomic_json
 from .media import archive_media
 from .note_listing import collect_note_pages,LIST_STATE,ADVANCE_LIST
+from .safety import request_rejected
 
 def relevant(path):
     return bool(re.match(r'^/api/galaxy/(user/info|.*note/user/posted)',path) or re.match(r'^/api/sns/web/v\d+/(user/(?:me|selfinfo)|feed|comment/|you/mentions)',path) or re.match(r'^/api/im/web/(v3/chats$|chats/group$|messages/history$)',path))
@@ -25,8 +26,8 @@ class NetworkCapture:
         task=asyncio.create_task(self.read(response,u)); self.pending.add(task); task.add_done_callback(self.pending.discard)
     async def read(self,response,u):
         try:
-            if response.status in (401,403,429):
-                self.halted=f'平台限制或登录异常（HTTP {response.status}），后续操作已停止'; self.guard.halt(self.halted,response.headers.get('retry-after'))
+            if request_rejected(response.status):
+                self.halted=f'平台拒绝本次请求（HTTP {response.status}），已暂停后续操作，请人工核对'; self.guard.halt(self.halted,response.headers.get('retry-after'))
             if response.status!=200:raise ValueError('HTTP '+str(response.status))
             if 'json' not in response.headers.get('content-type',''):raise ValueError('接口返回非 JSON')
             body=await asyncio.wait_for(response.json(),15)

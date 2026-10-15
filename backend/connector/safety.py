@@ -11,6 +11,11 @@ from .files import atomic_json, read_json
 class ResultUnknown(RuntimeError):
     code='SCRIPT_TIMEOUT'
 
+def request_rejected(status):
+    # A missing asset is common; other client errors need manual review rather
+    # than automatic retries. This is a stop signal, not proof of an account ban.
+    return isinstance(status,int) and 400<=status<500 and status!=404
+
 def safe_execution_error(error):
     text=re.sub(r'\x1b\[[0-9;]*m','',str(error) or '未知错误')
     text=re.sub(r'[A-Za-z0-9+/=]{160,}','[大段传输内容已省略]',text)

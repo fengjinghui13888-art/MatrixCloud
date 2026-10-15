@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 from app.protocols import valid_id,valid_profile
 from .cdp import browser_version,PassiveObserver,RawCDP
 from .files import read_json,atomic_json
-from .safety import ExecutionGuard,ActionPacer,ResultUnknown
+from .safety import ExecutionGuard,ActionPacer,ResultUnknown,request_rejected
 from . import expressions as dom
 
 WARNING = re.compile(r'安全验证|请完成验证|访问过于频繁|账号已被限制|账号异常|异常登录|账号被封禁|操作频繁|滑动验证')
@@ -110,8 +110,8 @@ class BrowserConnection:
         context.on('response',self.on_response)
     def on_response(self,response):
         u=urlsplit(response.url)
-        if self.guard and (u.hostname=='xiaohongshu.com' or (u.hostname or '').endswith('.xiaohongshu.com')) and response.status in (401,403,429):
-            self.halted='平台登录异常或请求受限，已暂停后续操作'; self.guard.halt(self.halted,response.headers.get('retry-after'))
+        if self.guard and (u.hostname=='xiaohongshu.com' or (u.hostname or '').endswith('.xiaohongshu.com')) and request_rejected(response.status):
+            self.halted=f'平台拒绝本次请求（HTTP {response.status}），已暂停后续操作，请人工核对'; self.guard.halt(self.halted,response.headers.get('retry-after'))
     async def check(self):
         if not self.guard: return
         self.guard.check()
@@ -200,7 +200,7 @@ class BrowserRuntime:
         browser=await engine.chromium.connect_over_cdp(version['webSocketDebuggerUrl'],timeout=30000)
         if not browser.contexts: await browser.close(); raise ValueError('专属浏览器没有可用上下文')
         context=browser.contexts[0]; context.set_default_timeout(8000); context.set_default_navigation_timeout(15000)
-        page=next((p for p in context.pages if p.url.startswith(CREATOR+'/')),None)
+        page=next((p for p in context.pages if p.url.startswith(CREATOR+'/new/')),None) or next((p for p in context.pages if p.url.startswith(CREATOR+'/')),None)
         if page is None and (open_creator or reopened):
             ExecutionGuard(self.root,profile).check(); page=await context.new_page(); await page.goto(CREATOR+'/new/home',wait_until='domcontentloaded')
         if page is None: await browser.close(); raise ValueError('专属浏览器没有创作平台页面')
@@ -235,7 +235,8 @@ class BrowserRuntime:
             return dict(connected=True,loggedIn=False,creatorLoggedIn=False,webLoggedIn=False,message='账号窗口缺少创作平台页面，请点击同步恢复原窗口')
         try:
             creator=await connection.evaluate(dom.expression(dom.READCREATORIDENTITY))
-            web_page=next((p for p in connection.context.pages if re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url)),None)
+            web_pages=[p for p in connection.context.pages if re.match(r'https://(?:www\.)?xiaohongshu\.com/',p.url)]
+            web_page=next((p for p in web_pages if not p.url.startswith(WEB+'/login')),None) or next(iter(web_pages),None)
             web=None
             if creator.get('loggedIn') and web_page:
                 await connection.select(web_page); web=await connection.evaluate(dom.expression(dom.READWEBIDENTITY))

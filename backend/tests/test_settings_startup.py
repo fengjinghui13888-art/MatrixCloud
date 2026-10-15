@@ -9,7 +9,7 @@ BACKEND = Path(__file__).resolve().parents[1]
 
 def run_settings(cwd, overrides=None):
     env = dict(os.environ, PYTHONPATH=str(BACKEND))
-    for name in ("DATA_DIR", "SYNC_DATA_DIR", "MCP_SERVICE_TOKEN", "DATABASE_URL", "DATABASE_URL_FILE"):
+    for name in ("DATA_DIR", "SYNC_DATA_DIR", "MCP_SERVICE_TOKEN", "DATABASE_URL", "DATABASE_URL_FILE", "DATABASE_REQUIRED"):
         env.pop(name, None)
     env.update(overrides or {})
     return subprocess.run(

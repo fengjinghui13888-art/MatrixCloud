@@ -226,6 +226,8 @@ def create_connector_app(root:Path,cloud_url:str='',port:int=47821)->FastAPI:
         async with runtime.account_locks.setdefault(id,asyncio.Lock()):
             guard=ExecutionGuard(runtime.root,'local:'+id)
             if action=='safety':return guard.status()
+            if action=='state' and guard.status().get('state')!='normal':
+                return dict(connected=False,loggedIn=False,creatorLoggedIn=False,webLoggedIn=False,paused=True,message='此账号已暂停自动操作，请先人工核对平台通知；不会自动打开窗口或扫码')
             if action=='resume':guard.resume((await read_json(request,1024)).get('confirmed')); return dict(state='normal')
             if action=='drafts':
                 from app.protocols import valid_connector_command

@@ -672,6 +672,8 @@ async def dispatch(request, runtime, body):
                     result['remainingAccountIds'] = [a['id'] for a in accounts]
                 return JSONResponse(result, 202)
             state = await runtime.channel.json(workspace, device, 'GET', '/accounts/' + account['profile'][6:] + '/state')
+            if state.get('paused'):
+                raise ConnectorError(409,state.get('message','此账号已暂停自动操作，请先人工核对'))
             if not state.get('creatorLoggedIn') or not state.get('webLoggedIn') or str(state.get('handle', state.get('creatorHandle', ''))).lower() != account['handle'].lower() or str(state.get('webHandle', '')).lower() != account['handle'].lower():
                 return JSONResponse(dict(loginRequired=True, loginJob=await execution.login_start(account['id'], device)), 202)
         jobs = [await execution.start(account['id'], account['profile']) for account in accounts]

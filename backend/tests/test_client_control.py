@@ -23,3 +23,16 @@ def test_shutdown_gate_rejects_login_that_passed_http_middleware_earlier(tmp_pat
     from connector.jobs import JobManager
     jobs=JobManager(tmp_path);jobs.closed=True
     with pytest.raises(ValueError):jobs.reserve_login('already-admitted-request')
+
+
+def test_paused_account_state_never_reads_browser_or_opens_login(tmp_path):
+    from connector.safety import ExecutionGuard
+    app=create_connector_app(tmp_path);runtime=app.state.connector
+    ExecutionGuard(tmp_path,'local:a').halt('Manual account review required')
+    async def forbidden(*args):raise AssertionError('paused account must not access browser')
+    runtime.browser.state=forbidden;runtime.browser.login=forbidden
+    with TestClient(app,base_url='http://127.0.0.1') as client:
+        headers={'Authorization':'Bearer '+runtime.token}
+        state=client.get('/accounts/a/state',headers=headers)
+        assert state.status_code==200 and state.json()['paused'] is True
+        assert client.post('/accounts/a/login',headers=headers).status_code==400

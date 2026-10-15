@@ -242,6 +242,7 @@ class WorkspaceExecution:
             await self.channel.json(self.workspace, device, 'POST', '/sync/' + identifier, body)
             deadline = time.monotonic() + 18 * 60
             checkpoint_at = 0
+            checkpoint_seen = {}
             while time.monotonic() < deadline:
                 if job['status'] == 'blocked':
                     return
@@ -253,7 +254,7 @@ class WorkspaceExecution:
                 await self.update(identifier, {key: value for key, value in state.items() if key in ('stage', 'message', 'queuePosition', 'counts')})
                 if state.get('checkpoint') and time.monotonic() - checkpoint_at > 4:
                     checkpoint = await self.channel.json(self.workspace, device, 'GET', '/sync/' + identifier + '/result')
-                    self.save_snapshot(checkpoint.get('snapshot', checkpoint), account, device, strip_media=True)
+                    self.save_snapshot(checkpoint.get('snapshot', checkpoint), account, device, strip_media=True, seen=checkpoint_seen)
                     checkpoint_at = time.monotonic()
                 await asyncio.sleep(2)
             else:
@@ -305,7 +306,7 @@ class WorkspaceExecution:
                 pass
             await self.update(identifier, dict(status='blocked', stage='blocked', stopConfirmed=stopped, error=str(error), message=str(error), finishedAt=stamp()))
 
-    def save_snapshot(self, snapshot, account, device, strip_media=False):
+    def save_snapshot(self, snapshot, account, device, strip_media=False, seen=None):
         from .snapshots import validate_snapshot
         snapshot = validate_snapshot(snapshot)
         current, actual = self.account(account['id']), snapshot.get('account', {})
@@ -317,8 +318,14 @@ class WorkspaceExecution:
                 raise ConnectorError(403, '内容不属于当前账号')
             if strip_media and kind == 'notes':
                 items = [{key: value for key, value in note.items() if key != 'mediaAssets'} for note in items]
+            signatures={item['id']:hashlib.sha256(json.dumps(item,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest() for item in items} if seen is not None else {}
+            if seen is not None:
+                items=[item for item in items if seen.get((kind,item['id']))!=signatures[item['id']]]
             for index in range(0, len(items), 10):
-                self.scope.store.import_snapshot(dict(account=actual, notes=[], comments=[], messages=[]) | {kind: items[index:index + 10]})
+                chunk=items[index:index + 10]
+                self.scope.store.import_snapshot(dict(account=actual, notes=[], comments=[], messages=[]) | {kind: chunk})
+                if seen is not None:
+                    for item in chunk:seen[(kind,item['id'])]=signatures[item['id']]
         if not any(snapshot.get(kind) for kind in ('notes', 'comments', 'messages')):
             self.scope.store.import_snapshot(dict(account=actual, notes=[], comments=[], messages=[]))
 
@@ -387,13 +394,27 @@ class WorkspaceExecution:
                     atomic_json(path, old)
             identifier = str(uuid.uuid4())
             session = hashlib.sha256((str(self.scope.root) + ':' + identifier).encode()).hexdigest()[:48]
-            if account and account['profile'].startswith('local:') and self.channel.binding(self.workspace,account['profile'])==device:
+            reuse = bool(account and account['profile'].startswith('local:') and self.channel.binding(self.workspace,account['profile'])==device)
+            if reuse:
                 session=account['profile'][6:]
             name = self.channel.pairing.device_by_id(device, self.workspace)['name']
             job = dict(id=identifier, sessionId=session, accountId=account_id, expectedHandle=account['handle'] if account else None, deviceId=device, deviceName=name, status='starting', message='正在打开账号专属登录窗口', createdAt=stamp())
             atomic_json(self._login_path(identifier), job)
-            await self.channel.bind(self.workspace, 'local:' + session, device)
+            if not reuse:
+                await self.channel.bind(self.workspace, 'local:' + session, device)
             try:
+                if reuse:
+                    info=await self.channel.json(self.workspace,device,'GET','/accounts/'+session+'/state')
+                    if info.get('paused'):
+                        raise ConnectorError(409,info.get('message','账号已暂停，请先人工核对'))
+                    if info.get('loggedIn') or info.get('creatorLoggedIn') and info.get('webLoggedIn'):
+                        result=await self.login_status(identifier)
+                        if result['status']=='authenticated':
+                            job=self.login_read(identifier)
+                            job.update(reusedSession=True,message='已复用此账号原有登录状态，无需重新扫码')
+                            atomic_json(self._login_path(identifier),job)
+                            return result|job
+                        return result
                 await self.channel.json(self.workspace, device, 'POST', '/accounts/' + session + '/login')
                 job = self.login_read(identifier)
                 if job['status'] != 'starting':
@@ -420,7 +441,9 @@ class WorkspaceExecution:
                 job.update(status='cancelled', message='目标账号已删除，扫码已取消')
             else:
                 handle, web_handle = str(info.get('handle', info.get('creatorHandle', ''))).strip(), str(info.get('webHandle', '')).strip()
-                if info.get('connected') is False:
+                if info.get('paused'):
+                    job.update(status='failed',message=info.get('message','此账号已暂停自动操作，请先人工核对'))
+                elif info.get('connected') is False:
                     await self.channel.json(self.workspace,job['deviceId'],'POST','/accounts/'+job['sessionId']+'/cancel')
                     job.update(status='failed',message='同步失败：小红书窗口已关闭，请重新点击开始同步。已保存的内容保留。')
                 elif not info.get('creatorLoggedIn'):

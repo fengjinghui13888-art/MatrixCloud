@@ -129,6 +129,13 @@ class FakeContext:
 class SyncPage:
     def __init__(self,context,url):self.context=context;self.url=url
     async def bring_to_front(self):pass
+    async def evaluate(self,source):
+        from connector.note_listing import LIST_STATE,ADVANCE_LIST
+        if source==LIST_STATE:return dict(total=1,atEnd=True)
+        if source==ADVANCE_LIST:
+            self.context.emit('/api/galaxy/creator/note/user/posted',dict(notes=[dict(id='n',display_title='Owned',type='normal',images_list=[])],has_more=False))
+            return dict(action='unavailable')
+        raise AssertionError('unexpected page expression')
     async def goto(self,url,**kwargs):
         self.url=url
         if '/new/home' in url:self.context.emit('/api/galaxy/user/info',dict(redId='42',userId='u'))
