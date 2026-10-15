@@ -2,14 +2,15 @@
 import re
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse,FileResponse
 from .auth import SESSION_SECONDS
 from .store import ServiceError
 from .recovery import issue_recovery
 from .admin_account import change_password
+from .admin_content import handle_content
 from .admin_permissions import principal,record,require,super_only,list_members,save_member
 
-def respond(value,status=200):return JSONResponse(jsonable_encoder(value),status)
+def respond(value,status=200):return JSONResponse(jsonable_encoder(value),status,headers={'Cache-Control':'no-store'})
 
 COOKIE='matrix_platform_session'
 PREFIX='/api/platform-admin'
@@ -55,6 +56,9 @@ def install_admin_routes(app,runtime):
                 r=respond(change_password(auth,user,body));r.delete_cookie(COOKIE,path=PREFIX);return r
             if action=='logout' and method=='POST':
                 auth.logout(cookie_header(request));r=respond(dict(ok=True));r.delete_cookie(COOKIE,path=PREFIX);return r
+            content=await handle_content(runtime,actor,user,action,method,body,request.query_params)
+            if content is not None:
+                return content if isinstance(content,FileResponse) else respond(content)
             if action=='admins':
                 super_only(actor)
                 if method=='GET':return respond(list_members(auth,actor))

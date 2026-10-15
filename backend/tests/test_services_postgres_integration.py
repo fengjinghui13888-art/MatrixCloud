@@ -177,6 +177,27 @@ def snapshot(id='a',note_id='n',comment_id='c'):
     return dict(account=account(id),notes=[dict(id=note_id,accountId=id,title='合成笔记',summary='正文',cover='https://example.com/image.png',url=None,publishedAt='2026-10-13',metrics=dict(likes=1,collects=2,comments=3,shares=4),mediaType='image',images=['https://example.com/image.png'],videoUrl=None,mediaAssets=[dict(id='asset-z',kind='image',index=1,sourceUrl='https://example.com/b.png',path=id+'/x/y/'+note_id+'/b.png',bytes=20,sha256='b'*64),dict(id='asset-a',kind='cover',index=0,sourceUrl='https://example.com/a.png',path=id+'/x/y/'+note_id+'/a.png',bytes=10,sha256='a'*64)])],comments=[dict(id=comment_id,accountId=id,noteId=note_id,author='合成客户',avatar='',body='咨询',status='pending',tags=[],createdAt='2026-10-13')],messages=[dict(id='message',accountId=id,conversationId='thread',author='合成客户',body='私信',createdAt='2026-10-13',direction='incoming')])
 
 
+def test_admin_content_postgres_same_record_ids_stay_in_selected_customer(live):
+    from fastapi.testclient import TestClient
+    from app.api import create_app
+    srv,_,_=live
+    customers=[srv.auth.register(dict(username=name,password='synthetic-password'),ip=name) for name in ('first','second')]
+    for index,customer in enumerate(customers):
+        scope=srv.for_workspace(customer['workspace']);value=snapshot();value['notes'][0]['title']='客户'+str(index);value['messages'][0]['body']='私信'+str(index)
+        scope.store.add_account(value['account']);scope.store.import_snapshot(value)
+    app=create_app(srv.settings,services=srv)
+    with TestClient(app,base_url='https://test.example') as c:
+        assert c.post('/api/platform-admin/login',json=dict(username='platform',password='synthetic-password'),headers={'Origin':'https://test.example'}).status_code==200
+        for index,customer in enumerate(customers):
+            base='/api/platform-admin/customers/'+customer['workspace']+'/accounts/a/'
+            notes=c.get(base+'notes').json();assert notes['items'][0]['title']=='客户'+str(index)
+            assert c.get(base+'messages').json()['items'][0]['body']=='私信'+str(index)
+            assert 'sourceUrl' not in str(notes) and 'path' not in str(notes)
+            assert c.get(base+'comments').json()['total']==1
+        with srv.auth.transaction() as conn:
+            assert conn.execute("SELECT count(*) AS n FROM audit_log WHERE tenant_id='owner' AND action='customer.content.read'").fetchone()['n']>=6
+
+
 def test_real_comment_and_direct_id_collision_dismissal_and_sync_dedup(live):
     srv,identity,_=live
     scope=srv.for_workspace(identity['workspace'])

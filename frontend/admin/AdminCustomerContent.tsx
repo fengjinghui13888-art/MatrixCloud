@@ -1,0 +1,22 @@
+import {useEffect,useState} from 'react';
+
+type Account={id:string;name:string;handle:string;lastSyncedAt?:string};
+type Entry={id:string;title?:string;noteTitle?:string;summary?:string;body?:string;author?:string;publishedAt?:string;createdAt?:string;direction?:string;metrics?:Record<string,number|null>;media?:{id:string;kind:string;url:string}[]};
+type Request=(path:string,body?:object)=>Promise<any>;
+const sections={notes:'笔记记录',comments:'评论记录',messages:'私信记录'};
+const date=(v?:string)=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'尚未同步';
+
+export function AdminCustomerContent({tenant,request}:{tenant:string;request:Request}){
+ const base='customers/'+tenant+'/accounts';
+ const [accounts,setAccounts]=useState<Account[]>([]),[account,setAccount]=useState(''),[section,setSection]=useState<keyof typeof sections>('notes'),[page,setPage]=useState(1),[items,setItems]=useState<Entry[]>([]),[total,setTotal]=useState(0),[next,setNext]=useState(false),[revision,setRevision]=useState(0);
+ const [loading,setLoading]=useState(true),[error,setError]=useState(''),[loadedAccounts,setLoadedAccounts]=useState(false);
+ useEffect(()=>{let alive=true;setLoadedAccounts(false);request(base).then(r=>{if(alive){const rows=Array.isArray(r.items)?r.items:[];setAccounts(rows);setAccount(rows[0]?.id??'');setLoadedAccounts(true);setLoading(false);}}).catch(e=>{if(alive){setError(e.message);setLoading(false);}});return()=>{alive=false;};},[tenant,request]);
+ useEffect(()=>{if(!account)return;let alive=true;setLoading(true);setError('');setItems([]);setTotal(0);setNext(false);request(base+'/'+encodeURIComponent(account)+'/'+section+'?page='+page).then(r=>{if(alive){setItems(r.items);setTotal(r.total);setNext(r.hasNext);}}).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setLoading(false);});return()=>{alive=false;};},[tenant,account,section,page,revision,request]);
+ const current=accounts.find(a=>a.id===account);
+ return <section className="admin-panel admin-customer-content" aria-label="客户账号内容"><div className="admin-panel-title"><div><h2>客户历史记录</h2><small>查看已保存在矩阵云中的记录，不会打开小红书。访问记录保留在后台操作日志。</small></div><button disabled={loading||!account} onClick={()=>setRevision(v=>v+1)}>刷新记录</button></div>{error&&<p role="alert" className="admin-error">{error}</p>}
+ {loadedAccounts&&!accounts.length?<p className="admin-empty">该客户暂无已保存的小红书账号。</p>:<><div className="admin-content-controls"><label>选择小红书账号<select aria-label="客户小红书账号" disabled={!loadedAccounts} value={account} onChange={e=>{setAccount(e.target.value);setPage(1);}}>{accounts.map(a=><option key={a.id} value={a.id}>{a.name} · {a.handle}</option>)}</select></label></div>{current&&<p className="admin-account-note">最近保存的数据同步时间：{date(current.lastSyncedAt)}。此处仅查看历史记录，不采集小红书最新数据。</p>}
+ <div className="admin-content-tabs" role="group" aria-label="客户内容分类">{Object.entries(sections).map(([key,label])=><button key={key} aria-pressed={section===key} onClick={()=>{setSection(key as keyof typeof sections);setPage(1);}}>{label}</button>)}</div>
+ {loading?<p role="status">正在读取内容…</p>:<><div className="admin-content-list">{items.map(item=><article className={"admin-record admin-record-"+section} key={item.id}><div className="admin-record-kind"><span>{sections[section]}</span>{section==='messages'&&<span className={item.direction==='outgoing'?'admin-record-outgoing':'admin-record-incoming'}>{item.direction==='outgoing'?'账号发出':'收到的私信'}</span>}</div><header><strong>{section==='notes'?item.title:item.author||'未知用户'}</strong><small>{date(item.publishedAt??item.createdAt)}</small></header>{section==='comments'&&<div className="admin-record-source">所属笔记：{item.noteTitle??'原笔记未保存在当前记录中'}</div>}<p>{item.summary??item.body??'暂无正文'}</p>{item.media?.length? <div className="admin-content-media">{item.media.map(m=>m.kind==='video'?<video key={m.id} src={m.url} controls preload="none"/>:<a key={m.id} href={m.url} target="_blank" rel="noreferrer"><img src={m.url} alt={item.title??'笔记图片'} loading="lazy"/></a>)}</div>:null}{item.metrics&&<small>赞 {item.metrics.likes??'—'} · 收藏 {item.metrics.collects??'—'} · 评论 {item.metrics.comments??'—'}</small>}</article>)}{!items.length&&<p className="admin-empty">暂无已保存的{sections[section]}记录。</p>}</div><div className="admin-content-pagination"><small>共 {total} 条 · 第 {page} 页</small><button disabled={page<=1} onClick={()=>setPage(p=>p-1)}>上一页</button><button disabled={!next} onClick={()=>setPage(p=>p+1)}>下一页</button></div></>}
+ </>}
+ </section>;
+}
