@@ -1,5 +1,6 @@
 import { useEffect,useState,type ReactNode } from 'react';
 import {removeSessionValue} from './safe-storage';
+import {PasswordRecovery} from './PasswordRecovery';
 
 async function accountRequest<T>(path:string,options:RequestInit,read:(response:Response)=>Promise<T>):Promise<T>{
   const controller=new AbortController();
@@ -20,6 +21,7 @@ export function AccountLogin({children}:{children:(username:string,logout:()=>Pr
   const [user,setUser]=useState<string|null>(null),[username,setUsername]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState('');
   const [error,setError]=useState(''),[busy,setBusy]=useState(false);
   const [register,setRegister]=useState(false),[switching,setSwitching]=useState(false);
+  const [recover,setRecover]=useState(false),[notice,setNotice]=useState('');
   async function check(){
     setChecking(true);setError('');
     try{
@@ -62,16 +64,19 @@ export function AccountLogin({children}:{children:(username:string,logout:()=>Pr
     finally{setBusy(false);}
   }
   if(user)return <>{error&&<p className="login-error" role="alert">{error}</p>}{children(user,logout,switchAccount)}</>;
+  if(recover)return <PasswordRecovery initialUsername={username} onBack={()=>setRecover(false)} onComplete={name=>{setRecover(false);setUsername(name);setPassword('');setConfirm('');setError('');setNotice('密码已重设，请用新密码登录。原账号内容和配置保留。');}} submit={body=>accountRequest('/api/auth/password-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},async r=>{const result=await r.json();if(!r.ok)throw Error(result.message??'重设未完成');return result;})}/>;
   return <main className="account-login"><div className="login-brand">华科未来·矩阵云 <span>华科未来 · 内容与账号，一处管理</span></div><section className="login-card">
     {checking?<p role="status">正在连接你的工作台…</p>:configured===null?<><h1>暂时无法连接</h1><p role="alert">{error}</p><button className="primary" onClick={()=>void check()}>重新连接</button></>:<>
       <div className="login-eyebrow">{switching?'切换账号':register?'创建账号':'欢迎来到矩阵云'}</div><h1>{register?'创建你的工作台':switching?'登录其他工作台账号':'登录你的工作台'}</h1>
       <p>{register?'创建后即可进入独立工作区，内容与设置分别保存。':switching?'输入另一个系统账号即可切换工作区。':'使用已有账号和密码继续管理你的内容。'}</p>
+      {notice&&<p role="status">{notice}</p>}
       <form onSubmit={e=>{e.preventDefault();void login();}}>
         <label>账号<input autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={e=>setUsername(e.target.value)} minLength={3} maxLength={40} pattern="[a-zA-Z0-9_.\-]+" required placeholder="英文、数字或 ._-，至少 3 位"/></label>
         <label>密码<input type="password" autoComplete={!register?'current-password':'new-password'} value={password} onChange={e=>setPassword(e.target.value)} minLength={register?12:1} maxLength={register?72:128} required placeholder={!register?'输入你的密码':'至少 12 个字符'}/></label>
         {register&&<><small>新密码至少 12 个字符，按 UTF-8 编码最多 72 字节；常用汉字每字 3 字节，表情通常 4 字节。</small><label>确认密码<input type="password" autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} required minLength={12} maxLength={72} placeholder="再次输入密码"/></label></>}
         {error&&<p className="login-error" role="alert">{error}</p>}
         <button className="primary" disabled={busy}>{busy?'正在处理…':register?'创建账号并进入':'登录工作台'}</button>
+        {!register&&<button type="button" className="ghost" disabled={busy} onClick={()=>{setRecover(true);setError('');setNotice('');setPassword('');setConfirm('');}}>忘记密码？</button>}
         <button type="button" className="ghost" disabled={busy} onClick={()=>{setRegister(v=>!v);setError('');setPassword('');setConfirm('');}}>{register?'已有账号，返回登录':'创建新账号'}</button>
         <small>登录状态保留 8 小时，可随时退出。请妥善保管密码。</small>
       </form>

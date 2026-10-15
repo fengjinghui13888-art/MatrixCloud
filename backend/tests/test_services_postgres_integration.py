@@ -77,6 +77,21 @@ def live(database,tmp_path):
 def account(id='a'):
     return dict(id=id,name='合成测试账号',handle=id,avatar='',profile='local:'+id,state='connected',followers=2,lastSyncedAt='2026-10-13T00:00:00Z')
 
+def test_recovery_postgres_is_atomic_and_preserves_account_data(live):
+    from app.recovery import issue_recovery,reset_password
+    srv,identity,_=live
+    scope=srv.for_workspace(identity['workspace']);scope.store.add_account(account())
+    token=srv.auth.issue(identity['username'])
+    code=issue_recovery(srv.auth,identity['username'])['code']
+    def attempt(index):
+        try:return reset_password(srv.auth,dict(username=identity['username'],code=code,password='synthetic-new-password'),ip='reset-'+str(index))['ok']
+        except ServiceError:return False
+    with ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(attempt,[1,2]))
+    assert sorted(results)==[False,True]
+    assert srv.auth.identity('zhixu_session='+token) is None
+    assert scope.store.list_accounts()[0]['id']=='a'
+    assert srv.auth.authenticate(dict(username=identity['username'],password='synthetic-new-password'),ip='verify')['workspace']==identity['workspace']
+
 
 def snapshot(id='a',note_id='n',comment_id='c'):
     return dict(account=account(id),notes=[dict(id=note_id,accountId=id,title='合成笔记',summary='正文',cover='https://example.com/image.png',url=None,publishedAt='2026-10-13',metrics=dict(likes=1,collects=2,comments=3,shares=4),mediaType='image',images=['https://example.com/image.png'],videoUrl=None,mediaAssets=[dict(id='asset-z',kind='image',index=1,sourceUrl='https://example.com/b.png',path=id+'/x/y/'+note_id+'/b.png',bytes=20,sha256='b'*64),dict(id='asset-a',kind='cover',index=0,sourceUrl='https://example.com/a.png',path=id+'/x/y/'+note_id+'/a.png',bytes=10,sha256='a'*64)])],comments=[dict(id=comment_id,accountId=id,noteId=note_id,author='合成客户',avatar='',body='咨询',status='pending',tags=[],createdAt='2026-10-13')],messages=[dict(id='message',accountId=id,conversationId='thread',author='合成客户',body='私信',createdAt='2026-10-13',direction='incoming')])

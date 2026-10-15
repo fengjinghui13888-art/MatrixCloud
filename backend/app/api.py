@@ -405,6 +405,7 @@ def create_app(settings=None, services=None):
         app.add_api_route(path, endpoint, methods=['GET', 'POST'])
     app.add_api_route('/api/connector/relay/{relay:path}', endpoint, methods=['GET', 'POST'])
     app.add_api_route('/api/leads/notifications',endpoint,methods=['GET'])
+    app.add_api_route('/api/auth/password-reset',endpoint,methods=['POST'])
     release_directory=settings.connector_client_releases_dir or settings.backend_dir/'outputs'/'client-releases'
     def release_file(relative,media_type):
         path=(release_directory/relative).resolve()
@@ -442,6 +443,10 @@ async def dispatch(request, runtime, body):
         action = path[len('/api/auth/'):]
         if action == 'status':
             return JSONResponse(dict(configured=auth.configured(), setupAllowed=runtime.local_setup(request)))
+        if action=='password-reset':
+            if not runtime.same_origin(request):return message('请从工作台页面操作',403)
+            from .recovery import reset_password
+            return JSONResponse(reset_password(auth,body,ip=runtime.client_ip(request)))
         if action == 'session':
             return JSONResponse(auth.session(cookie))
         if action == 'profile':
