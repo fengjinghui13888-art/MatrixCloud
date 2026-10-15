@@ -1,7 +1,27 @@
-import {render,screen,fireEvent,waitFor} from '@testing-library/react';
+import {render,screen,fireEvent,waitFor,within} from '@testing-library/react';
 import {AdminApp} from '../../admin/AdminApp';
 
 const customer={id:'customer-id',name:'合成客户',enabled:true,createdAt:'2026-10-15T00:00:00Z',members:[{username:'fixture',displayName:'合成成员',role:'admin',enabled:true}],counts:{accounts:1,notes:2,leads:3,tasks:4},devices:[{id:'dev',name:'合成电脑',platform:'win32',version:'4',online:true,revoked:false,lastSeenAt:'2026-10-15T00:00:00Z'}]};
+
+test('switching customers clears conflicting search and filter changes close old details',async()=>{
+ const second={...customer,id:'second-id',name:'第二客户',members:[{...customer.members[0],username:'second'}]};
+ vi.stubGlobal('fetch',vi.fn(async(path)=>new Response(JSON.stringify(String(path).endsWith('/session')?{username:'platform',isSuper:false,permissions:['customers.read']}: {items:[customer,second]}))));
+ render(<AdminApp/>);await screen.findByText('合成客户');
+ fireEvent.click(screen.getByRole('button',{name:/02.*客户管理/}));
+ fireEvent.change(screen.getByLabelText('搜索客户'),{target:{value:'fixture'}});
+ fireEvent.click(screen.getByRole('button',{name:'管理 →'}));
+ expect(within(screen.getByRole('region',{name:'客户详情'})).getByRole('heading',{name:'合成客户'})).toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:/01.*平台概览/}));
+ fireEvent.click(within(screen.getByRole('row',{name:/第二客户/})).getByRole('button',{name:'管理 →'}));
+ expect(screen.getByLabelText('搜索客户')).toHaveValue('');
+ expect(within(screen.getByRole('region',{name:'客户详情'})).getByRole('heading',{name:'第二客户'})).toBeInTheDocument();
+ fireEvent.change(screen.getByLabelText('搜索客户'),{target:{value:'fixture'}});
+ expect(screen.queryByRole('region',{name:'客户详情'})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'管理 →'}));
+ expect(within(screen.getByRole('region',{name:'客户详情'})).getByRole('heading',{name:'合成客户'})).toBeInTheDocument();
+ fireEvent.change(screen.getByLabelText('客户状态'),{target:{value:'disabled'}});
+ expect(screen.queryByRole('region',{name:'客户详情'})).not.toBeInTheDocument();
+});
 test('independent admin login loads customers, filters, devices and scoped recovery',async()=>{
  let logged=false;const writes:any[]=[];
  vi.stubGlobal('fetch',vi.fn(async(path,init)=>{
