@@ -132,6 +132,27 @@ def test_platform_admin_postgres_lists_scoped_counts_and_separate_session(live):
         assert c.post('/api/platform-admin/customers/owner/status',headers=h,json={'enabled':False}).status_code==400
         assert c.get('/api/platform-admin/session').json()['username']=='platform'
 
+
+def test_admin_assisted_customer_password_reset_preserves_original_workspace(live):
+    from fastapi.testclient import TestClient
+    from app.api import create_app
+    srv,_,_=live
+    customer=srv.auth.register(dict(username='customer',password='synthetic-password'),ip='customer')
+    scope=srv.for_workspace(customer['workspace']);scope.store.add_account(account())
+    app=create_app(srv.settings,services=srv);h={'Origin':'https://test.example'}
+    with TestClient(app,base_url='https://test.example') as c:
+        assert c.post('/api/platform-admin/login',headers=h,json=dict(username='platform',password='synthetic-password')).status_code==200
+        result=c.post('/api/platform-admin/customers/'+customer['workspace']+'/recovery',headers=h,json={'username':'customer'})
+        assert result.status_code==201
+        body=dict(username='customer',code=result.json()['code'],password='new-customer-password')
+        assert c.post('/api/auth/password-reset',headers=h,json=body).status_code==200
+        assert c.post('/api/auth/password-reset',headers=h,json=body).status_code==400
+        assert srv.auth.identity('zhixu_session='+customer['token']) is None
+        login=c.post('/api/auth/login',headers=h,json=dict(username='customer',password='new-customer-password'))
+        assert login.status_code==200 and login.json()['workspace']==customer['workspace']
+        assert scope.store.list_accounts()[0]['id']=='a'
+        assert c.get('/api/platform-admin/session').json()['username']=='platform'
+
 def test_postgres_subadmin_limit_is_concurrent_and_permissions_are_owner_scoped(live):
     from app.admin_permissions import principal,save_member,list_members
     srv,identity,_=live;actor=principal(srv.auth,identity)
