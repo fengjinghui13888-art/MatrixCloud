@@ -9,6 +9,7 @@ import sys
 # Needed for source development; PyInstaller includes client as a package.
 if not getattr(sys,'frozen',False):sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from client.updates import UpdateStore,atomic_json
+from client.branding import create_desktop_shortcut,brand_file
 
 
 def install(bundle,target=None,*,data_root=None,port=47821,autostart=False):
@@ -24,11 +25,18 @@ def install(bundle,target=None,*,data_root=None,port=47821,autostart=False):
     store=UpdateStore(target,config['publicKey']);envelope=json.loads((bundle/'seed.json').read_text());store.stage(envelope,(bundle/'seed.zip').read_bytes(),embedded=True);store.activate(envelope['manifest']['revision'])
     executable=None
     if getattr(sys,'frozen',False):
-        executable=target/('MatrixCloudClient.exe' if os.name=='nt' else 'MatrixCloudClient')
-        shutil.copy2(sys.executable,executable);executable.chmod(0o700)
+        source_app=next((p for p in Path(sys.executable).parents if p.suffix=='.app'),None) if sys.platform=='darwin' else None
+        if source_app:
+            installed_app=target/'MatrixCloud.app';shutil.copytree(source_app,installed_app)
+            executable=installed_app/Path(sys.executable).relative_to(source_app)
+        else:
+            executable=target/('MatrixCloudClient.exe' if os.name=='nt' else 'MatrixCloudClient')
+            shutil.copy2(sys.executable,executable)
+        executable.chmod(0o700)
     config.update(installRoot=str(target),dataRoot=str(data),port=port,updateInterval=3600,openOnStart=True)
     atomic_json(settings,config)
     if executable:
+        create_desktop_shortcut(executable,settings)
         if os.name=='nt':
             if any(c in str(executable)+str(settings) for c in '%\r\n'):raise ValueError('安装路径包含不支持的启动字符')
             start=target/'启动矩阵云客户端.cmd';start.write_text('@echo off\r\nchcp 65001 >nul\r\n"'+str(executable)+'" --config "'+str(settings)+'"\r\n',encoding='utf-8')
@@ -55,8 +63,10 @@ def main():
     bundle=args.bundle or Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent))/'bootstrap'
     if len(sys.argv)==1 and not (Path.home()/'.matrix-cloud-client/config.json').exists():
         import tkinter as tk
-        window=tk.Tk();window.title('安装矩阵云客户端');window.geometry('480x260');window.resizable(False,False)
-        tk.Label(window,text='矩阵云 · 连接你的电脑',font=('',18),pady=20).pack()
+        window=tk.Tk();window.title('HUAKE FUTURE · MatrixCloud');window.geometry('480x350');window.resizable(False,False)
+        icon=tk.PhotoImage(file=str(brand_file('app-icon.png')));window.iconphoto(True,icon)
+        display_icon=icon.subsample(8,8);tk.Label(window,image=display_icon,pady=12).pack()
+        tk.Label(window,text='HUAKE FUTURE · MatrixCloud',font=('',18),pady=8).pack()
         tk.Label(window,text='安装一次，后续自动更新。\n扫码、同步和草稿任务在本机 Chrome 中执行。',pady=12).pack()
         automatic=tk.BooleanVar(value=True);tk.Checkbutton(window,text='登录电脑后自动启动客户端',variable=automatic).pack()
         accepted=[]

@@ -19,6 +19,9 @@ def build(releases,output,cloud_url,public_key,*,codesign_identity=None):
     atomic_json(bootstrap/'client-config.json',dict(cloudUrl=normalize_cloud_url(cloud_url),publicKey=public_key))
     atomic_json(bootstrap/'seed.json',envelope);(bootstrap/'seed.zip').write_bytes((releases/'packages'/f'{m["revision"]}.zip').read_bytes())
     command=[sys.executable,'-m','PyInstaller','--onefile','--name','MatrixCloudClient','--distpath',str(output/'dist'),'--workpath',str(output/'build'),'--specpath',str(output),'--add-data',str(bootstrap)+':bootstrap','--paths',str(BACKEND),'--hidden-import','connector.server','--hidden-import','connector.__main__','--hidden-import','playwright.async_api','--hidden-import','tkinter','--collect-submodules','uvicorn','--collect-all','playwright','--collect-all','PIL']
+    brand=BACKEND/'client'/'brand'
+    command+=['--clean','--hidden-import','client.branding']
+    command+=['--add-data',str(brand)+':brand','--icon',str(brand/('matrixcloud.icns' if sys.platform=='darwin' else 'matrixcloud.ico'))]
     if sys.platform=='win32':command+=['--hide-console','hide-early','--hidden-import','win32com.client']
     elif sys.platform=='darwin':
         command+=['--windowed','--target-architecture',platform.machine(),'--osx-bundle-identifier','com.matrixcloud.connector']

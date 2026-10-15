@@ -10,6 +10,7 @@ import time
 import webbrowser
 import httpx
 from .updates import UpdateStore,fetch_update,atomic_json
+from .branding import workbench_url
 
 
 def switch_when_idle(busy,stop,start):
@@ -95,7 +96,7 @@ class Supervisor:
                 previous=self.store.state()['lastGood']
                 if previous is None or previous==current:raise
                 self.store.rollback(current);self.launch(previous);self.message='未确认版本启动失败，已恢复上一个可用版本'
-            if self.config.get('openOnStart',True):webbrowser.open(f'http://127.0.0.1:{self.config["port"]}/')
+            if self.config.get('openOnStart',True):webbrowser.open(workbench_url(self.config))
             while True:
                 if self.stopping:
                     try:
@@ -125,6 +126,7 @@ def main(argv=None):
     parser=argparse.ArgumentParser();parser.add_argument('--config',type=Path,required=True);parser.add_argument('--worker',type=int);parser.add_argument('--once',action='store_true');parser.add_argument('--background',action='store_true');args=parser.parse_args(argv)
     config=json.loads(args.config.read_text(encoding='utf-8'))
     if args.background:config['openOnStart']=False
+    elif not args.worker:config['openOnStart']=True
     if args.worker:return worker(config,args.worker)
     # OS-backed exclusive lock prevents two supervisors sharing an install root.
     root=Path(config['installRoot']);root.mkdir(parents=True,exist_ok=True)
@@ -137,13 +139,13 @@ def main(argv=None):
                 with httpx.Client(trust_env=False,timeout=3) as client:
                     token=(Path(config['dataRoot'])/'connector-token').read_text().strip()
                     client.get(f'http://127.0.0.1:{config["port"]}/client-state',headers={'Authorization':'Bearer '+token}).raise_for_status()
-                if not args.background:webbrowser.open(f'http://127.0.0.1:{config["port"]}/')
+                if not args.background:webbrowser.open(workbench_url(config))
                 return
         else:
             import fcntl
             try:fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
             except BlockingIOError:
-                if not args.background:webbrowser.open(f'http://127.0.0.1:{config["port"]}/')
+                if not args.background:webbrowser.open(workbench_url(config))
                 return
         supervisor=Supervisor(config,args.config)
         def stop(*_):supervisor.stopping=True

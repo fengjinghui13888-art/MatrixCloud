@@ -1,3 +1,4 @@
+import {BrandLogo} from './BrandLogo';
 import { useEffect,useState,type ReactNode } from 'react';
 import {removeSessionValue} from './safe-storage';
 import {PasswordRecovery} from './PasswordRecovery';
@@ -65,7 +66,7 @@ export function AccountLogin({children}:{children:(username:string,logout:()=>Pr
   }
   if(user)return <>{error&&<p className="login-error" role="alert">{error}</p>}{children(user,logout,switchAccount)}</>;
   if(recover)return <PasswordRecovery initialUsername={username} onBack={()=>setRecover(false)} onComplete={name=>{setRecover(false);setUsername(name);setPassword('');setConfirm('');setError('');setNotice('密码已重设，请用新密码登录。原账号内容和配置保留。');}} submit={body=>accountRequest('/api/auth/password-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},async r=>{const result=await r.json();if(!r.ok)throw Error(result.message??'重设未完成');return result;})}/>;
-  return <main className="account-login"><div className="login-brand">华科未来·矩阵云 <span>华科未来 · 内容与账号，一处管理</span></div><section className="login-card">
+  return <main className="account-login"><div className="login-brand"><BrandLogo/><span>华科未来 · 内容与账号，一处管理</span></div><section className="login-card">
     {checking?<p role="status">正在连接你的工作台…</p>:configured===null?<><h1>暂时无法连接</h1><p role="alert">{error}</p><button className="primary" onClick={()=>void check()}>重新连接</button></>:<>
       <div className="login-eyebrow">{switching?'切换账号':register?'创建账号':'欢迎来到矩阵云'}</div><h1>{register?'创建你的工作台':switching?'登录其他工作台账号':'登录你的工作台'}</h1>
       <p>{register?'创建后即可进入独立工作区，内容与设置分别保存。':switching?'输入另一个系统账号即可切换工作区。':'使用已有账号和密码继续管理你的内容。'}</p>

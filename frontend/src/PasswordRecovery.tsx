@@ -1,3 +1,4 @@
+import {BrandLogo} from './BrandLogo';
 import {useState} from 'react';
 
 export function PasswordRecovery({initialUsername,onBack,onComplete,submit}:{initialUsername:string;onBack:()=>void;onComplete:(username:string)=>void;submit:(body:{username:string;code:string;password:string})=>Promise<unknown>}){
@@ -11,7 +12,7 @@ export function PasswordRecovery({initialUsername,onBack,onComplete,submit}:{ini
   catch(e){setError(e instanceof Error?e.message:'暂时无法重设，请稍后重试');}
   finally{setBusy(false);}
  }
- return <main className="account-login"><div className="login-brand">华科未来·矩阵云 <span>华科未来 · 内容与账号，一处管理</span></div><section className="login-card">
+ return <main className="account-login"><div className="login-brand"><BrandLogo/><span>华科未来 · 内容与账号，一处管理</span></div><section className="login-card">
   <div className="login-eyebrow">找回账号</div><h1>重设登录密码</h1>
   <p>请联系平台管理员，提供原登录账号，核实身份后获取一次性恢复码。恢复码 15 分钟内有效，只能使用一次。</p>
   <p>当前未接入邮件或短信找回。重设后原来的小红书账号、内容和配置都会保留。</p>

@@ -1,0 +1,5 @@
+.matrix-brand-logo{display:block;width:208px;max-width:100%;height:auto;object-fit:contain;flex-shrink:1}
+.customer-shell .brand{padding:0 4px 32px}.customer-shell .brand .matrix-brand-logo{width:208px}
+.login-brand .matrix-brand-logo{width:280px;margin:0 auto 6px}
+.admin-wordmark{flex-wrap:wrap}.admin-wordmark .matrix-brand-logo{width:202px}.admin-wordmark>span{margin-left:0}
+@media(max-width:620px){.customer-shell .brand .matrix-brand-logo{width:100px}.customer-shell .brand{padding:8px 0 24px}.login-brand .matrix-brand-logo{width:250px}}
