@@ -95,7 +95,7 @@ class DraftExecutor:
                 candidates=[p for p in connection.context.pages if p.url.startswith(CREATOR+'/publish/publish')]
                 selected=None
                 for page in candidates[:5]:
-                    await connection.select(page); await connection.foreground()
+                    await connection.select(page)
                     actual=await connection.evaluate(dom.expression(dom.READEDITOR))
                     if not any(actual.get(k) for k in ('editor','imageCount','pendingImageCount','title','text')) and 'target=image' in page.url:selected=page; break
                 if selected is None:selected=await connection.new_page(CREATOR+'/publish/publish?from=menu_left&target=image')

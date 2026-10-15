@@ -2,6 +2,84 @@ from types import SimpleNamespace
 import httpx
 import pytest
 from connector.browser import BrowserRuntime,CREATOR,WEB
+from connector.files import atomic_json,read_json
+import asyncio
+import os
+
+def test_process_probe_does_not_terminate_current_process():
+    from connector.browser import process_alive
+    assert process_alive(os.getpid()) is True
+    assert process_alive(None) is True
+
+def test_native_start_does_not_force_new_window_or_login_page(tmp_path,monkeypatch):
+    args=[]
+    def popen(command,**kwargs):args.extend(command);return SimpleNamespace(pid=123)
+    monkeypatch.setattr('connector.browser.subprocess.Popen',popen)
+    BrowserRuntime.launch_native_browser('fake-chrome',tmp_path)
+    assert '--new-window' not in args
+    assert args[-1]==CREATOR+'/new/home'
+
+@pytest.mark.asyncio
+async def test_two_runtimes_one_account_launch_once_but_new_account_has_own_browser(tmp_path,monkeypatch):
+    launches=[]
+    def launcher(_,directory):
+        launches.append(directory)
+        (directory/'DevToolsActivePort').write_text('9222\n/devtools/browser/'+directory.parent.name)
+        return SimpleNamespace(pid=123)
+    async def version(session):return dict(webSocketDebuggerUrl=session['browserUrl'])
+    monkeypatch.setattr('connector.browser.browser_version',version)
+    a=BrowserRuntime(tmp_path,browser_launcher=launcher);b=BrowserRuntime(tmp_path,browser_launcher=launcher)
+    a.executable=b.executable=lambda:'fake-chrome'
+    results=await asyncio.gather(a.ensure('a'),b.ensure('a'),return_exceptions=True)
+    assert len(launches)==1
+    assert any(isinstance(r,dict) for r in results)
+    await b.ensure('b')
+    assert len(launches)==2 and launches[0]!=launches[1]
+
+@pytest.mark.asyncio
+async def test_late_start_reconnects_without_second_launch(tmp_path,monkeypatch):
+    atomic_json(tmp_path/'a/session.json',dict(id='a',profile='local:a',pid=123,starting=True))
+    directory=tmp_path/'a/chrome-profile';directory.mkdir()
+    (directory/'DevToolsActivePort').write_text('9222\n/devtools/browser/a')
+    async def version(session):return dict(webSocketDebuggerUrl=session['browserUrl'])
+    monkeypatch.setattr('connector.browser.browser_version',version)
+    monkeypatch.setattr('connector.browser.process_alive',lambda _:True)
+    runtime=BrowserRuntime(tmp_path)
+    def forbidden(*_):raise AssertionError('late-start browser must be reconnected')
+    runtime.browser_launcher=forbidden
+    session=await runtime.ensure('a')
+    assert session['debugPort']==9222 and not session['starting']
+
+@pytest.mark.asyncio
+async def test_existing_process_with_broken_connection_never_opens_another_window(tmp_path,monkeypatch):
+    session=dict(id='a',profile='local:a',pid=123,debugPort=1111)
+    atomic_json(tmp_path/'a/session.json',session)
+    active=tmp_path/'a/chrome-profile/DevToolsActivePort';active.parent.mkdir();active.write_text('1111\n/devtools/browser/old')
+    runtime=BrowserRuntime(tmp_path)
+    async def disconnected(_):return False
+    runtime.live=disconnected
+    monkeypatch.setattr('connector.browser.process_alive',lambda _:True,raising=False)
+    def forbidden(*_):raise AssertionError('connection failure must not duplicate a live browser')
+    runtime.browser_launcher=forbidden
+    with pytest.raises(ValueError,match='已有浏览器仍在运行'):await runtime.ensure('a')
+    assert active.read_text()=='1111\n/devtools/browser/old'
+    assert read_json(tmp_path/'a/session.json')==session
+
+@pytest.mark.asyncio
+async def test_startup_timeout_retains_pid_and_forbids_second_launch(tmp_path,monkeypatch):
+    launches=[];runtime=BrowserRuntime(tmp_path)
+    runtime.executable=lambda:'fake-chrome'
+    def launch(*_):launches.append(1);return SimpleNamespace(pid=456)
+    runtime.browser_launcher=launch
+    async def disconnected(_):return False
+    runtime.live=disconnected
+    async def timeout(*_):return None
+    monkeypatch.setattr('connector.browser.until',timeout)
+    monkeypatch.setattr('connector.browser.process_alive',lambda _:True,raising=False)
+    with pytest.raises(ValueError):await runtime.ensure('a')
+    assert read_json(tmp_path/'a/session.json')['pid']==456
+    with pytest.raises(ValueError,match='已有浏览器仍在运行'):await runtime.ensure('a')
+    assert launches==[1]
 
 @pytest.mark.asyncio
 async def test_closed_browser_reopens_same_profile_before_connect(tmp_path,monkeypatch):

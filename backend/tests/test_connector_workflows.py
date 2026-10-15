@@ -114,7 +114,7 @@ def test_unknown_save_cannot_upload_again_under_new_run_id(tmp_path):
     run(scenario())
 
 class FakeContext:
-    def __init__(self):self.listeners={};self.pages=[]
+    def __init__(self):self.listeners={};self.pages=[];self.visits=[];self.foregrounds=0
     def on(self,name,fn):self.listeners.setdefault(name,[]).append(fn)
     def remove_listener(self,name,fn):self.listeners[name].remove(fn)
     async def route(self,*args):pass
@@ -128,7 +128,7 @@ class FakeContext:
 
 class SyncPage:
     def __init__(self,context,url):self.context=context;self.url=url
-    async def bring_to_front(self):pass
+    async def bring_to_front(self):self.context.foregrounds+=1
     async def evaluate(self,source):
         from connector.note_listing import LIST_STATE,ADVANCE_LIST
         if source==LIST_STATE:return dict(total=1,atEnd=True)
@@ -137,6 +137,7 @@ class SyncPage:
             return dict(action='unavailable')
         raise AssertionError('unexpected page expression')
     async def goto(self,url,**kwargs):
+        self.context.visits.append(url)
         self.url=url
         if '/new/home' in url:self.context.emit('/api/galaxy/user/info',dict(redId='42',userId='u'))
         if '/new/note-manager' in url:self.context.emit('/api/galaxy/creator/note/user/posted',dict(notes=[dict(id='n',display_title='Owned',type='normal',images_list=[])],has_more=False))
@@ -155,7 +156,7 @@ def test_full_incremental_sync_preserves_known_images_and_checkpoints(tmp_path):
             async def wait_until_window_closed(self):await asyncio.Future()
             async def foreground(self):await self.page.bring_to_front()
             async def check(self):self.guard.check()
-            async def evaluate(self,source):return dict(loggedIn=True,handle='42',userId='u',followers=12)
+            async def evaluate(self,source):return dict(loggedIn=True,handle='42',redId='42',userId='u',followers=12)
             async def close(self):pass
         class Runtime:
             async def connect(self,profile,guard=False,open_creator=False):
@@ -170,6 +171,15 @@ def test_full_incremental_sync_preserves_known_images_and_checkpoints(tmp_path):
         assert [c['id'] for c in result['comments']]==['fresh']
         assert result['media']['cached']==1 and not result['loginRequired']
         assert result['account']['followers']==12
+        # One initial focus, fresh list/notification/chat once each; identity
+        # rechecks must not reload pages or repeatedly steal the user's focus.
+        assert context.foregrounds==1
+        assert context.visits==[
+            'https://creator.xiaohongshu.com/new/home',
+            'https://creator.xiaohongshu.com/new/note-manager',
+            'https://www.xiaohongshu.com/notification',
+            'https://www.xiaohongshu.com/chat',
+        ]
         assert any(p.get('checkpoint') for p in patches)
         assert read_json(tmp_path/'sync-jobs'/input['_jobId']/'result.json')['comments'][0]['id']=='fresh'
     run(scenario())

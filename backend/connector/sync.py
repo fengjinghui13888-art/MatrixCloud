@@ -140,7 +140,7 @@ class SyncExecutor:
                 async def step(page):
                     connection.page=page; await connection.check(); network.check(); await connection.pace(); network.check()
                 async def navigate(page,url):
-                    await step(page); await page.bring_to_front(); await page.goto(url,wait_until='domcontentloaded')
+                    await step(page); await page.goto(url,wait_until='domcontentloaded')
                 async def drain():
                     await network.flush(); collector.consume()
                     # Persist comments/messages as each page arrives, including
@@ -158,7 +158,7 @@ class SyncExecutor:
                 async def creator_identity():
                     await network.flush()
                     if collector.creator and collector.creator.get('redId'):return collector.creator
-                    identity=await connection.evaluate(dom.expression(dom.READCREATORIDENTITY))
+                    identity=await connection.evaluate(dom.expression(dom.READCREATORIDENTITY,True))
                     if identity.get('loggedIn') and identity.get('handle') and identity.get('userId'):collector.creator=dict(redId=identity['handle'],userId=identity['userId'])
                     return collector.creator
                 await until(creator_identity,lambda v:v and v.get('redId')); collector.assert_creator()
@@ -185,7 +185,8 @@ class SyncExecutor:
                 atomic_json(self.root/'sync-jobs'/job_id/'listing.json',listing)
                 coverage['notes']=f'已读取笔记列表 {len(collector.owned)}'+(f'/{listing["total"]}' if listing.get('total') else '')+' 篇；'+('已核对列表末尾' if listing['complete'] else '尚未核对列表末尾，可继续补全')
                 await checkpoint()
-                web=next((p for p in context.pages if p.url.startswith(WEB+'/')),None)
+                web_pages=[p for p in context.pages if p.url.startswith(WEB+'/')]
+                web=next((p for p in web_pages if '/login' not in p.url),next(iter(web_pages),None))
                 if web is None:web=await context.new_page()
                 await report('comments','正在核对网页版账号并读取评论通知'); collector.web=None; await navigate(web,WEB+'/notification')
                 async def web_identity():
@@ -226,7 +227,8 @@ class SyncExecutor:
                     # Finish note bodies before spending time paging through
                     # historical notifications and long message conversations.
                     await report('comments','正文已读取，正在补全评论通知历史')
-                    await navigate(web,WEB+'/notification'); await drain()
+                    if urlsplit(web.url).path!='/notification':await navigate(web,WEB+'/notification')
+                    await drain()
                     for i in range(50):
                         batches=records(r'/you/mentions$'); last=batches[-1]['body'].get('data',{}) if batches else {}
                         if last.get('has_more') is False:break
@@ -262,9 +264,11 @@ class SyncExecutor:
                         except Exception as exc:network.check(); detail_errors.append(dict(conversationId=peer,error=str(exc).split('\n')[0]))
                     coverage['messages']=f'已读取 {opened}/{len(collector.chats)} 个会话，{len(collector.messages)} 条消息；{verified} 个会话历史到达最早记录'
                 await drain()
-                collector.creator=None; await navigate(creator,CREATOR+'/new/home'); await until(creator_identity,lambda v:v and v.get('redId')); collector.assert_creator()
+                # Recheck self identity on the current pages. Reloading home/chat
+                # adds no evidence and repeatedly disrupts the open window.
+                collector.creator=None; await step(creator); await until(creator_identity,lambda v:v and v.get('redId')); collector.assert_creator()
                 if logged_in:
-                    collector.web=None; await navigate(web,WEB+'/chat'); await until(web_identity,bool)
+                    collector.web=None; await step(web); await until(web_identity,bool)
                     if not collector.assert_web():raise ValueError('同步过程中网页版登录失效，结果未保存')
                 snapshot=collector.snapshot(); snapshot['account']={**target,'followers':followers if followers is not None else target.get('followers'),'lastSyncedAt':datetime.now(timezone.utc).isoformat(),'state':'connected'}
                 snapshot.update(coverage=coverage,loginRequired=not logged_in,evidence=dict(creatorHandle=collector.creator['redId'],webHandle=collector.web.get('red_id') if logged_in else None,responses=network.evidence,errors=network.errors+detail_errors))

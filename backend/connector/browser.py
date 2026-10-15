@@ -87,16 +87,32 @@ def verify_editor(actual,task):
     if actual.get('imageCount')!=len(task['images']): raise ValueError('真实媒体预览数量不一致，保留页面，未重复上传')
     return dict(title=actual['title'],body=task['body'],tags=task['tags'],imageCount=actual['imageCount'])
 
+def process_alive(pid):
+    # Unknown ownership is not permission to launch another account window.
+    if type(pid) is not int or pid<=0:return True
+    if os.name=='nt':
+        import ctypes
+        from ctypes import wintypes
+        kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+        kernel.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]
+        kernel.OpenProcess.restype=wintypes.HANDLE
+        kernel.WaitForSingleObject.argtypes=[wintypes.HANDLE,wintypes.DWORD]
+        kernel.WaitForSingleObject.restype=wintypes.DWORD
+        kernel.CloseHandle.argtypes=[wintypes.HANDLE]
+        handle=kernel.OpenProcess(0x00100000,False,pid) # SYNCHRONIZE; no termination rights.
+        if not handle:return ctypes.get_last_error()!=87 # invalid PID; other failures are uncertain.
+        try:return kernel.WaitForSingleObject(handle,0)!=0
+        finally:kernel.CloseHandle(handle)
+    try:os.kill(pid,0);return True
+    except ProcessLookupError:return False
+    except PermissionError:return True
+
 @asynccontextmanager
 async def profile_lock(directory:Path,profile:str,task_id:str):
     directory.mkdir(parents=True,exist_ok=True); lock=directory/(hashlib.sha256(profile.encode()).hexdigest()+'.lock')
     try: lock.mkdir()
     except FileExistsError:
-        owner=read_json(lock/'owner.json',{}); pid=owner.get('pid'); alive=True
-        if isinstance(pid,int):
-            try: os.kill(pid,0)
-            except ProcessLookupError: alive=False
-            except PermissionError: pass
+        owner=read_json(lock/'owner.json',{}); alive=process_alive(owner.get('pid'))
         if alive: raise ValueError('此 Chrome 正在同步另一项任务，请等当前同步结束后再试')
         # Remove only the known stale owner file, never an arbitrary directory tree.
         (lock/'owner.json').unlink(missing_ok=True); lock.rmdir(); lock.mkdir()
@@ -165,7 +181,7 @@ class BrowserRuntime:
     @staticmethod
     def launch_native_browser(executable,directory):
         # This starts native Chrome only. No shell or JavaScript backend bridge.
-        args=[executable,'--user-data-dir='+str(directory),'--remote-debugging-port=0','--no-first-run','--no-default-browser-check','--new-window',CREATOR+'/login']
+        args=[executable,'--user-data-dir='+str(directory),'--remote-debugging-port=0','--no-first-run','--no-default-browser-check',CREATOR+'/new/home']
         kwargs=dict(stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,close_fds=True)
         if os.name=='nt':kwargs['creationflags']=subprocess.DETACHED_PROCESS|subprocess.CREATE_NEW_PROCESS_GROUP
         else:kwargs['start_new_session']=True
@@ -191,6 +207,7 @@ class BrowserRuntime:
         session=self.load(profile[6:])
         if not session: raise ValueError('请先打开此账号专属浏览器并扫码登录')
         if guard:ExecutionGuard(self.root,profile).check()
+        if session.get('starting'):session=await self.ensure(profile[6:])
         reopened=False
         try:version=await browser_version(session)
         except httpx.ConnectError:
@@ -217,18 +234,34 @@ class BrowserRuntime:
     async def ensure(self,id):
         if not valid_id(id): raise ValueError('无效会话编号')
         async with self.locks.setdefault(id,asyncio.Lock()):
-            session=self.load(id)
-            if await self.live(session): return session
-            directory=self.root/id/'chrome-profile'; directory.mkdir(parents=True,exist_ok=True,mode=0o700)
-            active=directory/'DevToolsActivePort'; active.unlink(missing_ok=True)
-            process=self.browser_launcher(self.executable(),directory); self.launched[id]=process
-            async def read_active():
-                try: return active.read_text().strip().splitlines()
-                except FileNotFoundError: return None
-            lines=await until(read_active,lambda v:v and len(v)>=2,15)
-            if not lines: raise ValueError('Chrome 未能启动，请关闭该账号遗留窗口后重新扫码')
-            port=int(lines[0]); session=dict(id=id,pid=process.pid,debugPort=port,profile='local:'+id,browserUrl=f'ws://127.0.0.1:{port}{lines[1]}',createdAt=datetime.now(timezone.utc).isoformat())
-            await browser_version(session); atomic_json(self.root/id/'session.json',session); return session
+            # Also serialize separate runtime instances/processes sharing this profile.
+            async with profile_lock(self.root/'browser-launch-locks','local:'+id,'browser-start'):
+                session=self.load(id)
+                if await self.live(session): return session
+                directory=self.root/id/'chrome-profile'
+                active=directory/'DevToolsActivePort'
+                if session and process_alive(session.get('pid')):
+                    # A slow first launch may have become ready after its timeout.
+                    # Recover only its recorded endpoint; never start a second process.
+                    if session.get('starting') and active.is_file():
+                        lines=active.read_text().strip().splitlines()
+                        if len(lines)>=2:
+                            port=int(lines[0]);recovered={**session,'debugPort':port,'browserUrl':f'ws://127.0.0.1:{port}{lines[1]}','starting':False}
+                            await browser_version(recovered);atomic_json(self.root/id/'session.json',recovered);return recovered
+                    raise ValueError('此账号已有浏览器仍在运行，但连接暂不可用；请检查原窗口后重试，不会另开浏览器或要求重新扫码')
+                if not session and active.exists():raise ValueError('此账号存在原浏览器记录，无法确认窗口已关闭；请检查原窗口，不会另开浏览器')
+                directory.mkdir(parents=True,exist_ok=True,mode=0o700)
+                active.unlink(missing_ok=True)
+                process=self.browser_launcher(self.executable(),directory); self.launched[id]=process
+                session=dict(id=id,pid=process.pid,profile='local:'+id,createdAt=datetime.now(timezone.utc).isoformat(),starting=True)
+                atomic_json(self.root/id/'session.json',session)
+                async def read_active():
+                    try: return active.read_text().strip().splitlines()
+                    except FileNotFoundError: return None
+                lines=await until(read_active,lambda v:v and len(v)>=2,15)
+                if not lines: raise ValueError('浏览器尚未就绪，请检查此账号已打开的窗口；不会重复启动或清除登录')
+                port=int(lines[0]); session.update(debugPort=port,browserUrl=f'ws://127.0.0.1:{port}{lines[1]}',starting=False)
+                await browser_version(session); atomic_json(self.root/id/'session.json',session); return session
     async def state(self,id):
         session=self.load(id)
         if not await self.live(session): return dict(connected=False,loggedIn=False,creatorLoggedIn=False,webLoggedIn=False,message='请点击打开小红书，并在执行电脑完成登录')
