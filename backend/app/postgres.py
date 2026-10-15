@@ -24,7 +24,8 @@ class Postgres:
             except psycopg.errors.UndefinedTable as error:raise ServiceError('请先完成数据库迁移，再启动新版本',503) from error
             if not row:raise ServiceError('请先完成数据库迁移，再启动新版本',503)
             if not c.execute('SELECT version FROM schema_migration WHERE version=3').fetchone():raise ServiceError('请先执行线索数据库升级 003-interaction-leads.sql，再启动新版本',503)
-            required=('tenant','app_user','login_session','login_limit','xiaohongshu_account','note','asset','message','clue','follow_up','team_member','sync_run','model_config','generation','template','job','job_attempt','device','device_pairing','device_binding','device_selection','device_run','connector_limit','audit_log','legacy_migration')
+            if not c.execute('SELECT version FROM schema_migration WHERE version=4').fetchone():raise ServiceError('请先执行管理员权限升级 004-platform-admin-permissions.sql，再启动新版本',503)
+            required=('tenant','app_user','login_session','login_limit','xiaohongshu_account','note','asset','message','clue','follow_up','team_member','sync_run','model_config','generation','template','job','job_attempt','device','device_pairing','device_binding','device_selection','device_run','connector_limit','audit_log','legacy_migration','platform_admin_member')
             missing=[name for name in required if not c.execute('SELECT to_regclass(%s) AS relation',(name,)).fetchone()['relation']]
             if missing:raise ServiceError('数据库迁移不完整，缺少表：'+', '.join(missing),503)
             return dict(version=2,tables=list(required))

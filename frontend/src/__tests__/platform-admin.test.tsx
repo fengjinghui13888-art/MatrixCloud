@@ -7,8 +7,9 @@ test('independent admin login loads customers, filters, devices and scoped recov
  vi.stubGlobal('fetch',vi.fn(async(path,init)=>{
   const route=String(path).replace('/api/platform-admin/','');
   if(route==='session'&&!logged)return new Response('{"message":"请登录"}',{status:401});
-  if(route==='login'){writes.push({route,body:JSON.parse(init.body)});logged=true;return new Response('{"username":"platform"}');}
+  if(route==='login'){writes.push({route,body:JSON.parse(init.body)});logged=true;return new Response(JSON.stringify({username:'platform',isSuper:true,permissions:['customers.read','customers.status','customers.recovery','devices.read','audit.read']}));}
   if(route==='customers')return new Response(JSON.stringify({items:[customer]}));
+  if(route==='devices')return new Response(JSON.stringify({items:customer.devices.map(d=>({...d,customer:customer.name}))}));
   if(route==='audit')return new Response('{"items":[]}');
   if(route.endsWith('/recovery')){writes.push({route,body:JSON.parse(init.body)});return new Response(JSON.stringify({username:'fixture',code:'synthetic-recovery',expiresAt:Date.now()+900000}));}
   return new Response('{}');

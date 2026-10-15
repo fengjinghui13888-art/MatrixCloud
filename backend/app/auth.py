@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS auth_user_metadata(username TEXT PRIMARY KEY,role TEX
 CREATE TABLE IF NOT EXISTS auth_tenants(id TEXT PRIMARY KEY,name TEXT NOT NULL,enabled INTEGER NOT NULL DEFAULT 1,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS auth_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,workspace TEXT NOT NULL,actor TEXT NOT NULL,action TEXT NOT NULL,target TEXT NOT NULL,result TEXT NOT NULL,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS auth_recovery(id TEXT PRIMARY KEY,workspace TEXT NOT NULL,payload TEXT NOT NULL,status TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS platform_admin_member(username TEXT PRIMARY KEY,permissions TEXT NOT NULL,created_at TEXT NOT NULL,updated_at TEXT NOT NULL);
 ''')
 
     @contextmanager
@@ -96,17 +97,19 @@ CREATE TABLE IF NOT EXISTS auth_recovery(id TEXT PRIMARY KEY,workspace TEXT NOT 
                 r=c.execute('SELECT enabled FROM tenant WHERE tenant_id=%s',(workspace,)).fetchone();return bool(r and r['enabled'])
             r=c.execute('SELECT enabled FROM auth_tenants WHERE id=?',(workspace,)).fetchone();return bool(r['enabled']) if r else True
 
-    def identity(self,cookie_header):
+    def identity(self,cookie_header,*,allow_platform=False):
         token=cookie_token(cookie_header)
         if not token:return None
         with self.transaction() as c:
             stamp=int(time.time()*1000)
             if self.db:
                 row=c.execute('SELECT u.username,u.tenant_id AS workspace,u.display_name AS "displayName",u.role FROM login_session s JOIN app_user u ON u.tenant_id=s.tenant_id AND u.username=s.username JOIN tenant t ON t.tenant_id=u.tenant_id WHERE s.hash=%s AND s.expires>%s AND u.enabled AND t.enabled',(digest(token),stamp)).fetchone()
+                if row and row['workspace']=='owner' and not allow_platform and c.execute('SELECT 1 FROM platform_admin_member WHERE username=%s',(row['username'],)).fetchone():return None
                 return dict(row) if row else None
             row=c.execute('SELECT u.username FROM session_users u JOIN sessions s ON s.hash=u.session_hash WHERE s.hash=? AND s.expires>?',(digest(token),stamp)).fetchone()
             if row is None:return None
             user=next((u for u in self._users(c) if u['username']==row['username'] and u['enabled'] and u['tenant_enabled']),None)
+            if user and user['workspace']=='owner' and not allow_platform and c.execute('SELECT 1 FROM platform_admin_member WHERE username=?',(user['username'],)).fetchone():return None
             return self._public(user) if user else None
 
     def session(self,cookie_header):
@@ -295,12 +298,18 @@ CREATE TABLE IF NOT EXISTS auth_recovery(id TEXT PRIMARY KEY,workspace TEXT NOT 
 
     def tenants(self,user):
         self._platform(user)
+        return self._tenant_records()
+
+    def _tenant_records(self):
         with self.transaction() as c:
             rows=self.query(c,'SELECT id,name,enabled,created_at AS "createdAt" FROM auth_tenants ORDER BY created_at',(), 'SELECT tenant_id AS id,name,enabled,created_at AS "createdAt" FROM tenant ORDER BY created_at').fetchall()
             return dict(items=[{**dict(r),'enabled':bool(r['enabled'])} for r in rows])
 
     def update_tenant(self,user,id,input):
         self._platform(user)
+        return self._update_tenant_status(user,id,input)
+
+    def _update_tenant_status(self,user,id,input):
         if id=='owner' or not isinstance(input,dict) or set(input)!={'enabled'} or type(input['enabled']) is not bool:raise ServiceError('不能停用平台所属客户')
         with self.transaction() as c:
             result=self.query(c,'UPDATE auth_tenants SET enabled=? WHERE id=?',(input['enabled'] if self.db else int(input['enabled']),id),'UPDATE tenant SET enabled=? WHERE tenant_id=?')

@@ -465,6 +465,9 @@ async def dispatch(request, runtime, body):
                 result = auth.authenticate(body, cookie, ip)
             else:
                 result = auth.register(body, cookie, ip)
+            if result.get('workspace')=='owner' and result.get('role')=='lead_viewer' and not auth.identity('zhixu_session='+result['token']):
+                auth.logout('zhixu_session='+result['token'])
+                return message('请使用独立的平台管理后台登录此账号',403)
             token = result.pop('token')
             fields = ('username', 'role', 'workspace') if getattr(runtime.services, 'db', None) else ('username', 'workspace') if action == 'register' else ('username',)
             response = JSONResponse({key: result[key] for key in fields if key in result}, 200 if action == 'login' else 201)

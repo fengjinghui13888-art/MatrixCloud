@@ -101,6 +101,15 @@ def migrate(source, url, *, initialize=False, app_role='matrix_app'):
                     connection.execute('INSERT INTO app_user(tenant_id,username,password_hash,password_salt,display_name,role,enabled) VALUES(%s,%s,%s,%s,%s,%s,%s)',
                                        (user['workspace'], user['username'], user['hash'], user['salt'], user.get('display_name') or user['username'], user['role'], user['enabled']))
             by_username = {user['username']: user for user in users}
+            if 'owner' not in done:
+                from app.admin_permissions import checked_permissions
+                delegates=read_rows(source/'accounts.sqlite','platform_admin_member')
+                if len(delegates)>3:raise ValueError('子管理员数量超过3，停止迁移')
+                for delegate in delegates:
+                    user=by_username.get(delegate['username'])
+                    if not user or user['workspace']!='owner' or user['role']!='lead_viewer':raise ValueError('子管理员归属或权限角色无效，停止迁移')
+                    permissions=checked_permissions(json.loads(delegate['permissions']))
+                    connection.execute('INSERT INTO platform_admin_member(username,permissions,created_at,updated_at) VALUES(%s,%s::jsonb,%s,%s)',(user['username'],encoded(permissions),delegate['created_at'],delegate['updated_at']))
             for session in read_rows(source / 'accounts.sqlite', 'sessions'):
                 user = by_username.get(links.get(session['hash']))
                 if user and user['workspace'] not in done and session['expires'] > time.time() * 1000:

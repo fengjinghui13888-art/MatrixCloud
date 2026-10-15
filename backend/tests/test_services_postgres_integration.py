@@ -112,6 +112,25 @@ def test_platform_admin_postgres_lists_scoped_counts_and_separate_session(live):
         assert c.post('/api/platform-admin/customers/owner/status',headers=h,json={'enabled':False}).status_code==400
         assert c.get('/api/platform-admin/session').json()['username']=='platform'
 
+def test_postgres_subadmin_limit_is_concurrent_and_permissions_are_owner_scoped(live):
+    from app.admin_permissions import principal,save_member,list_members
+    srv,identity,_=live;actor=principal(srv.auth,identity)
+    def create(index):
+        try:save_member(srv.auth,actor,dict(username='delegate'+str(index),displayName='测试子管理员',password='synthetic-password',permissions=['customers.read']));return True
+        except ServiceError as error:
+            assert error.status==409;return False
+    with ThreadPoolExecutor(max_workers=4) as pool:results=list(pool.map(create,range(4)))
+    assert results.count(True)==3 and len(list_members(srv.auth,actor)['items'])==3
+    customer=srv.auth.register(dict(username='other-tenant',password='synthetic-password'),ip='other-tenant')
+    assert srv.db.rows(customer['workspace'],'SELECT username FROM platform_admin_member')==[]
+    name=list_members(srv.auth,actor)['items'][0]['username']
+    token=srv.auth.authenticate(dict(username=name,password='synthetic-password'),ip='delegate')['token']
+    assert srv.auth.identity('zhixu_session='+token) is None
+    delegated=srv.auth.identity('zhixu_session='+token,allow_platform=True)
+    assert principal(srv.auth,delegated)['permissions']==['customers.read']
+    save_member(srv.auth,actor,{'permissions':['audit.read']},name)
+    assert srv.auth.identity('zhixu_session='+token,allow_platform=True) is None
+
 
 def snapshot(id='a',note_id='n',comment_id='c'):
     return dict(account=account(id),notes=[dict(id=note_id,accountId=id,title='合成笔记',summary='正文',cover='https://example.com/image.png',url=None,publishedAt='2026-10-13',metrics=dict(likes=1,collects=2,comments=3,shares=4),mediaType='image',images=['https://example.com/image.png'],videoUrl=None,mediaAssets=[dict(id='asset-z',kind='image',index=1,sourceUrl='https://example.com/b.png',path=id+'/x/y/'+note_id+'/b.png',bytes=20,sha256='b'*64),dict(id='asset-a',kind='cover',index=0,sourceUrl='https://example.com/a.png',path=id+'/x/y/'+note_id+'/a.png',bytes=10,sha256='a'*64)])],comments=[dict(id=comment_id,accountId=id,noteId=note_id,author='合成客户',avatar='',body='咨询',status='pending',tags=[],createdAt='2026-10-13')],messages=[dict(id='message',accountId=id,conversationId='thread',author='合成客户',body='私信',createdAt='2026-10-13',direction='incoming')])
@@ -321,6 +340,8 @@ def test_real_offline_migration_preserves_auth_tasks_media_templates_and_cipher(
     local=Services(Settings(data_dir=source,platform_admin_username='platform'))
     login=local.auth.setup(dict(username='platform',password='synthetic-password'))
     owner=local.auth.identity('zhixu_session='+login['token'])
+    from app.admin_permissions import principal,save_member,list_members
+    save_member(local.auth,principal(local.auth,owner),dict(username='migration-delegate',displayName='迁移子管理员',password='synthetic-password',permissions=['audit.read']))
     local.auth.create_member(owner,dict(username='operator',password='synthetic-password',role='operator',displayName='操作员'))
     local.auth.update_member(owner,'operator',dict(enabled=False))
     registered=local.auth.register(dict(username='customer',password='synthetic-password'),ip='customer')
@@ -352,5 +373,6 @@ def test_real_offline_migration_preserves_auth_tasks_media_templates_and_cipher(
     assert migrated_scope.templates.list()[0]['draft']==template()
     assert migrated_scope.studio.get(studio['id'])['status']=='review'
     assert next(row for row in migrated.auth.team(owner)['items'] if row['username']=='operator')['enabled'] is False
+    assert list_members(migrated.auth,principal(migrated.auth,owner))['items'][0]['permissions']==['audit.read']
     assert all(row.get('alreadyMigrated') for row in migration.migrate(source,database['admin'],app_role=database['role'])['tenants'])
     migrated.close();local.close()
