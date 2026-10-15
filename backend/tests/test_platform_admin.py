@@ -2,6 +2,25 @@ from fastapi.testclient import TestClient
 from app.api import create_app
 from app.settings import Settings
 
+
+def test_admin_self_password_requires_current_password_and_revokes_sessions(tmp_path):
+    app=create_app(Settings(data_dir=tmp_path,public_origin='http://localhost',platform_admin_username='platform'))
+    auth=app.state.services.auth
+    auth.setup(dict(username='platform',password='platform-password'),ip='setup')
+    h={'Origin':'http://localhost'}
+    with TestClient(app,base_url='http://localhost') as c:
+        url='/api/platform-admin/account/password'
+        assert c.post(url,json={},headers=h).status_code==401
+        assert c.post('/api/platform-admin/login',json=dict(username='platform',password='platform-password'),headers=h).status_code==200
+        assert c.post(url,json=dict(currentPassword='wrong-password',newPassword='new-admin-password'),headers=h).status_code==400
+        assert c.get('/api/platform-admin/session').status_code==200
+        assert c.post(url,json=dict(currentPassword='platform-password',newPassword='new-admin-password',username='another'),headers=h).status_code==400
+        assert c.post(url,json=dict(currentPassword='platform-password',newPassword='new-admin-password')).status_code==403
+        assert c.post(url,json=dict(currentPassword='platform-password',newPassword='new-admin-password'),headers=h).status_code==200
+        assert c.get('/api/platform-admin/session').status_code==401
+        assert c.post('/api/platform-admin/login',json=dict(username='platform',password='platform-password'),headers=h).status_code==401
+        assert c.post('/api/platform-admin/login',json=dict(username='platform',password='new-admin-password'),headers=h).status_code==200
+
 def test_admin_has_separate_login_and_rejects_customer_and_csrf(tmp_path):
     app=create_app(Settings(data_dir=tmp_path,public_origin='http://localhost',platform_admin_username='platform',service_token='s'*64))
     auth=app.state.services.auth

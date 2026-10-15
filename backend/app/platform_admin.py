@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from .auth import SESSION_SECONDS
 from .store import ServiceError
 from .recovery import issue_recovery
+from .admin_account import change_password
 from .admin_permissions import principal,record,require,super_only,list_members,save_member
 
 def respond(value,status=200):return JSONResponse(jsonable_encoder(value),status)
@@ -50,6 +51,8 @@ def install_admin_routes(app,runtime):
             if not user:raise ServiceError('请登录平台管理后台',401)
             actor=principal(auth,user)
             if action=='session' and method=='GET':return respond(actor)
+            if action=='account/password' and method=='POST':
+                r=respond(change_password(auth,user,body));r.delete_cookie(COOKIE,path=PREFIX);return r
             if action=='logout' and method=='POST':
                 auth.logout(cookie_header(request));r=respond(dict(ok=True));r.delete_cookie(COOKIE,path=PREFIX);return r
             if action=='admins':

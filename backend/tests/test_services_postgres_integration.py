@@ -92,6 +92,26 @@ def test_recovery_postgres_is_atomic_and_preserves_account_data(live):
     assert scope.store.list_accounts()[0]['id']=='a'
     assert srv.auth.authenticate(dict(username=identity['username'],password='synthetic-new-password'),ip='verify')['workspace']==identity['workspace']
 
+def test_admin_self_password_postgres_and_delegate_isolation(live):
+    from app.admin_account import change_password
+    from app.admin_permissions import principal,save_member
+    from app.recovery import issue_recovery,reset_password
+    srv,owner,_=live
+    customer=srv.auth.register(dict(username='customer',password='customer-password'),ip='fixture')
+    save_member(srv.auth,principal(srv.auth,owner),dict(username='delegate',displayName='合成子管理员',permissions=[],password='delegate-password'))
+    token=srv.auth.issue('delegate')
+    delegate=srv.auth.identity('zhixu_session='+token,allow_platform=True)
+    recovery=issue_recovery(srv.auth,'delegate')
+    with pytest.raises(ServiceError):change_password(srv.auth,delegate,dict(currentPassword='incorrect',newPassword='new-delegate-password'))
+    assert srv.auth.identity('zhixu_session='+token,allow_platform=True)
+    change_password(srv.auth,delegate,dict(currentPassword='delegate-password',newPassword='new-delegate-password'))
+    assert srv.auth.identity('zhixu_session='+token,allow_platform=True) is None
+    with pytest.raises(ServiceError):reset_password(srv.auth,dict(username='delegate',password='another-password',code=recovery['code']),ip='fixture')
+    assert srv.auth.authenticate(dict(username='delegate',password='new-delegate-password'),'',ip='delegate-new')['username']=='delegate'
+    assert srv.auth.authenticate(dict(username='platform',password='synthetic-password'),'',ip='owner-unchanged')['username']=='platform'
+    assert srv.auth.identity('zhixu_session='+customer['token'])
+
+
 def test_platform_admin_postgres_lists_scoped_counts_and_separate_session(live):
     from fastapi.testclient import TestClient
     from app.api import create_app
